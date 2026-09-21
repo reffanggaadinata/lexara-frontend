@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexara — Konsultasi Hukum Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16233F;
+    --navy-light:#24365C;
+    --navy-pale:#E8EBF1;
+    --gold:#A9822F;
+    --gold-pale:#F1E6C8;
+    --parchment:#F6F3EC;
+    --card:#FFFFFF;
+    --ink:#232323;
+    --ink-soft:#5B5750;
+    --sage:#4F7358;
+    --sage-pale:#E4EDE5;
+    --line:#E1DACB;
+    --danger:#A23B2E;
+    --danger-pale:#F3E1DC;
+    --radius-s:6px;
+    --radius-m:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#DED7C4;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px 12px;
+  }
+  h1,h2,h3,.serif{font-family:'Source Serif 4',serif;}
+  .phone{
+    width:390px;
+    max-width:100%;
+    background:var(--parchment);
+    border-radius:34px;
+    overflow:hidden;
+    box-shadow:0 30px 60px rgba(22,35,63,0.35), 0 0 0 8px #0F172E;
+    display:flex;
+    flex-direction:column;
+    height:800px;
+    position:relative;
+  }
+  #app{
+    /* Makes #app itself a flex column filling the remaining space under the
+       status bar, so the .screen inside it (flex:1 + overflow-y:auto) is
+       actually height-bounded and can scroll, instead of growing to fit
+       all its content and getting silently clipped by .phone's overflow:hidden. */
+    flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;
+  }
+  .statusbar{
+    height:30px;
+    background:var(--navy);
+    flex-shrink:0;
+  }
+
+  /* On an actual phone, this "floating mockup card" presentation (bezel,
+     shadow, fake status bar, tan margins) just wastes screen space and adds
+     a large gap above the content — that framing is only useful when this
+     page is viewed inside a desktop browser as a prototype. Below 480px
+     (a real phone viewport) the app fills the whole screen instead. */
+  @media (max-width: 480px){
+    body{padding:0;}
+    .phone{
+      width:100%;height:100dvh;min-height:100vh;
+      border-radius:0;box-shadow:none;
+    }
+    .statusbar{display:none;}
+  }
+
+  .screen{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    display:none;
+    flex-direction:column;
+  }
+  .screen.active{display:flex;}
+  .screen::-webkit-scrollbar{width:0;}
+
+  /* ---- Top bars ---- */
+  .topbar{
+    background:var(--navy);
+    color:#fff;
+    padding:18px 20px 22px;
+    flex-shrink:0;
+  }
+  .topbar .brand{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .brand .logo{
+    font-family:'Source Serif 4',serif;
+    font-weight:600;
+    font-size:20px;
+    letter-spacing:0.2px;
+  }
+  .brand .logo .mark{color:var(--gold);}
+  .mode-pill{
+    display:flex;
+    background:rgba(255,255,255,0.12);
+    border-radius:20px;
+    padding:3px;
+    font-size:11px;
+  }
+  .mode-pill button{
+    border:none;background:transparent;color:#C8D1E3;
+    padding:5px 11px;border-radius:20px;font-family:inherit;
+    font-size:11px;font-weight:600;cursor:pointer;
+  }
+  .mode-pill button.active{background:var(--gold);color:var(--navy);}
+  .mode-pill button:disabled{opacity:0.4;cursor:not-allowed;}
+  .greeting{font-size:13px;color:#B9C3D9;margin-bottom:2px;}
+  .headline{font-size:21px;font-weight:600;line-height:1.35;max-width:270px;}
+  .search-box{
+    margin-top:16px;
+    background:#fff;
+    border-radius:var(--radius-m);
+    display:flex;
+    align-items:center;
+    padding:11px 14px;
+    gap:9px;
+  }
+  .search-box input{
+    border:none;outline:none;flex:1;font-family:inherit;font-size:13.5px;color:var(--ink);
+  }
+  .search-box svg{flex-shrink:0;}
+
+  .content{padding:18px 20px 90px;}
+  .section-title{
+    font-size:14px;font-weight:700;color:var(--navy);margin:0 0 10px;
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .section-title .see-all{font-size:11.5px;font-weight:600;color:var(--gold);cursor:pointer;}
+
+  /* Category chips */
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--navy);
+    padding:8px 13px;
+    border-radius:8px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s, color .15s, box-shadow .15s;
+  }
+  .chip.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 3px 8px rgba(22,35,63,0.3);}
+
+  /* Sort row */
+  .sort-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .sort-row select{
+    border:1px solid var(--line);background:#fff;border-radius:var(--radius-s);
+    padding:6px 8px;font-family:inherit;font-size:12px;color:var(--ink-soft);
+  }
+  .result-count{font-size:12px;color:var(--ink-soft);}
+
+  /* Lawyer card */
+  .lawyer-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:14px;
+    margin-bottom:12px;
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    box-shadow:0 2px 8px rgba(22,35,63,0.07);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .lawyer-card:active{transform:scale(0.98);box-shadow:0 1px 4px rgba(22,35,63,0.1);}
+  .avatar{
+    width:52px;height:52px;border-radius:50%;
+    background:var(--navy-pale);
+    color:var(--navy);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Source Serif 4',serif;font-weight:600;font-size:17px;
+    flex-shrink:0;position:relative;
+  }
+  .lc-body{flex:1;min-width:0;}
+  .lc-name{font-weight:700;font-size:14.5px;color:var(--ink);margin:0 0 2px;}
+  .lc-spec{font-size:12px;color:var(--gold);font-weight:600;margin:0 0 5px;}
+  .lc-meta{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--ink-soft);margin-bottom:7px;}
+  .rating{display:flex;align-items:center;gap:3px;color:var(--ink);font-weight:600;}
+  .lc-footer{display:flex;justify-content:space-between;align-items:center;}
+  .lc-price{font-size:13px;font-weight:700;color:var(--navy);}
+  .lc-price span{font-weight:400;color:var(--ink-soft);font-size:11px;}
+  .tag{
+    font-size:10px;background:var(--sage-pale);color:var(--sage);
+    padding:3px 7px;border-radius:5px;font-weight:600;
+  }
+
+  /* Home hero: the search+avatar header sits directly above the promo
+     banner with no gap, both on the same navy, so they read as one merged
+     card. The header is sticky and stays navy the whole time — a `.solid`
+     class (toggled in JS once the hero has scrolled past) just adds a
+     shadow so it visibly separates from the page content behind it. */
+  .home-header{
+    position:sticky;top:0;z-index:20;flex-shrink:0;
+    display:flex;align-items:center;gap:10px;padding:16px 20px 14px;
+    background:transparent;transition:background .2s ease, box-shadow .2s ease;
+  }
+  .home-header.solid{background:var(--navy);box-shadow:0 2px 10px rgba(0,0,0,0.18);}
+  .home-header .search-box{margin-top:0;flex:1;}
+  /* The header (70px tall, measured) is transparent and stacked over the
+     hero via a matching negative margin + z-index, so at rest you see the
+     hero's gradient right through it — one merged block. Once .solid
+     kicks in (scrolled state) the header paints its own navy over whatever
+     is now scrolled underneath it instead. */
+  .home-hero{
+    position:relative;z-index:1;overflow:hidden;flex-shrink:0;
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);color:#fff;
+    border-radius:0 0 20px 20px;
+    margin-top:-70px;padding-top:70px;
+  }
+  .home-hero::after{
+    content:'';position:absolute;right:-30px;bottom:-40px;width:120px;height:120px;
+    border-radius:50%;background:rgba(169,130,47,0.25);pointer-events:none;
+  }
+  .avatar-btn{
+    width:40px;height:40px;border-radius:50%;flex-shrink:0;border:none;cursor:pointer;
+    background:var(--gold-pale);color:var(--navy);font-family:'Source Serif 4',serif;font-weight:700;
+    font-size:14px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.18);transition:transform .12s ease;
+  }
+  .avatar-btn:active{transform:scale(0.94);}
+
+  /* Promo content — sits inside the hero, right below the sticky header */
+  .promo-content{padding:0 20px 20px;position:relative;}
+  .promo-content .pb-title{
+    font-family:'Source Serif 4',serif;font-weight:600;font-size:17px;line-height:1.35;
+    max-width:220px;margin:0 0 14px;
+  }
+  .promo-content button{
+    background:var(--gold);color:#fff;border:none;padding:9px 14px;border-radius:8px;
+    font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;
+    box-shadow:0 5px 14px rgba(0,0,0,0.3);transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .promo-content button:active{transform:translateY(1px) scale(0.97);box-shadow:0 2px 6px rgba(0,0,0,0.25);}
+  .promo-dots{display:flex;gap:5px;margin-top:14px;}
+  .promo-dots span{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.35);cursor:pointer;transition:width .2s,border-radius .2s;}
+  .promo-dots span.on{background:var(--gold);width:14px;border-radius:3px;}
+
+
+  /* Topic icon grid — 4 columns, wraps to more rows, like a typical
+     e-commerce "menu" grid rather than a horizontal scroll strip. */
+  .topic-grid{display:grid;grid-template-columns:repeat(4,1fr);row-gap:18px;margin-bottom:24px;}
+  .topic-cell{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    background:none;border:none;cursor:pointer;font-family:inherit;padding:0;
+  }
+  .topic-cell .tc-icon{
+    width:52px;height:52px;border-radius:16px;color:var(--navy);
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+    box-shadow:0 4px 10px rgba(22,35,63,0.14);transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .topic-cell:active .tc-icon{transform:translateY(1px) scale(0.93);box-shadow:0 1px 4px rgba(22,35,63,0.18);}
+  .topic-cell.active .tc-icon{box-shadow:inset 0 0 0 2px var(--navy);}
+  .topic-cell .tc-label{font-size:11px;font-weight:600;color:var(--ink-soft);text-align:center;line-height:1.25;}
+  .topic-cell.active .tc-label{color:var(--navy);}
+
+  /* Compact lawyer tiles (horizontal row on home) */
+  .lawyer-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;}
+  .lawyer-row::-webkit-scrollbar{display:none;}
+  .lawyer-tile{
+    flex-shrink:0;width:108px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);
+    padding:12px 10px;text-align:center;cursor:pointer;
+    box-shadow:0 2px 8px rgba(22,35,63,0.07);transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .lawyer-tile:active{transform:scale(0.96);box-shadow:0 1px 4px rgba(22,35,63,0.1);}
+  .lawyer-tile .avatar{width:44px;height:44px;font-size:14px;margin:0 auto 8px;}
+  .lawyer-tile .lt-name{font-size:11.5px;font-weight:700;color:var(--ink);margin:0 0 3px;line-height:1.3;}
+  .lawyer-tile .lt-spec{font-size:9.5px;color:var(--gold);font-weight:600;margin-bottom:4px;line-height:1.3;}
+  .lawyer-tile .lt-rating{font-size:10.5px;color:var(--ink-soft);}
+
+  /* "Lihat Semua" bottom sheet — slides up over whichever screen is behind
+     it. Positioned absolute within .phone (its nearest positioned
+     ancestor), so it's clipped to the mockup frame like a real device. */
+  .sheet-backdrop{
+    position:absolute;inset:0;background:rgba(15,23,42,0.45);z-index:50;
+    animation:sheetFadeIn .2s ease;
+  }
+  .sheet-panel{
+    position:absolute;left:0;right:0;bottom:0;max-height:76%;
+    background:var(--parchment);border-radius:20px 20px 0 0;
+    box-shadow:0 -12px 30px rgba(0,0,0,0.25);
+    z-index:51;display:flex;flex-direction:column;overflow:hidden;
+    animation:sheetSlideUp .25s cubic-bezier(.2,.8,.3,1);
+  }
+  .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 2px;flex-shrink:0;}
+  .sheet-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 18px 14px;flex-shrink:0;border-bottom:1px solid var(--line);
+  }
+  .sheet-header .sheet-title{font-family:'Source Serif 4',serif;font-weight:600;font-size:17px;color:var(--navy);}
+  .sheet-close{
+    width:28px;height:28px;border-radius:50%;background:var(--navy-pale);border:none;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--navy);flex-shrink:0;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);transition:transform .12s ease;
+  }
+  .sheet-close:active{transform:scale(0.92);}
+  .sheet-body{overflow-y:auto;padding:18px 18px 26px;}
+  @keyframes sheetFadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes sheetSlideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+  /* Bottom nav */
+  .bottomnav{
+    position:absolute;bottom:0;left:0;right:0;
+    background:#fff;border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;padding:10px 0 14px;
+    flex-shrink:0;
+  }
+  .navitem{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:#A7A296;font-size:10.5px;font-weight:600;cursor:pointer;
+    background:none;border:none;font-family:inherit;
+  }
+  .navitem.active{color:var(--navy);}
+  .navitem svg{width:21px;height:21px;}
+
+  /* Detail screen */
+  .detail-header{
+    background:var(--navy);color:#fff;padding:16px 18px 26px;flex-shrink:0;position:relative;
+  }
+  .back-btn{
+    background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;
+    border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:16px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);transition:transform .12s ease;
+  }
+  .back-btn:active{transform:scale(0.92);}
+  .profile-row{display:flex;gap:14px;align-items:center;}
+  .profile-row .avatar{width:64px;height:64px;font-size:21px;background:var(--gold-pale);color:var(--navy);}
+  .profile-name{font-family:'Source Serif 4',serif;font-weight:600;font-size:19px;margin:0 0 3px;}
+  .profile-spec{font-size:12.5px;color:var(--gold-pale);margin:0 0 6px;}
+  .profile-stats{display:flex;gap:14px;font-size:12px;color:#C8D1E3;}
+  .profile-stats b{color:#fff;}
+
+  .about-box{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);
+    padding:14px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--ink-soft);
+  }
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .info-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius-s);padding:11px;}
+  .info-box .label{font-size:10.5px;color:var(--ink-soft);margin-bottom:3px;}
+  .info-box .value{font-size:13.5px;font-weight:700;color:var(--navy);}
+
+  .review{border-bottom:1px solid var(--line);padding:12px 0;}
+  .review:last-child{border-bottom:none;}
+  .review-top{display:flex;justify-content:space-between;margin-bottom:4px;}
+  .review-name{font-size:12.5px;font-weight:700;}
+  .review-text{font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
+  .stars{color:var(--gold);font-size:12px;letter-spacing:1px;}
+
+  .cta-bar{
+    position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);
+    padding:12px 18px 16px;display:flex;gap:10px;flex-shrink:0;
+  }
+  .btn{
+    border:none;border-radius:var(--radius-s);font-family:inherit;font-weight:700;
+    font-size:13px;padding:12px;cursor:pointer;flex:1;text-align:center;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:translateY(1px) scale(0.98);}
+  .btn-primary{background:var(--navy);color:#fff;box-shadow:0 4px 12px rgba(22,35,63,0.35);}
+  .btn-primary:active{box-shadow:0 2px 6px rgba(22,35,63,0.3);}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;box-shadow:none;}
+  .btn-outline{background:#fff;border:1.5px solid var(--navy);color:var(--navy);flex:0.75;box-shadow:0 2px 8px rgba(22,35,63,0.1);}
+  .btn-gold{background:var(--gold);color:#fff;box-shadow:0 4px 12px rgba(169,130,47,0.35);}
+  .btn-gold:active{box-shadow:0 2px 6px rgba(169,130,47,0.3);}
+  .btn-link{background:none;border:none;color:var(--gold);font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer;padding:0;}
+
+  /* Booking screen */
+  .booking-block{margin-bottom:20px;}
+  .booking-block .lbl{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:9px;display:block;}
+  .slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .slot{
+    border:1px solid var(--line);background:#fff;border-radius:var(--radius-s);
+    padding:9px 4px;text-align:center;font-size:12px;font-weight:600;color:var(--ink-soft);cursor:pointer;
+  }
+  .slot.selected{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .method-row{display:flex;gap:10px;}
+  .method-card{
+    flex:1;border:1.5px solid var(--line);border-radius:var(--radius-m);padding:14px 10px;text-align:center;cursor:pointer;
+  }
+  .method-card.selected{border-color:var(--gold);background:var(--gold-pale);}
+  .method-card .m-title{font-size:12.5px;font-weight:700;margin:6px 0 2px;color:var(--navy);}
+  .method-card .m-price{font-size:11px;color:var(--ink-soft);}
+  .summary-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);padding:14px;}
+  .summary-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px;color:var(--ink-soft);}
+  .summary-row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;color:var(--ink);}
+
+  /* Confirmation */
+  .confirm-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;}
+  .confirm-icon{
+    width:64px;height:64px;border-radius:50%;background:var(--sage-pale);
+    display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+  }
+  .confirm-title{font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;margin:0 0 8px;color:var(--navy);}
+  .confirm-text{font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:26px;}
+
+  /* Konsultasi Saya list */
+  .booking-item{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);padding:13px;margin-bottom:11px;
+  }
+  .bi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
+  .status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;}
+  .status-pending_payment{background:var(--gold-pale);color:var(--gold);}
+  .status-confirmed{background:var(--sage-pale);color:var(--sage);}
+  .status-ongoing{background:var(--sage-pale);color:var(--sage);}
+  .status-completed{background:#EDEAE2;color:var(--ink-soft);}
+  .status-cancelled{background:var(--danger-pale);color:var(--danger);}
+  .bi-name{font-size:13.5px;font-weight:700;margin:0 0 2px;}
+  .bi-meta{font-size:11.5px;color:var(--ink-soft);}
+  .bi-actions{margin-top:10px;display:flex;gap:8px;}
+
+  /* Empty / loading / error state */
+  .empty-state{text-align:center;padding:50px 30px;color:var(--ink-soft);}
+  .empty-state svg{margin-bottom:14px;opacity:0.5;}
+  .empty-state .e-title{font-weight:700;color:var(--ink);margin-bottom:5px;font-size:14px;}
+  .empty-state .e-sub{font-size:12.5px;line-height:1.5;}
+  .loading-state{text-align:center;padding:50px 30px;color:var(--ink-soft);font-size:13px;}
+  .error-box{
+    background:var(--danger-pale);color:var(--danger);border-radius:var(--radius-s);
+    padding:11px 13px;font-size:12.5px;margin-bottom:14px;line-height:1.5;
+  }
+
+  /* Profile screen */
+  .profile-hero{background:var(--navy);color:#fff;padding:26px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
+  .menu-list{padding:16px 18px;}
+  .menu-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink);
+  }
+  .menu-item .arrow{color:var(--ink-soft);}
+  .switch-banner{
+    margin:16px 18px;background:var(--navy);border-radius:var(--radius-m);padding:16px;color:#fff;
+  }
+  .switch-banner .sb-title{font-family:'Source Serif 4',serif;font-size:15px;font-weight:600;margin:0 0 4px;}
+  .switch-banner .sb-text{font-size:11.5px;color:#C8D1E3;margin-bottom:12px;line-height:1.5;}
+  .switch-banner button{
+    background:var(--gold);color:#fff;border:none;padding:9px 14px;border-radius:6px;font-family:inherit;
+    font-weight:700;font-size:12px;cursor:pointer;
+  }
+  .verif-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;margin:16px 18px 0;}
+  .verif-pending{background:var(--gold-pale);color:var(--gold);}
+  .verif-verified{background:var(--sage-pale);color:var(--sage);}
+  .verif-rejected{background:var(--danger-pale);color:var(--danger);}
+
+  /* Lawyer dashboard mode */
+  .stat-row{display:flex;gap:10px;margin-bottom:18px;}
+  .stat-card{flex:1;background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);padding:13px;}
+  .stat-card .s-num{font-family:'Source Serif 4',serif;font-size:20px;font-weight:600;color:var(--navy);}
+  .stat-card .s-lbl{font-size:10.5px;color:var(--ink-soft);margin-top:2px;}
+  .req-card{background:#fff;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius-s);padding:13px;margin-bottom:10px;}
+  .req-top{display:flex;justify-content:space-between;margin-bottom:6px;gap:8px;}
+  .req-name{font-weight:700;font-size:13px;}
+  .req-time{font-size:11px;color:var(--ink-soft);}
+  .req-topic{font-size:12px;color:var(--ink-soft);}
+
+  /* Forms (login / register / lawyer profile / review) */
+  .form-wrap{padding:22px 20px;flex:1;display:flex;flex-direction:column;}
+  .form-title{font-family:'Source Serif 4',serif;font-size:22px;font-weight:600;color:var(--navy);margin:6px 0 4px;}
+  .form-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:22px;line-height:1.5;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+  .field input, .field select, .field textarea{
+    width:100%;border:1px solid var(--line);border-radius:var(--radius-s);padding:11px 12px;
+    font-family:inherit;font-size:13px;color:var(--ink);background:#fff;
+  }
+  .field textarea{resize:vertical;min-height:70px;}
+  .role-toggle{display:flex;gap:8px;margin-bottom:14px;}
+  .role-toggle button{
+    flex:1;border:1.5px solid var(--line);background:#fff;border-radius:var(--radius-s);
+    padding:10px;font-family:inherit;font-weight:700;font-size:12.5px;color:var(--ink-soft);cursor:pointer;
+  }
+  .role-toggle button.active{border-color:var(--navy);background:var(--navy);color:#fff;}
+  .form-footer{text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:auto;padding-top:16px;}
+  .spec-check-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .spec-check{
+    border:1px solid var(--line);border-radius:20px;padding:7px 12px;font-size:12px;font-weight:600;
+    color:var(--ink-soft);cursor:pointer;background:#fff;
+  }
+  .spec-check.selected{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .star-picker{display:flex;gap:6px;font-size:28px;color:var(--line);cursor:pointer;margin-bottom:6px;}
+  .star-picker span.filled{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="statusbar"></div>
+  <div id="app"></div>
+</div>
+
+<script>
+/* ============================================================
+   Lexara — mockup terhubung ke backend Express/Prisma
+   (lihat lexara-backend/README.md untuk daftar endpoint).
+
+   Backend dideploy di Vercel — ganti nilai di bawah kalau URL deployment-nya berubah.
+============================================================ */
+const API_BASE = (window.LEXARA_API_BASE || 'https://lexara-backend-psi.vercel.app');
+
+const CATEGORIES = [
+  { label: 'Semua', specialization: null, icon: '⚖️' },
+  { label: 'Keluarga & Waris', specialization: 'Hukum Keluarga & Waris', icon: '👪' },
+  { label: 'Bisnis & Perusahaan', specialization: 'Hukum Bisnis & Perusahaan', icon: '💼' },
+  { label: 'Pidana', specialization: 'Hukum Pidana', icon: '🛡️' },
+  { label: 'Properti & Tanah', specialization: 'Hukum Properti & Tanah', icon: '🏠' },
+  { label: 'Ketenagakerjaan', specialization: 'Hukum Ketenagakerjaan', icon: '🧑‍💼' },
+  { label: 'Kekayaan Intelektual', specialization: 'Kekayaan Intelektual', icon: '💡' },
+  { label: 'Pajak', specialization: 'Hukum Pajak', icon: '🧾' },
+];
+
+// "Pilih Layanan" grid on the home screen. Tapping a service tile opens a
+// sub-service picker (renderLayananDetail) rather than acting directly.
+// From THAT picker, tapping a specific sub-service either filters the real
+// lawyer list by the closest matching specialization the backend actually
+// has (mapCategory), or — for sub-services with no backend counterpart yet
+// (document drafting, notary/PPAT, legal representation, compliance) —
+// shows an honest "segera" notice instead of a dead or fake-functional flow.
+const TOPIC_TILE_COLORS = ['var(--sage-pale)', 'var(--gold-pale)', 'var(--navy-pale)', 'var(--danger-pale)'];
+
+// Elegant line-icon set (outline style, currentColor) instead of emoji —
+// reads as a proper product icon set rather than a chat sticker.
+function svgIcon(pathD){
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${pathD}</svg>`;
+}
+const SERVICE_ICONS = {
+  scale: svgIcon('<path d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.42 48.42 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.99 5.99 0 0 1-2.031.352 5.99 5.99 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.99 5.99 0 0 1-2.031.352 5.99 5.99 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z"/>'),
+  document: svgIcon('<path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>'),
+  users: svgIcon('<path d="M18 18.72a9.09 9.09 0 0 0 3.74-.48 3 3 0 0 0-4.68-2.72m.94 3.2v.03c0 .22-.01.44-.04.66A11.94 11.94 0 0 1 12 21c-2.17 0-4.21-.58-5.96-1.58a6.06 6.06 0 0 1-.04-.7m12 0a5.97 5.97 0 0 0-.94-3.2m0 0A6 6 0 0 0 12 12.75a6 6 0 0 0-5.06 2.77m0 0a3 3 0 0 0-4.68 2.72 8.99 8.99 0 0 0 3.74.48m.94-3.2a5.97 5.97 0 0 0-.94 3.2M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/>'),
+  briefcase: svgIcon('<path d="M20.25 14.15v4.25c0 1.09-.79 2.04-1.87 2.18-2.09.28-4.22.42-6.38.42s-4.29-.14-6.38-.42a2.19 2.19 0 0 1-1.87-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.66V8.71c0-1.08-.77-2.02-1.84-2.18a48 48 0 0 0-3.41-.38m4.5 8m-16.5-4.04V8.71c0-1.08.77-2.02 1.84-2.18a48 48 0 0 1 3.41-.38m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.9m7.5 0a48.6 48.6 0 0 0-7.5 0"/>'),
+  signature: svgIcon('<path d="m16.86 4.49 1.69-1.69a1.88 1.88 0 1 1 2.65 2.65L10.58 16.07a4.5 4.5 0 0 1-1.9 1.13L6 18l.8-2.69a4.5 4.5 0 0 1 1.13-1.89l8.93-8.93Zm0 0L19.5 7.13M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>'),
+  id: svgIcon('<path d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.13a1.88 1.88 0 1 1-3.75 0 1.88 1.88 0 0 1 3.75 0Zm1.29 6.34a6.72 6.72 0 0 1-3.17.79 6.72 6.72 0 0 1-3.17-.79 3.38 3.38 0 0 1 6.34 0Z"/>'),
+  home: svgIcon('<path d="m2.25 12 8.95-8.96a1.13 1.13 0 0 1 1.59 0L21.75 12M4.5 9.75v10.13c0 .62.5 1.12 1.13 1.12H9.75v-4.88c0-.62.5-1.12 1.13-1.12h2.25c.62 0 1.12.5 1.12 1.12V21h4.13c.62 0 1.12-.5 1.12-1.12V9.75M8.25 21h8.25"/>'),
+  shieldCheck: svgIcon('<path d="M9 12.75 11.25 15 15 9.75m-3-7.04a11.96 11.96 0 0 1-8.4 3.54A12 12 0 0 0 3 9.75c0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62 0-1.31-.21-2.57-.6-3.75h-.15c-3.2 0-6.1-1.25-8.25-3.29Z"/>'),
+};
+
+const SERVICE_CATALOG = [
+  {
+    key: 'konsultasi-hukum', label: 'Konsultasi Hukum', icon: SERVICE_ICONS.scale,
+    items: ['Konsultasi Perdata', 'Konsultasi Pidana', 'Konsultasi Bisnis', 'Konsultasi Ketenagakerjaan', 'Konsultasi Keluarga', 'Konsultasi Properti', 'Konsultasi Pajak', 'Konsultasi HKI', 'Legal Opinion', 'Second Opinion'],
+  },
+  {
+    key: 'dokumen-hukum', label: 'Dokumen Hukum', icon: SERVICE_ICONS.document,
+    items: ['Perjanjian Kerja Sama', 'Perjanjian Jual Beli', 'Perjanjian Sewa', 'Perjanjian Utang Piutang', 'NDA', 'MoU', 'Surat Kuasa', 'Somasi', 'Surat Pernyataan', 'Perjanjian Kerja', 'Perjanjian Perdamaian'],
+  },
+  {
+    key: 'pendampingan', label: 'Lawyer / Pendampingan', icon: SERVICE_ICONS.users,
+    items: ['Somasi', 'Negosiasi', 'Mediasi', 'Pendampingan Polisi', 'Pendampingan Pengadilan', 'Gugatan Perdata', 'Perkara Pidana', 'Sengketa Bisnis', 'Sengketa Ketenagakerjaan', 'Sengketa Properti'],
+  },
+  {
+    key: 'legalitas-bisnis', label: 'Legalitas Bisnis', icon: SERVICE_ICONS.briefcase, mapCategory: 'Bisnis & Perusahaan',
+    items: ['Pendirian PT', 'Pendirian PT Perorangan', 'Pendirian CV', 'Pendirian Yayasan', 'NIB & OSS', 'Perubahan Data Perusahaan', 'Perubahan Direksi/Komisaris', 'Perubahan Pemegang Saham', 'Perubahan Modal', 'Pembubaran Perusahaan'],
+  },
+  {
+    key: 'notaris-ppat', label: 'Notaris & PPAT', icon: SERVICE_ICONS.signature,
+    items: ['Pendirian Akta', 'Perubahan Akta', 'Legalisasi Dokumen', 'Waarmerking', 'Akta Perjanjian', 'Akta Hibah', 'Akta Wasiat', 'RUPS', 'AJB', 'PPJB', 'Balik Nama', 'Hak Tanggungan'],
+  },
+  {
+    key: 'ketenagakerjaan', label: 'Ketenagakerjaan', icon: SERVICE_ICONS.id, mapCategory: 'Ketenagakerjaan',
+    items: ['Perjanjian Kerja', 'PKWT', 'PKWTT', 'Peraturan Perusahaan', 'Employee Handbook', 'PHK', 'Perselisihan Karyawan', 'Somasi Karyawan', 'Konsultasi Ketenagakerjaan'],
+  },
+  {
+    key: 'keluarga-waris', label: 'Keluarga & Waris', icon: SERVICE_ICONS.home, mapCategory: 'Keluarga & Waris',
+    items: ['Perceraian', 'Hak Asuh Anak', 'Harta Bersama', 'Perjanjian Pra-Nikah', 'Waris', 'Pembagian Warisan', 'Hibah', 'Wasiat'],
+  },
+  {
+    key: 'legal-compliance', label: 'Legal Compliance', icon: SERVICE_ICONS.shieldCheck,
+    items: ['Legal Audit', 'Contract Review', 'Corporate Compliance', 'Perizinan', 'Perlindungan Data', 'Kebijakan Privasi', 'Terms & Conditions', 'Compliance Review'],
+  },
+].map((s, i) => ({ ...s, bg: TOPIC_TILE_COLORS[i % TOPIC_TILE_COLORS.length] }));
+
+// Promo banner — 6 slides that auto-advance; each links to something that
+// actually exists in the app (no made-up features).
+const BANNER_SLIDES = [
+  { title: 'Cara Menggunakan Aplikasi Lexara', cta: 'Lihat Cara Penggunaan', action: 'showHelp()' },
+  { title: 'Konsultasi Cepat dengan Pengacara Terverifikasi', cta: 'Mulai Konsultasi', action: 'quickConsult()' },
+  { title: 'Pengacara Berpengalaman di Berbagai Bidang Hukum', cta: 'Cari Pengacara', action: 'scrollToAllLawyers()' },
+  { title: 'Atur Jadwal Konsultasi Sesuai Waktu Anda', cta: 'Lihat Konsultasi Saya', action: "goScreen('konsultasi')" },
+  { title: 'Konsultasi via Chat atau Video, Anda yang Pilih', cta: 'Mulai Sekarang', action: 'quickConsult()' },
+  { title: 'Baca Rating & Ulasan Sebelum Memilih', cta: 'Lihat Pengacara', action: 'scrollToAllLawyers()' },
+];
+
+const STATUS_LABEL = {
+  pending_payment: 'Menunggu pembayaran',
+  confirmed: 'Terjadwal',
+  ongoing: 'Berlangsung',
+  completed: 'Selesai',
+  cancelled: 'Dibatalkan',
+};
+
+const state = {
+  token: null,
+  user: null,           // {id, email, fullName, role}
+  authScreen: 'login',   // login | register
+  authError: null,
+  authRole: 'client',
+
+  mode: 'klien',         // klien | pengacara (pengacara hanya untuk role=lawyer)
+  screen: 'home',
+
+  activeCategory: 'Semua',
+  sortBy: 'rating',
+  searchQuery: '',
+  bannerIndex: 0,
+  serviceDetailKey: null,
+  showAllServices: false,
+  lawyers: [],
+  lawyersLoading: false,
+  lawyersError: null,
+
+  selectedLawyerId: null,
+  selectedLawyerDetail: null,
+  detailLoading: false,
+  detailError: null,
+
+  selectedSlot: null,
+  selectedMethod: null,
+  bookingError: null,
+  bookingSubmitting: false,
+  lastBooking: null,
+  lastPaymentRedirect: null,
+
+  myBookings: [],
+  myBookingsLoading: false,
+  myBookingsError: null,
+  reviewDraft: null,     // { bookingId, rating, comment }
+  reviewSubmitting: false,
+  reviewError: null,
+
+  myLawyerProfile: null,
+  myLawyerProfileLoading: false,
+  myLawyerProfileError: null,
+  specializationsCatalog: [],
+  profileForm: null,
+  profileFormError: null,
+  profileFormSubmitting: false,
+};
+
+/* ---------- persistence (session only — this is a real app file, not a hosted artifact) ---------- */
+function saveSession(){
+  try{
+    localStorage.setItem('lexara_session', JSON.stringify({ token: state.token, user: state.user }));
+  }catch(e){ /* private mode / storage blocked — session just won't survive reload */ }
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem('lexara_session');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state.token = parsed.token;
+      state.user = parsed.user;
+    }
+  }catch(e){ /* ignore */ }
+}
+function clearSession(){
+  try{ localStorage.removeItem('lexara_session'); }catch(e){}
+  state.token = null; state.user = null;
+}
+
+/* ---------- API helper ---------- */
+async function api(path, opts = {}){
+  const headers = { 'Content-Type': 'application/json' };
+  if(opts.auth !== false && state.token){
+    headers['Authorization'] = 'Bearer ' + state.token;
+  }
+  let res;
+  try{
+    res = await fetch(API_BASE + path, {
+      method: opts.method || 'GET',
+      headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+  }catch(networkErr){
+    throw new Error('Tidak bisa menghubungi server (' + API_BASE + '). Pastikan backend sedang berjalan.');
+  }
+  let data = {};
+  try{ data = await res.json(); }catch(e){ /* empty body */ }
+  if(!res.ok){
+    const msg = data && data.error ? data.error : ('Permintaan gagal (' + res.status + ')');
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function initials(name){ return (name||'').split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function formatRupiah(n){ return 'Rp' + Number(n||0).toLocaleString('id-ID'); }
+function stars(rating){ const full = Math.round(rating||0); return '★'.repeat(full) + '☆'.repeat(5-full); }
+function formatDateTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) + ', ' +
+         d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ============================================================
+   Render root
+============================================================ */
+function render(){
+  const app = document.getElementById('app');
+
+  if(!state.token || !state.user){
+    app.innerHTML = state.authScreen === 'login' ? renderLogin() : renderRegister();
+    return;
+  }
+
+  // The pengacara dashboard takes over the whole screen except when the
+  // lawyer has drilled into the profile-completion form — that form needs
+  // its own back button rather than the dashboard's fixed layout.
+  if(state.mode === 'pengacara' && state.screen !== 'lawyer-profile-form'){
+    app.innerHTML = renderLawyerDashboard() + renderBottomNav();
+    return;
+  }
+
+  let html = '';
+  if(state.screen === 'home') html = renderHome();
+  else if(state.screen === 'detail') html = renderDetail();
+  else if(state.screen === 'booking') html = renderBooking();
+  else if(state.screen === 'confirm') html = renderConfirm();
+  else if(state.screen === 'konsultasi') html = renderKonsultasi();
+  else if(state.screen === 'profil') html = renderProfil();
+  else if(state.screen === 'lawyer-profile-form') html = renderLawyerProfileForm();
+  else if(state.screen === 'layanan-detail') html = renderLayananDetail();
+  else html = renderHome();
+
+  html += renderBottomNav();
+  if(state.showAllServices) html += renderAllServicesSheet();
+  app.innerHTML = html;
+  setupHomeScroll();
+}
+
+/* ============================================================
+   Auth screens
+============================================================ */
+function renderLogin(){
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="form-wrap">
+      <div class="logo" style="font-family:'Source Serif 4',serif;font-weight:600;font-size:22px;color:var(--navy);">
+        <span style="color:var(--gold);">Lexa</span><span style="color:#000;">ra</span>
+      </div>
+      <div class="form-title">Masuk</div>
+      <div class="form-sub">Konsultasi hukum dengan pengacara terverifikasi.</div>
+      ${state.authError ? `<div class="error-box">${state.authError}</div>` : ''}
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="nama@email.com"></div>
+      <div class="field"><label>Kata sandi</label><input type="password" id="login-password" placeholder="••••••••"></div>
+      <button class="btn btn-primary" style="width:100%;flex:none;margin-bottom:10px;" onclick="submitLogin()">Masuk</button>
+      <div class="form-footer">Belum punya akun? <button class="btn-link" onclick="switchAuthScreen('register')">Daftar</button></div>
+    </div>
+  </div>`;
+}
+
+function renderRegister(){
+  const role = state.authRole;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="form-wrap">
+      <div class="logo" style="font-family:'Source Serif 4',serif;font-weight:600;font-size:22px;color:var(--navy);">
+        <span style="color:var(--gold);">Lexa</span><span style="color:#000;">ra</span>
+      </div>
+      <div class="form-title">Buat Akun</div>
+      <div class="form-sub">Daftar sebagai klien untuk mencari pengacara, atau sebagai pengacara untuk menerima konsultasi.</div>
+      ${state.authError ? `<div class="error-box">${state.authError}</div>` : ''}
+      <div class="role-toggle">
+        <button class="${role==='client'?'active':''}" onclick="setAuthRole('client')">Klien</button>
+        <button class="${role==='lawyer'?'active':''}" onclick="setAuthRole('lawyer')">Pengacara</button>
+      </div>
+      <div class="field"><label>Nama lengkap</label><input type="text" id="reg-fullname" placeholder="Nama Anda"></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="nama@email.com"></div>
+      <div class="field"><label>No. telepon (opsional)</label><input type="text" id="reg-phone" placeholder="0812xxxxxxx"></div>
+      <div class="field"><label>Kata sandi</label><input type="password" id="reg-password" placeholder="Minimal 8 karakter"></div>
+      <button class="btn btn-primary" style="width:100%;flex:none;margin-bottom:10px;" onclick="submitRegister()">Daftar</button>
+      <div class="form-footer">Sudah punya akun? <button class="btn-link" onclick="switchAuthScreen('login')">Masuk</button></div>
+    </div>
+  </div>`;
+}
+
+function switchAuthScreen(s){ state.authScreen = s; state.authError = null; render(); }
+function setAuthRole(r){ state.authRole = r; render(); }
+
+async function submitLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  state.authError = null;
+  try{
+    const result = await api('/auth/login', { method:'POST', auth:false, body:{ email, password } });
+    state.token = result.token;
+    state.user = result.user;
+    saveSession();
+    afterLogin();
+  }catch(e){
+    state.authError = e.message;
+    render();
+  }
+}
+
+async function submitRegister(){
+  const fullName = document.getElementById('reg-fullname').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const password = document.getElementById('reg-password').value;
+  state.authError = null;
+  try{
+    const result = await api('/auth/register', {
+      method:'POST', auth:false,
+      body:{ fullName, email, phone: phone || undefined, password, role: state.authRole },
+    });
+    state.token = result.token;
+    state.user = result.user;
+    saveSession();
+    afterLogin();
+  }catch(e){
+    state.authError = e.message;
+    render();
+  }
+}
+
+function afterLogin(){
+  state.mode = 'klien';
+  state.screen = 'home';
+  render();
+  loadLawyers();
+}
+
+function logout(){
+  clearSession();
+  state.screen = 'home';
+  state.mode = 'klien';
+  state.authScreen = 'login';
+  render();
+}
+
+/* ============================================================
+   Home / search
+============================================================ */
+function renderTopbarHome(){
+  return `
+  <div class="home-header" id="homeHeader">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8578" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input value="${state.searchQuery || ''}" placeholder="Cari nama pengacara" oninput="handleSearch(this.value)">
+    </div>
+    <button class="avatar-btn" onclick="goScreen('profil')" title="Profil">${initials(state.user.fullName)}</button>
+  </div>`;
+}
+
+// The home screen is scrollable (`#homeScreen`); as it scrolls, the sticky
+// search+avatar header switches from transparent (blending into the hero
+// banner) to a solid navy bar once the hero has scrolled out of view.
+function setupHomeScroll(){
+  const screenEl = document.getElementById('homeScreen');
+  const headerEl = document.getElementById('homeHeader');
+  if(!screenEl || !headerEl) return;
+  const toggle = () => headerEl.classList.toggle('solid', screenEl.scrollTop > 48);
+  toggle();
+  screenEl.onscroll = toggle;
+}
+
+async function loadLawyers(){
+  state.lawyersLoading = true;
+  state.lawyersError = null;
+  render();
+  try{
+    const category = CATEGORIES.find(c => c.label === state.activeCategory);
+    const params = new URLSearchParams();
+    if(category && category.specialization) params.set('specialization', category.specialization);
+    const sortMap = { rating:'rating', price:'price', exp:'experience' };
+    params.set('sortBy', sortMap[state.sortBy] || 'rating');
+    params.set('pageSize', '50');
+    const result = await api('/lawyers?' + params.toString(), { auth:false });
+    state.lawyers = result.items;
+  }catch(e){
+    state.lawyersError = e.message;
+    state.lawyers = [];
+  }finally{
+    state.lawyersLoading = false;
+    render();
+  }
+}
+
+function renderHome(){
+  let filtered = state.lawyers;
+  if(state.searchQuery){
+    const q = state.searchQuery.toLowerCase();
+    filtered = filtered.filter(l => l.name.toLowerCase().includes(q) || l.specializations.join(' ').toLowerCase().includes(q));
+  }
+  const featured = filtered.slice(0, 8);
+
+  let body;
+  if(state.lawyersLoading){
+    body = `<div class="loading-state">Memuat daftar pengacara…</div>`;
+  }else if(state.lawyersError){
+    body = `<div class="error-box">${state.lawyersError}</div>`;
+  }else if(filtered.length === 0){
+    body = renderEmptySearch();
+  }else{
+    body = filtered.map(l => renderLawyerCard(l)).join('');
+  }
+
+  return `
+  <div class="screen active" id="homeScreen" style="display:flex;">
+  ${renderTopbarHome()}
+  <div class="home-hero">
+    <div class="promo-content" id="promoContent">${renderPromoSlide()}</div>
+  </div>
+  <div class="content">
+    <div class="section-title">Pilih Layanan</div>
+    <div class="topic-grid">
+      ${SERVICE_CATALOG.slice(0, 7).map(s => `
+        <button class="topic-cell" onclick="openService('${s.key}')">
+          <div class="tc-icon" style="background:${s.bg};">${s.icon}</div>
+          <div class="tc-label">${s.label}</div>
+        </button>`).join('')}
+      <button class="topic-cell" onclick="openAllServices()">
+        <div class="tc-icon" style="background:var(--navy);color:#fff;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </div>
+        <div class="tc-label">Lihat Semua</div>
+      </button>
+    </div>
+
+    <div class="section-title">Pengacara yang tersedia <span class="see-all" onclick="scrollToAllLawyers()">Lihat lainnya</span></div>
+    ${(!state.lawyersLoading && featured.length === 0) ? `<div class="about-box" style="margin-bottom:22px;">Belum ada pengacara untuk kategori ini.</div>` : `
+    <div class="lawyer-row">
+      ${state.lawyersLoading ? '<div class="loading-state" style="padding:20px 0;">Memuat…</div>' : featured.map(l => renderLawyerTile(l)).join('')}
+    </div>`}
+
+    <div id="all-lawyers" class="section-title" style="margin-top:6px;">Semua Pengacara</div>
+    <div class="chips">
+      ${CATEGORIES.map(c=>`<button class="chip ${state.activeCategory===c.label?'active':''}" onclick="setCategory('${c.label}')">${c.label}</button>`).join('')}
+    </div>
+
+    <div class="sort-row">
+      <div class="result-count">${state.lawyersLoading ? '…' : filtered.length + ' pengacara ditemukan'}</div>
+      <select onchange="setSort(this.value)">
+        <option value="rating" ${state.sortBy==='rating'?'selected':''}>Rating tertinggi</option>
+        <option value="price" ${state.sortBy==='price'?'selected':''}>Harga terendah</option>
+        <option value="exp" ${state.sortBy==='exp'?'selected':''}>Pengalaman</option>
+      </select>
+    </div>
+
+    ${body}
+  </div>
+  </div>`;
+}
+
+function renderLawyerTile(l){
+  return `
+  <div class="lawyer-tile" onclick="openDetail('${l.id}')">
+    <div class="avatar">${initials(l.name)}</div>
+    <div class="lt-name">${l.name}</div>
+    <div class="lt-spec">${l.specializations[0] || '—'}</div>
+    <div class="lt-rating">★ ${l.rating.toFixed(1)}</div>
+  </div>`;
+}
+
+function scrollToAllLawyers(){
+  const el = document.getElementById('all-lawyers');
+  if(el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function quickConsult(){ scrollToAllLawyers(); }
+
+// "Ajukan Kasus", "Toko Hukum" and "Tanya AI Hukum" aren't built in the
+// backend yet (no matching endpoints) — this keeps the tiles honest instead
+// of looking clickable-but-broken.
+function comingSoon(featureName){
+  alert(featureName + ' akan segera hadir di Lexara.');
+}
+
+/* ============================================================
+   Pilih Layanan — service sub-menu picker
+============================================================ */
+function openService(key){
+  state.serviceDetailKey = key;
+  state.screen = 'layanan-detail';
+  render();
+}
+
+// Home only ever shows the first 7 services + "Lihat Semua" (8 cards, a
+// clean 4x2 grid). "Lihat Semua" opens the rest as a bottom sheet that
+// slides up over the current screen (Shopee/marketplace-style), rather than
+// navigating to a whole new page — closeAllServices() dismisses it, and
+// picking a service inside it closes the sheet before drilling in.
+function openAllServices(){
+  state.showAllServices = true;
+  render();
+}
+
+function closeAllServices(){
+  state.showAllServices = false;
+  render();
+}
+
+function renderAllServicesSheet(){
+  return `
+  <div class="sheet-backdrop" onclick="closeAllServices()"></div>
+  <div class="sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Semua Layanan</div>
+      <button class="sheet-close" onclick="closeAllServices()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="topic-grid" style="margin-bottom:0;">
+        ${SERVICE_CATALOG.map(s => `
+          <button class="topic-cell" onclick="closeAllServices(); openService('${s.key}')">
+            <div class="tc-icon" style="background:${s.bg};">${s.icon}</div>
+            <div class="tc-label">${s.label}</div>
+          </button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLayananDetail(){
+  const s = SERVICE_CATALOG.find(x => x.key === state.serviceDetailKey);
+  if(!s){
+    return `<div class="screen active" style="display:flex;flex-direction:column;">
+      <div class="content"><div class="error-box">Layanan tidak ditemukan.</div>
+      <button class="btn btn-outline" style="width:100%;" onclick="goHome()">Kembali</button></div>
+    </div>`;
+  }
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header" style="padding-bottom:18px;">
+      <button class="back-btn" onclick="goHome()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="profile-row">
+        <div class="avatar" style="background:${s.bg};color:var(--navy);font-size:22px;">${s.icon}</div>
+        <div>
+          <div class="profile-name">${s.label}</div>
+          <div class="profile-spec" style="color:#C8D1E3;">Pilih kebutuhan spesifik Anda</div>
+        </div>
+      </div>
+    </div>
+    <div class="menu-list" style="flex:1;overflow-y:auto;">
+      ${s.items.map(item => `
+        <div class="menu-item" onclick="selectLayananItem('${s.key}', '${item.replace(/'/g, "\\'")}')">
+          <span>${item}</span><span class="arrow">›</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// A sub-service itself isn't a bookable thing in the backend (there's no
+// per-document/per-service order flow) — picking one either jumps straight
+// to the real, working lawyer list filtered by the closest matching
+// specialization, or, when the category has none, gives an honest "segera"
+// notice naming the exact thing they tapped rather than pretending to book it.
+function selectLayananItem(serviceKey, item){
+  const s = SERVICE_CATALOG.find(x => x.key === serviceKey);
+  if(s && s.mapCategory){
+    state.screen = 'home';
+    state.activeCategory = s.mapCategory;
+    // loadLawyers() re-renders #homeScreen once the list finishes loading —
+    // scrolling before that would just get wiped out by that later render,
+    // so wait for its promise instead of a fixed timeout.
+    loadLawyers().then(scrollToAllLawyers);
+  }else{
+    comingSoon(item);
+  }
+}
+
+function showHelp(){
+  alert(
+    'Cara pakai Lexara:\n\n' +
+    '1. Cari pengacara sesuai kebutuhan hukum Anda\n' +
+    '2. Pilih jadwal & metode konsultasi (chat/video)\n' +
+    '3. Bayar untuk konfirmasi jadwal\n' +
+    '4. Konsultasi, lalu beri ulasan setelah selesai'
+  );
+}
+
+/* ============================================================
+   Promo banner — 6-slide auto-advancing carousel
+============================================================ */
+function renderPromoSlide(){
+  const s = BANNER_SLIDES[state.bannerIndex % BANNER_SLIDES.length];
+  return `
+    <div class="pb-title">${s.title}</div>
+    <button onclick="${s.action}">${s.cta}</button>
+    <div class="promo-dots">
+      ${BANNER_SLIDES.map((_, i) => `<span class="${i === state.bannerIndex ? 'on' : ''}" onclick="setBannerSlide(${i})"></span>`).join('')}
+    </div>`;
+}
+
+function paintPromoSlide(){
+  const el = document.getElementById('promoContent');
+  if(el) el.innerHTML = renderPromoSlide();
+}
+
+function setBannerSlide(i){
+  state.bannerIndex = i;
+  paintPromoSlide();
+}
+
+// Runs once (started at boot, see Boot section below) rather than being
+// re-created on every render() — it just checks each tick whether the home
+// banner is actually on screen before touching the DOM, and only repaints
+// the banner itself so scroll position and the rest of the screen are
+// undisturbed.
+let bannerAutoplayStarted = false;
+function startBannerAutoplay(){
+  if(bannerAutoplayStarted) return;
+  bannerAutoplayStarted = true;
+  setInterval(() => {
+    if(!state.token || state.screen !== 'home' || state.mode !== 'klien') return;
+    state.bannerIndex = (state.bannerIndex + 1) % BANNER_SLIDES.length;
+    paintPromoSlide();
+  }, 4000);
+}
+
+function renderEmptySearch(){
+  return `<div class="empty-state">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#A7A296" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <div class="e-title">Tidak ada pengacara ditemukan</div>
+    <div class="e-sub">Coba ubah kata kunci atau pilih spesialisasi lain.</div>
+  </div>`;
+}
+
+function renderLawyerCard(l){
+  return `
+  <div class="lawyer-card" onclick="openDetail('${l.id}')">
+    <div class="avatar">${initials(l.name)}</div>
+    <div class="lc-body">
+      <div class="lc-name">${l.name}</div>
+      <div class="lc-spec">${l.specializations.join(', ') || '—'}</div>
+      <div class="lc-meta">
+        <div class="rating">★ ${l.rating.toFixed(1)} <span style="color:var(--ink-soft);font-weight:400;">(${l.reviewCount})</span></div>
+        <div>${l.yearsExperience} thn pengalaman</div>
+      </div>
+      <div class="lc-footer">
+        <div class="lc-price">${formatRupiah(l.hourlyRateChat)} <span>/ sesi chat</span></div>
+        <div class="tag">${l.city}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setCategory(c){ state.activeCategory = c; loadLawyers(); }
+function setSort(v){ state.sortBy = v; loadLawyers(); }
+function handleSearch(v){ state.searchQuery = v; render(); }
+
+/* ============================================================
+   Lawyer detail
+============================================================ */
+async function openDetail(id){
+  state.selectedLawyerId = id;
+  state.screen = 'detail';
+  state.detailLoading = true;
+  state.detailError = null;
+  state.selectedLawyerDetail = null;
+  render();
+  try{
+    state.selectedLawyerDetail = await api('/lawyers/' + id, { auth:false });
+  }catch(e){
+    state.detailError = e.message;
+  }finally{
+    state.detailLoading = false;
+    render();
+  }
+}
+
+function renderDetail(){
+  if(state.detailLoading){
+    return `<div class="screen active" style="display:flex;"><div class="loading-state">Memuat profil…</div></div>`;
+  }
+  if(state.detailError || !state.selectedLawyerDetail){
+    return `<div class="screen active" style="display:flex;flex-direction:column;">
+      <div class="content"><div class="error-box">${state.detailError || 'Data tidak ditemukan.'}</div>
+      <button class="btn btn-outline" style="width:100%;" onclick="goHome()">Kembali</button></div>
+    </div>`;
+  }
+  const l = state.selectedLawyerDetail;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header">
+      <button class="back-btn" onclick="goHome()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="profile-row">
+        <div class="avatar">${initials(l.name)}</div>
+        <div>
+          <div class="profile-name">${l.name}</div>
+          <div class="profile-spec">${l.specializations.join(', ')}</div>
+          <div class="profile-stats">
+            <div><b>★ ${l.rating.toFixed(1)}</b> (${l.reviewCount})</div>
+            <div><b>${l.yearsExperience}</b> thn pengalaman</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="content" style="padding-top:18px;">
+      <div class="info-grid">
+        <div class="info-box"><div class="label">Lokasi</div><div class="value">${l.city}</div></div>
+        <div class="info-box"><div class="label">Chat / Video</div><div class="value">${formatRupiah(l.hourlyRateChat)} / ${formatRupiah(l.hourlyRateVideo)}</div></div>
+      </div>
+
+      <div class="section-title">Tentang</div>
+      <div class="about-box">${l.bio || 'Belum ada deskripsi.'}</div>
+
+      <div class="section-title">Ulasan klien</div>
+      <div class="about-box" style="padding:4px 14px;">
+        ${l.reviews.length === 0 ? '<div class="review-text" style="padding:10px 0;">Belum ada ulasan.</div>' : l.reviews.map(r=>`
+          <div class="review">
+            <div class="review-top">
+              <div class="review-name">${r.clientName}</div>
+              <div class="stars">${stars(r.rating)}</div>
+            </div>
+            <div class="review-text">${r.comment || ''}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-outline" onclick="goHome()">Kembali</button>
+      <button class="btn btn-primary" onclick="startBooking()">Ajukan Konsultasi</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   Booking + payment
+============================================================ */
+function startBooking(){
+  state.selectedSlot = null;
+  state.selectedMethod = null;
+  state.bookingError = null;
+  state.screen = 'booking';
+  render();
+}
+
+function renderBooking(){
+  const l = state.selectedLawyerDetail;
+  const slots = ['09:00','10:30','13:00','14:30','16:00','19:00'];
+  const rate = state.selectedMethod === 'video' ? l.hourlyRateVideo : l.hourlyRateChat;
+  const total = state.selectedMethod ? rate : null; // durationMinutes fixed at 60 → total == hourly rate
+
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header" style="padding-bottom:16px;">
+      <button class="back-btn" onclick="openDetail('${l.id}')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;">Atur Konsultasi</div>
+      <div style="font-size:12.5px;color:#C8D1E3;margin-top:3px;">dengan ${l.name}</div>
+    </div>
+    <div class="content" style="padding-top:18px;">
+      ${state.bookingError ? `<div class="error-box">${state.bookingError}</div>` : ''}
+      <div class="booking-block">
+        <span class="lbl">Pilih metode konsultasi (durasi 60 menit)</span>
+        <div class="method-row">
+          <div class="method-card ${state.selectedMethod==='chat'?'selected':''}" onclick="selectMethod('chat')">
+            <div class="m-title">Chat</div>
+            <div class="m-price">${formatRupiah(l.hourlyRateChat)}</div>
+          </div>
+          <div class="method-card ${state.selectedMethod==='video'?'selected':''}" onclick="selectMethod('video')">
+            <div class="m-title">Video Call</div>
+            <div class="m-price">${formatRupiah(l.hourlyRateVideo)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-block">
+        <span class="lbl">Pilih jadwal — Hari ini</span>
+        <div class="slot-grid">
+          ${slots.map(s=>`<div class="slot ${state.selectedSlot===s?'selected':''}" onclick="selectSlot('${s}')">${s}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="booking-block">
+        <span class="lbl">Ringkasan</span>
+        <div class="summary-box">
+          <div class="summary-row"><span>Metode</span><span>${state.selectedMethod ? (state.selectedMethod==='chat'?'Chat':'Video Call') : '—'}</span></div>
+          <div class="summary-row"><span>Jadwal</span><span>${state.selectedSlot || '—'}</span></div>
+          <div class="summary-row total"><span>Total biaya</span><span>${total !== null ? formatRupiah(total) : '—'}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-primary" ${(!state.selectedMethod || !state.selectedSlot || state.bookingSubmitting) ? 'disabled' : ''} onclick="confirmBooking()">
+        ${state.bookingSubmitting ? 'Memproses…' : 'Konfirmasi & Bayar'}
+      </button>
+    </div>
+  </div>`;
+}
+
+function selectMethod(m){ state.selectedMethod = m; render(); }
+function selectSlot(s){ state.selectedSlot = s; render(); }
+
+function slotToDate(slot){
+  const [h, m] = slot.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+async function confirmBooking(){
+  if(!state.selectedMethod || !state.selectedSlot) return;
+  state.bookingSubmitting = true;
+  state.bookingError = null;
+  render();
+  try{
+    const booking = await api('/bookings', {
+      method:'POST',
+      body:{
+        lawyerId: state.selectedLawyerDetail.id,
+        method: state.selectedMethod,
+        scheduledAt: slotToDate(state.selectedSlot).toISOString(),
+        durationMinutes: 60,
+      },
+    });
+    const paymentResult = await api('/payments/initiate', { method:'POST', body:{ bookingId: booking.id } });
+    state.lastBooking = booking;
+    state.lastPaymentRedirect = paymentResult.redirectUrl;
+    state.screen = 'confirm';
+  }catch(e){
+    state.bookingError = e.message;
+  }finally{
+    state.bookingSubmitting = false;
+    render();
+  }
+}
+
+function renderConfirm(){
+  const l = state.selectedLawyerDetail;
+  const b = state.lastBooking;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="confirm-wrap">
+      <div class="confirm-icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4F7358" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="confirm-title">Booking Dibuat</div>
+      <div class="confirm-text">
+        Konsultasi ${b.method==='chat'?'chat':'video call'} Anda dengan ${l.name} telah dibuat untuk hari ini pukul ${state.selectedSlot}.
+        Status saat ini: <b>${STATUS_LABEL[b.status] || b.status}</b>. Selesaikan pembayaran lewat Midtrans untuk mengonfirmasi jadwal ke pengacara.
+      </div>
+      ${state.lastPaymentRedirect ? `
+        <a href="${state.lastPaymentRedirect}" target="_blank" class="btn btn-gold" style="width:100%;flex:none;display:block;margin-bottom:10px;text-decoration:none;box-sizing:border-box;">Lanjutkan Pembayaran</a>
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">
+          Tautan ini adalah simulasi Midtrans (backend belum terhubung ke kredensial sandbox asli). Jadwal akan berstatus "Terjadwal" otomatis setelah webhook pembayaran diterima server.
+        </div>
+      ` : ''}
+      <button class="btn btn-primary" style="width:100%;flex:none;" onclick="goToKonsultasi()">Lihat Jadwal Saya</button>
+    </div>
+  </div>`;
+}
+
+function goToKonsultasi(){ state.screen = 'konsultasi'; render(); loadMyBookings(); }
+
+/* ============================================================
+   Konsultasi Saya (bookings) + reviews
+============================================================ */
+async function loadMyBookings(){
+  state.myBookingsLoading = true;
+  state.myBookingsError = null;
+  render();
+  try{
+    state.myBookings = await api('/bookings/me');
+  }catch(e){
+    state.myBookingsError = e.message;
+    state.myBookings = [];
+  }finally{
+    state.myBookingsLoading = false;
+    render();
+  }
+}
+
+function renderKonsultasi(){
+  const upcoming = state.myBookings.filter(b => ['pending_payment','confirmed','ongoing'].includes(b.status));
+  const history = state.myBookings.filter(b => ['completed','cancelled'].includes(b.status));
+
+  let body;
+  if(state.myBookingsLoading){
+    body = `<div class="loading-state">Memuat konsultasi…</div>`;
+  }else if(state.myBookingsError){
+    body = `<div class="error-box">${state.myBookingsError}</div>`;
+  }else{
+    body = `
+      ${upcoming.length ? `
+        <div class="section-title">Akan Datang</div>
+        ${upcoming.map(b => renderBookingItem(b)).join('')}
+      ` : `
+      <div class="empty-state">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#A7A296" stroke-width="1.5"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+        <div class="e-title">Belum ada konsultasi</div>
+        <div class="e-sub">Cari pengacara sesuai kebutuhan hukum Anda dan ajukan konsultasi pertama.</div>
+      </div>`}
+
+      ${history.length ? `
+        <div class="section-title" style="margin-top:22px;">Riwayat</div>
+        ${history.map(b => renderBookingItem(b)).join('')}
+      ` : ''}
+    `;
+  }
+
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="topbar" style="padding-bottom:16px;">
+      <div class="brand"><div class="logo"><span class="mark">Lexa</span><span style="color:#000;">ra</span></div></div>
+      <div style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;">Konsultasi Saya</div>
+    </div>
+    <div class="content" style="padding-top:18px;">
+      ${body}
+    </div>
+  </div>`;
+}
+
+function renderBookingItem(b){
+  const name = b.lawyer ? b.lawyer.user.fullName : (b.client ? b.client.fullName : '—');
+  const canReview = b.status === 'completed' && !b.review && state.user.role === 'client';
+  const isDraftingThis = state.reviewDraft && state.reviewDraft.bookingId === b.id;
+
+  let actions = '';
+  if(b.review){
+    actions = `<div class="review-text" style="margin-top:8px;">Ulasan Anda: <span class="stars">${stars(b.review.rating)}</span>${b.review.comment ? ' — ' + b.review.comment : ''}</div>`;
+  }else if(canReview){
+    actions = isDraftingThis ? renderReviewForm(b) : `
+      <div class="bi-actions"><button class="btn btn-outline" style="flex:1;" onclick="openReviewForm('${b.id}')">Beri Ulasan</button></div>`;
+  }
+
+  return `
+  <div class="booking-item">
+    <div class="bi-top">
+      <div class="bi-name">${name}</div>
+      <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status] || b.status}</div>
+    </div>
+    <div class="bi-meta">${b.method==='chat'?'Chat':'Video Call'} · ${formatDateTime(b.scheduledAt)} · ${formatRupiah(b.price)}</div>
+    ${actions}
+  </div>`;
+}
+
+function openReviewForm(bookingId){
+  state.reviewDraft = { bookingId, rating: 5, comment: '' };
+  state.reviewError = null;
+  render();
+}
+function cancelReviewForm(){ state.reviewDraft = null; render(); }
+function setReviewRating(r){ state.reviewDraft.rating = r; render(); }
+function setReviewComment(v){ state.reviewDraft.comment = v; }
+
+function renderReviewForm(b){
+  const d = state.reviewDraft;
+  return `
+  <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">
+    ${state.reviewError ? `<div class="error-box">${state.reviewError}</div>` : ''}
+    <div class="star-picker">
+      ${[1,2,3,4,5].map(n => `<span class="${n<=d.rating?'filled':''}" onclick="setReviewRating(${n})">★</span>`).join('')}
+    </div>
+    <textarea placeholder="Ceritakan pengalaman konsultasi Anda (opsional)" oninput="setReviewComment(this.value)">${d.comment}</textarea>
+    <div class="bi-actions">
+      <button class="btn btn-outline" style="flex:1;" onclick="cancelReviewForm()">Batal</button>
+      <button class="btn btn-primary" style="flex:1;" ${state.reviewSubmitting?'disabled':''} onclick="submitReview()">${state.reviewSubmitting ? 'Mengirim…' : 'Kirim Ulasan'}</button>
+    </div>
+  </div>`;
+}
+
+async function submitReview(){
+  const d = state.reviewDraft;
+  state.reviewSubmitting = true;
+  state.reviewError = null;
+  render();
+  try{
+    await api('/reviews', { method:'POST', body:{ bookingId: d.bookingId, rating: d.rating, comment: d.comment || undefined } });
+    state.reviewDraft = null;
+    await loadMyBookings();
+  }catch(e){
+    state.reviewError = e.message;
+  }finally{
+    state.reviewSubmitting = false;
+    render();
+  }
+}
+
+/* ============================================================
+   Profil
+============================================================ */
+function renderProfil(){
+  const u = state.user;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="profile-hero">
+      <div class="avatar" style="background:var(--gold-pale);color:var(--navy);width:56px;height:56px;">${initials(u.fullName)}</div>
+      <div>
+        <div style="font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;">${u.fullName}</div>
+        <div style="font-size:12px;color:#C8D1E3;">${u.email}</div>
+      </div>
+    </div>
+    ${u.role === 'lawyer' ? `
+      <div class="switch-banner">
+        <div class="sb-title">Mode Pengacara</div>
+        <div class="sb-text">Kelola profil, dokumen verifikasi, dan lihat permintaan konsultasi yang masuk.</div>
+        <button onclick="switchMode('pengacara')">Buka Mode Pengacara</button>
+      </div>
+    ` : `
+      <div class="switch-banner">
+        <div class="sb-title">Anda seorang pengacara?</div>
+        <div class="sb-text">Daftar sebagai pengacara untuk menerima permintaan konsultasi dan mengatur jadwal Anda.</div>
+        <button onclick="logout(); setTimeout(()=>{ switchAuthScreen('register'); setAuthRole('lawyer'); }, 0);">Daftar sebagai Pengacara</button>
+      </div>
+    `}
+    <div class="menu-list">
+      <div class="menu-item" onclick="goToKonsultasi()"><span>Riwayat Konsultasi</span><span class="arrow">›</span></div>
+      <div class="menu-item"><span>Metode Pembayaran</span><span class="arrow">›</span></div>
+      <div class="menu-item"><span>Dokumen Saya</span><span class="arrow">›</span></div>
+      <div class="menu-item"><span>Pusat Bantuan</span><span class="arrow">›</span></div>
+      <div class="menu-item" onclick="logout()"><span>Keluar</span><span class="arrow">›</span></div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   Lawyer dashboard mode
+============================================================ */
+async function loadMyLawyerProfile(){
+  state.myLawyerProfileLoading = true;
+  state.myLawyerProfileError = null;
+  render();
+  try{
+    const [profile, specs] = await Promise.all([
+      api('/lawyers/me/profile'),
+      state.specializationsCatalog.length ? Promise.resolve(state.specializationsCatalog) : api('/lawyers/specializations', { auth:false }),
+    ]);
+    state.myLawyerProfile = profile;
+    state.specializationsCatalog = specs;
+  }catch(e){
+    state.myLawyerProfileError = e.message;
+  }finally{
+    state.myLawyerProfileLoading = false;
+    render();
+  }
+}
+
+function switchMode(m){
+  state.mode = m;
+  render();
+  if(m === 'pengacara'){
+    loadMyLawyerProfile();
+    loadMyBookings();
+  }
+}
+
+function renderLawyerDashboard(){
+  if(state.myLawyerProfileLoading){
+    return `<div class="screen active" style="display:flex;"><div class="loading-state">Memuat dashboard…</div></div>`;
+  }
+  if(state.myLawyerProfileError || !state.myLawyerProfile){
+    return `<div class="screen active" style="display:flex;flex-direction:column;">
+      <div class="content"><div class="error-box">${state.myLawyerProfileError || 'Profil tidak ditemukan.'}</div></div>
+    </div>`;
+  }
+
+  const p = state.myLawyerProfile;
+  const upcoming = state.myBookings.filter(b => b.status === 'confirmed' || b.status === 'ongoing');
+  const monthCount = state.myBookings.filter(b => b.status === 'completed').length;
+
+  const verifBadge = p.verificationStatus === 'verified'
+    ? `<span class="verif-badge verif-verified">Terverifikasi</span>`
+    : p.verificationStatus === 'rejected'
+    ? `<span class="verif-badge verif-rejected">Ditolak — lengkapi ulang dokumen</span>`
+    : `<span class="verif-badge verif-pending">Menunggu verifikasi admin</span>`;
+
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"><span class="mark">Lexa</span><span style="color:#000;">ra</span></div>
+        <div class="mode-pill">
+          <button onclick="switchMode('klien')">Klien</button>
+          <button class="active">Pengacara</button>
+        </div>
+      </div>
+      <div class="greeting">Selamat siang,</div>
+      <div class="headline">${p.name}</div>
+    </div>
+    ${verifBadge}
+    <div class="content" style="padding-top:14px;padding-bottom:40px;">
+      ${p.verificationStatus !== 'verified' ? `
+        <div class="error-box" style="background:var(--gold-pale);color:var(--navy);">
+          Profil Anda belum tampil di pencarian klien sampai admin menyetujui verifikasi.
+        </div>
+      ` : ''}
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="s-num">${monthCount}</div><div class="s-lbl">Konsultasi selesai</div></div>
+        <div class="stat-card"><div class="s-num">${p.rating.toFixed(1)}</div><div class="s-lbl">Rating rata-rata</div></div>
+        <div class="stat-card"><div class="s-num" style="font-size:15px;">${formatRupiah(p.hourlyRateChat)}</div><div class="s-lbl">Tarif chat/sesi</div></div>
+      </div>
+
+      <div class="section-title">
+        Profil
+        <span class="see-all" onclick="openLawyerProfileForm()">Lengkapi / ubah</span>
+      </div>
+      <div class="about-box">
+        <b>No. Induk Advokat:</b> ${p.barRegistrationNumber.startsWith('PENDING') ? '<i>belum diisi</i>' : p.barRegistrationNumber}<br>
+        <b>Kota:</b> ${p.city || '<i>belum diisi</i>'}<br>
+        <b>Spesialisasi:</b> ${p.specializations.length ? p.specializations.join(', ') : '<i>belum diisi</i>'}
+      </div>
+
+      <div class="section-title" style="margin-top:20px;">Jadwal Terkonfirmasi</div>
+      ${upcoming.length === 0 ? `<div class="about-box">Belum ada jadwal terkonfirmasi.</div>` :
+        upcoming.map(b => `
+        <div class="booking-item">
+          <div class="bi-top">
+            <div class="bi-name">${b.client.fullName}</div>
+            <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status]}</div>
+          </div>
+          <div class="bi-meta">${b.method==='chat'?'Chat':'Video Call'} · ${formatDateTime(b.scheduledAt)}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---- Lawyer profile completion form ---- */
+function openLawyerProfileForm(){
+  const p = state.myLawyerProfile;
+  // getOwnProfile only returns specialization NAMES, not ids, so map back
+  // to catalog ids by name to preselect the chips the lawyer already has.
+  const preselected = state.specializationsCatalog
+    .filter(s => p.specializations.includes(s.name))
+    .map(s => s.id);
+  state.profileForm = {
+    barRegistrationNumber: p.barRegistrationNumber.startsWith('PENDING') ? '' : p.barRegistrationNumber,
+    bio: p.bio || '',
+    city: p.city || '',
+    yearsExperience: p.yearsExperience || 0,
+    hourlyRateChat: p.hourlyRateChat || 0,
+    hourlyRateVideo: p.hourlyRateVideo || 0,
+    specializationIds: new Set(preselected),
+  };
+  state.profileFormError = null;
+  state.screen = 'lawyer-profile-form';
+  render();
+}
+
+function renderLawyerProfileForm(){
+  const f = state.profileForm;
+  const catalog = state.specializationsCatalog;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header" style="padding-bottom:16px;">
+      <button class="back-btn" onclick="backToLawyerDashboard()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;">Lengkapi Profil Pengacara</div>
+      <div style="font-size:12px;color:#C8D1E3;margin-top:3px;">Mengubah profil akan mengembalikan status verifikasi ke "pending".</div>
+    </div>
+    <div class="content" style="padding-top:18px;">
+      ${state.profileFormError ? `<div class="error-box">${state.profileFormError}</div>` : ''}
+      <div class="field"><label>No. Induk Advokat (PERADI)</label><input id="pf-bar" value="${f.barRegistrationNumber}" placeholder="PERADI-xxxxx"></div>
+      <div class="field"><label>Kota</label><input id="pf-city" value="${f.city}" placeholder="Jakarta Selatan"></div>
+      <div class="field"><label>Bio singkat</label><textarea id="pf-bio">${f.bio}</textarea></div>
+      <div class="field"><label>Lama pengalaman (tahun)</label><input id="pf-exp" type="number" min="0" value="${f.yearsExperience}"></div>
+      <div class="field"><label>Tarif chat / sesi (Rp)</label><input id="pf-rate-chat" type="number" min="0" value="${f.hourlyRateChat}"></div>
+      <div class="field"><label>Tarif video call / sesi (Rp)</label><input id="pf-rate-video" type="number" min="0" value="${f.hourlyRateVideo}"></div>
+      <div class="field">
+        <label>Spesialisasi</label>
+        <div class="spec-check-list">
+          ${catalog.map(s => `<div class="spec-check ${f.specializationIds.has(s.id)?'selected':''}" onclick="toggleSpec('${s.id}')">${s.name}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-primary" ${state.profileFormSubmitting?'disabled':''} onclick="submitLawyerProfile()">${state.profileFormSubmitting?'Menyimpan…':'Simpan Profil'}</button>
+    </div>
+  </div>`;
+}
+
+function backToLawyerDashboard(){ state.screen = 'home'; render(); }
+
+function toggleSpec(id){
+  const set = state.profileForm.specializationIds;
+  if(set.has(id)) set.delete(id); else set.add(id);
+  render();
+}
+
+async function submitLawyerProfile(){
+  const f = state.profileForm;
+  const barRegistrationNumber = document.getElementById('pf-bar').value.trim();
+  const city = document.getElementById('pf-city').value.trim();
+  const bio = document.getElementById('pf-bio').value.trim();
+  const yearsExperience = Number(document.getElementById('pf-exp').value || 0);
+  const hourlyRateChat = Number(document.getElementById('pf-rate-chat').value || 0);
+  const hourlyRateVideo = Number(document.getElementById('pf-rate-video').value || 0);
+
+  state.profileFormSubmitting = true;
+  state.profileFormError = null;
+  render();
+  try{
+    await api('/lawyers/me/profile', {
+      method:'PUT',
+      body:{
+        barRegistrationNumber, city, bio: bio || undefined,
+        yearsExperience, hourlyRateChat, hourlyRateVideo,
+        specializationIds: Array.from(f.specializationIds),
+      },
+    });
+    state.screen = 'home'; // back to dashboard content, mode stays 'pengacara'
+    await loadMyLawyerProfile();
+  }catch(e){
+    state.profileFormError = e.message;
+    state.profileFormSubmitting = false;
+    render();
+    return;
+  }
+  state.profileFormSubmitting = false;
+}
+
+/* ============================================================
+   Bottom nav + navigation
+============================================================ */
+function renderBottomNav(){
+  const items = [
+    {key:'home', label:'Beranda', icon:`<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/>`},
+    {key:'kasus', label:'Kasus', icon:`<path d="M9 3h6l1 3h4v2H4V6h4l1-3z"/><path d="M5 8l1.5 11a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8L19 8"/>`, soon:true},
+    {key:'konsultasi', label:'Konsultasi', icon:`<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>`},
+    {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
+    {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
+  ];
+  const activeKey = ['home','detail','booking','confirm','layanan-detail'].includes(state.screen) ? 'home' : state.screen;
+  return `
+  <div class="bottomnav">
+    ${items.map(i=>`
+      <button class="navitem ${activeKey===i.key?'active':''}" onclick="${i.soon ? `comingSoon('${i.label}')` : `goScreen('${i.key}')`}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${i.icon}</svg>
+        ${i.label}
+      </button>`).join('')}
+  </div>`;
+}
+
+function goScreen(s){
+  state.mode = 'klien';
+  state.screen = s;
+  state.showAllServices = false;
+  render();
+  if(s === 'home' && state.lawyers.length === 0) loadLawyers();
+  if(s === 'konsultasi') loadMyBookings();
+}
+function goHome(){ state.screen = 'home'; state.showAllServices = false; render(); }
+
+/* ============================================================
+   Boot
+============================================================ */
+loadSession();
+render();
+if(state.token){ loadLawyers(); }
+startBannerAutoplay();
+</script>
+</body>
+</html>
