@@ -1801,7 +1801,17 @@ function timeAgo(iso){
   return new Date(iso).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
 }
 
-function onCakrawalaComposerInput(v){ state.cakrawalaComposerText = v; }
+// Deliberately does NOT call render() — that would rebuild the whole feed's
+// innerHTML on every keystroke and kick focus out of the textarea. Instead
+// it updates state (for submitCakrawalaPost to read) and flips just the
+// submit button's disabled attribute directly, so "Bagikan" enables live
+// as you type instead of staying stuck in whatever state it was first
+// rendered in.
+function onCakrawalaComposerInput(v){
+  state.cakrawalaComposerText = v;
+  const btn = document.getElementById('cakrawala-submit-btn');
+  if(btn) btn.disabled = !(v.trim().length > 0 || !!state.cakrawalaComposerPhoto);
+}
 
 // Downscales/re-encodes the picked image on a <canvas> before it ever
 // becomes a data URL, so a 10MB phone photo turns into a few hundred KB
@@ -1880,7 +1890,14 @@ function toggleComments(postId){
   state.cakrawalaOpenComments[postId] = !state.cakrawalaOpenComments[postId];
   render();
 }
-function onCommentDraftInput(postId, v){ state.cakrawalaCommentDraft[postId] = v; }
+// Same reasoning as onCakrawalaComposerInput — no render() here, just a
+// direct disabled-attribute flip, so the send button reacts immediately
+// without knocking focus out of the comment field mid-type.
+function onCommentDraftInput(postId, v){
+  state.cakrawalaCommentDraft[postId] = v;
+  const btn = document.getElementById('comment-send-' + postId);
+  if(btn) btn.disabled = !v.trim();
+}
 
 async function submitComment(postId){
   const text = (state.cakrawalaCommentDraft[postId] || '').trim();
@@ -1948,7 +1965,7 @@ function renderCakrawala(){
             Foto
             <input type="file" accept="image/*" style="display:none;" onchange="onCakrawalaPhotoPicked(this)">
           </label>
-          <button class="btn btn-primary" ${canPost ? '' : 'disabled'} onclick="submitCakrawalaPost()">${state.cakrawalaPosting ? 'Mengirim…' : 'Bagikan'}</button>
+          <button id="cakrawala-submit-btn" class="btn btn-primary" ${canPost ? '' : 'disabled'} onclick="submitCakrawalaPost()">${state.cakrawalaPosting ? 'Mengirim…' : 'Bagikan'}</button>
         </div>
       </div>
 
@@ -2003,7 +2020,7 @@ function renderPostCard(post){
         <input type="text" placeholder="Tulis komentar…" value="${draft}"
           oninput="onCommentDraftInput('${post.id}', this.value)"
           onkeydown="if(event.key==='Enter'){ submitComment('${post.id}'); }">
-        <button class="comment-send-btn" ${draft.trim() ? '' : 'disabled'} onclick="submitComment('${post.id}')">
+        <button id="comment-send-${post.id}" class="comment-send-btn" ${draft.trim() ? '' : 'disabled'} onclick="submitComment('${post.id}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
       </div>
