@@ -333,16 +333,25 @@
   .navitem.active{color:var(--navy);}
   .navitem svg{width:21px;height:21px;}
 
-  /* Detail screen */
+  /* Detail screen — iOS-style header: thin "Kembali" nav strip on top,
+     centered hero (icon/avatar + title + subtitle) below. */
   .detail-header{
-    background:var(--navy);color:#fff;padding:16px 18px 26px;flex-shrink:0;position:relative;
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);color:#fff;flex-shrink:0;position:relative;
   }
-  .back-btn{
-    background:rgba(255,255,255,0.15);border:none;color:#fff;width:32px;height:32px;
-    border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:16px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);transition:transform .12s ease;
+  .nav-strip{display:flex;align-items:center;padding:14px 14px 0;}
+  .back-link{
+    background:none;border:none;color:var(--gold-pale);font-family:inherit;
+    display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;
+    cursor:pointer;padding:6px 4px;transition:opacity .12s ease;
   }
-  .back-btn:active{transform:scale(0.92);}
+  .back-link:active{opacity:0.6;}
+  .detail-hero{text-align:center;padding:6px 20px 24px;}
+  .detail-hero .avatar{width:60px;height:60px;font-size:22px;margin:0 auto 10px;box-shadow:0 6px 14px rgba(0,0,0,0.22);}
+  .detail-hero .profile-name{margin:0 0 3px;}
+  .detail-hero .profile-spec{margin:0 0 6px;}
+  .detail-hero .profile-stats{justify-content:center;}
+  .detail-hero .hero-title{font-family:'Source Serif 4',serif;font-weight:700;font-size:17px;}
+  .detail-hero .hero-sub{font-size:12.5px;color:#C8D1E3;margin-top:3px;}
   .profile-row{display:flex;gap:14px;align-items:center;}
   .profile-row .avatar{width:64px;height:64px;font-size:21px;background:var(--gold-pale);color:var(--navy);}
   .profile-name{font-family:'Source Serif 4',serif;font-weight:600;font-size:19px;margin:0 0 3px;}
@@ -419,14 +428,103 @@
   }
   .bi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
   .status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;}
+  .status-pending_approval{background:var(--gold-pale);color:var(--gold);}
   .status-pending_payment{background:var(--gold-pale);color:var(--gold);}
   .status-confirmed{background:var(--sage-pale);color:var(--sage);}
   .status-ongoing{background:var(--sage-pale);color:var(--sage);}
   .status-completed{background:#EDEAE2;color:var(--ink-soft);}
+  .status-rejected{background:var(--danger-pale);color:var(--danger);}
   .status-cancelled{background:var(--danger-pale);color:var(--danger);}
+
+  /* Notification badge — small red dot/count on bottom-nav icons */
+  .nav-badge{position:absolute;top:-2px;right:calc(50% - 20px);min-width:15px;height:15px;padding:0 3px;
+    background:var(--danger);color:#fff;border-radius:8px;font-size:9px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 0 2px #fff;}
+
+  /* "Permintaan Baru" cards on the lawyer dashboard */
+  .request-card{background:#fff;border:1px solid var(--line);border-left:3px solid var(--danger);
+    border-radius:var(--radius-s);padding:13px;margin-bottom:10px;}
+  .request-card .req-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+  .request-card .req-name{font-weight:700;font-size:13.5px;}
+  .request-card .req-meta{font-size:11.5px;color:var(--ink-soft);margin-bottom:10px;}
+  .request-actions{display:flex;gap:8px;}
+  .request-actions button{flex:1;padding:8px;border-radius:7px;font-weight:700;font-size:12.5px;
+    border:none;cursor:pointer;font-family:inherit;}
+  .req-accept{background:var(--sage);color:#fff;}
+  .req-reject{background:#fff;border:1.3px solid var(--danger)!important;color:var(--danger);}
   .bi-name{font-size:13.5px;font-weight:700;margin:0 0 2px;}
   .bi-meta{font-size:11.5px;color:var(--ink-soft);}
   .bi-actions{margin-top:10px;display:flex;gap:8px;}
+
+  /* Cakrawala feed */
+  .feed-composer{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);
+    padding:13px;margin-bottom:16px;box-shadow:0 2px 8px rgba(22,35,63,0.07);
+  }
+  .feed-composer-top{display:flex;gap:10px;align-items:flex-start;}
+  .feed-composer textarea{
+    flex:1;border:none;outline:none;resize:none;font-family:inherit;font-size:13.5px;
+    color:var(--ink);min-height:40px;padding-top:6px;background:transparent;
+  }
+  .feed-composer-photo-wrap{position:relative;margin-top:10px;}
+  .feed-composer-photo-wrap img{width:100%;max-height:220px;object-fit:cover;border-radius:var(--radius-s);display:block;}
+  .feed-composer-photo-remove{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;
+    background:rgba(22,35,63,0.75);color:#fff;border:none;font-size:15px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feed-composer-actions{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:10px;padding-top:10px;border-top:1px solid var(--line);
+  }
+  .feed-composer-photo-btn{
+    display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink-soft);
+    cursor:pointer;background:none;border:none;font-family:inherit;padding:6px 4px;
+  }
+  .feed-composer-actions .btn{flex:none;padding:9px 18px;font-size:12.5px;}
+
+  .post-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);
+    padding:14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(22,35,63,0.07);
+  }
+  .post-head{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .post-head .avatar{width:40px;height:40px;font-size:13px;flex-shrink:0;}
+  .post-author-name{font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;}
+  .post-role-badge{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--gold-pale);color:var(--gold);}
+  .post-role-badge.client{background:var(--navy-pale);color:var(--navy);}
+  .post-time{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .post-text{font-size:13.5px;line-height:1.6;color:var(--ink);white-space:pre-wrap;margin-bottom:10px;}
+  .post-photo{width:100%;max-height:320px;object-fit:cover;border-radius:var(--radius-s);display:block;margin-bottom:10px;}
+  .post-photo-placeholder{
+    width:100%;min-height:150px;border-radius:var(--radius-s);margin-bottom:10px;
+    display:flex;align-items:center;justify-content:center;text-align:center;padding:22px 16px;
+    color:#fff;font-size:13px;font-weight:600;line-height:1.5;
+  }
+  .post-actions{display:flex;gap:6px;border-top:1px solid var(--line);padding-top:8px;}
+  .post-action-btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:none;border:none;font-family:inherit;font-size:12px;font-weight:700;
+    color:var(--ink-soft);cursor:pointer;padding:7px;border-radius:7px;
+  }
+  .post-action-btn.liked{color:var(--danger);}
+  .post-action-btn:active{background:var(--bg,#F7F4EC);}
+  .post-comments{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+  .comment-row{display:flex;gap:8px;margin-bottom:8px;}
+  .comment-row .avatar{width:26px;height:26px;font-size:10px;flex-shrink:0;}
+  .comment-bubble{background:var(--navy-pale);border-radius:12px;padding:7px 11px;flex:1;}
+  .comment-author{font-size:11.5px;font-weight:700;color:var(--navy);}
+  .comment-text{font-size:12.5px;color:var(--ink);margin-top:1px;}
+  .comment-input-row{display:flex;gap:8px;align-items:center;margin-top:4px;}
+  .comment-input-row .avatar{width:26px;height:26px;font-size:10px;flex-shrink:0;}
+  .comment-input-row input{
+    flex:1;border:1px solid var(--line);border-radius:16px;padding:8px 13px;
+    font-family:inherit;font-size:12.5px;color:var(--ink);background:#fff;outline:none;
+  }
+  .comment-send-btn{
+    background:var(--navy);color:#fff;border:none;border-radius:50%;width:30px;height:30px;
+    flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .comment-send-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
   /* Empty / loading / error state */
   .empty-state{text-align:center;padding:50px 30px;color:var(--ink-soft);}
@@ -527,6 +625,23 @@ const CATEGORIES = [
   { label: 'Pajak', specialization: 'Hukum Pajak', icon: '🧾' },
 ];
 
+// "Lawyer / Pendampingan" items don't have their own backend specialization
+// — each one is mapped to the closest existing category so the search still
+// filters sensibly. null means "show all lawyers" (the request itself is
+// generic enough — e.g. Somasi/Negosiasi/Mediasi apply across practice areas).
+const PENDAMPINGAN_CATEGORY_MAP = {
+  'Somasi': null,
+  'Negosiasi': null,
+  'Mediasi': null,
+  'Pendampingan Polisi': 'Pidana',
+  'Pendampingan Pengadilan': 'Pidana',
+  'Gugatan Perdata': null,
+  'Perkara Pidana': 'Pidana',
+  'Sengketa Bisnis': 'Bisnis & Perusahaan',
+  'Sengketa Ketenagakerjaan': 'Ketenagakerjaan',
+  'Sengketa Properti': 'Properti & Tanah',
+};
+
 // "Pilih Layanan" grid on the home screen. Tapping a service tile opens a
 // sub-service picker (renderLayananDetail) rather than acting directly.
 // From THAT picker, tapping a specific sub-service either filters the real
@@ -599,12 +714,57 @@ const BANNER_SLIDES = [
 ];
 
 const STATUS_LABEL = {
+  pending_approval: 'Menunggu persetujuan pengacara',
   pending_payment: 'Menunggu pembayaran',
   confirmed: 'Terjadwal',
   ongoing: 'Berlangsung',
   completed: 'Selesai',
+  rejected: 'Ditolak pengacara',
   cancelled: 'Dibatalkan',
 };
+
+/* ------------------------------------------------------------
+   Notification badges — since this is a static mockup with no real
+   push-notification server, "new activity" is tracked locally: every
+   booking's (id + status) pair is hashed into localStorage once the
+   user has actually seen it. A booking that changes status (lawyer
+   approves/rejects, client's request gets confirmed, etc.) looks
+   "new" again until that screen is opened. This is NOT a substitute
+   for real push notifications — see the note in switchMode()/
+   loadMyBookings() below for what a production build would need.
+------------------------------------------------------------- */
+function seenBookingKey(b){ return b.id + ':' + b.status; }
+function getSeenBookingSet(){
+  try{ return new Set(JSON.parse(localStorage.getItem('lexara_seen_bookings') || '[]')); }
+  catch(e){ return new Set(); }
+}
+function markBookingsSeen(bookings){
+  const seen = getSeenBookingSet();
+  bookings.forEach(b => seen.add(seenBookingKey(b)));
+  try{ localStorage.setItem('lexara_seen_bookings', JSON.stringify([...seen])); }catch(e){}
+}
+function countUnseen(bookings){
+  const seen = getSeenBookingSet();
+  return bookings.filter(b => !seen.has(seenBookingKey(b))).length;
+}
+function navBadge(count){
+  return count > 0 ? `<span class="nav-badge">${count > 9 ? '9+' : count}</span>` : '';
+}
+// Best-effort browser popup while this tab is open (NOT real push — see
+// notifyNewActivity() callers for context). Silently no-ops if the
+// person never grants permission; never blocks on the permission prompt.
+function notifyNewActivity(title, body){
+  try{
+    if(typeof Notification === 'undefined') return;
+    if(Notification.permission === 'granted'){
+      new Notification(title, { body, icon: undefined });
+    }else if(Notification.permission !== 'denied'){
+      Notification.requestPermission().then(p => {
+        if(p === 'granted') new Notification(title, { body });
+      });
+    }
+  }catch(e){ /* Notification API unavailable (e.g. file:// in some browsers) — ignore */ }
+}
 
 const state = {
   token: null,
@@ -633,10 +793,13 @@ const state = {
 
   selectedSlot: null,
   selectedMethod: null,
+  bookingServiceNote: null,   // e.g. "Pendampingan · Somasi" — set by openLayananBooking()
   bookingError: null,
   bookingSubmitting: false,
   lastBooking: null,
   lastPaymentRedirect: null,
+  payingBookingId: null,
+  bookingActionId: null,      // booking currently being accepted/rejected by the lawyer
 
   myBookings: [],
   myBookingsLoading: false,
@@ -652,6 +815,18 @@ const state = {
   profileForm: null,
   profileFormError: null,
   profileFormSubmitting: false,
+
+  // Cakrawala — social feed
+  cakrawalaPosts: [],
+  cakrawalaLoading: false,
+  cakrawalaError: null,
+  cakrawalaComposerText: '',
+  cakrawalaComposerPhoto: null,   // resized/re-encoded data URL, or null
+  cakrawalaPosting: false,
+  cakrawalaOpenComments: {},      // { [postId]: true } — which posts show their comment thread
+  cakrawalaCommentDraft: {},      // { [postId]: string }
+  cakrawalaLikeBusy: {},          // { [postId]: true } — like request in flight, guards double-tap
+  cakrawalaCommentBusy: {},       // { [postId]: true } — comment request in flight
 };
 
 /* ---------- persistence (session only — this is a real app file, not a hosted artifact) ---------- */
@@ -734,6 +909,7 @@ function render(){
   else if(state.screen === 'booking') html = renderBooking();
   else if(state.screen === 'confirm') html = renderConfirm();
   else if(state.screen === 'konsultasi') html = renderKonsultasi();
+  else if(state.screen === 'cakrawala') html = renderCakrawala();
   else if(state.screen === 'profil') html = renderProfil();
   else if(state.screen === 'lawyer-profile-form') html = renderLawyerProfileForm();
   else if(state.screen === 'layanan-detail') html = renderLayananDetail();
@@ -1041,16 +1217,16 @@ function renderLayananDetail(){
   }
   return `
   <div class="screen active" style="display:flex;">
-    <div class="detail-header" style="padding-bottom:18px;">
-      <button class="back-btn" onclick="goHome()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <div class="profile-row">
-        <div class="avatar" style="background:${s.bg};color:var(--navy);font-size:22px;">${s.icon}</div>
-        <div>
-          <div class="profile-name">${s.label}</div>
-          <div class="profile-spec" style="color:#C8D1E3;">Pilih kebutuhan spesifik Anda</div>
-        </div>
+    <div class="detail-header">
+      <div class="nav-strip">
+        <button class="back-link" onclick="goHome()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero">
+        <div class="avatar" style="background:${s.bg};color:var(--navy);">${s.icon}</div>
+        <div class="profile-name">${s.label}</div>
+        <div class="profile-spec" style="color:#C8D1E3;">Pilih kebutuhan spesifik Anda</div>
       </div>
     </div>
     <div class="menu-list" style="flex:1;overflow-y:auto;">
@@ -1069,9 +1245,17 @@ function renderLayananDetail(){
 // notice naming the exact thing they tapped rather than pretending to book it.
 function selectLayananItem(serviceKey, item){
   const s = SERVICE_CATALOG.find(x => x.key === serviceKey);
-  if(s && s.mapCategory){
+  if(s && s.key === 'pendampingan'){
+    // Tag the request so it survives into the booking screen (shown to the
+    // lawyer as context) and picks the "Tatap Muka" method automatically.
+    state.bookingServiceNote = 'Pendampingan · ' + item;
+    state.activeCategory = PENDAMPINGAN_CATEGORY_MAP[item] || 'Semua';
+    state.screen = 'home';
+    loadLawyers().then(scrollToAllLawyers);
+  }else if(s && s.mapCategory){
     state.screen = 'home';
     state.activeCategory = s.mapCategory;
+    state.bookingServiceNote = null;
     // loadLawyers() re-renders #homeScreen once the list finishes loading —
     // scrolling before that would just get wiped out by that later render,
     // so wait for its promise instead of a fixed timeout.
@@ -1157,7 +1341,7 @@ function renderLawyerCard(l){
   </div>`;
 }
 
-function setCategory(c){ state.activeCategory = c; loadLawyers(); }
+function setCategory(c){ state.activeCategory = c; state.bookingServiceNote = null; loadLawyers(); }
 function setSort(v){ state.sortBy = v; loadLawyers(); }
 function handleSearch(v){ state.searchQuery = v; render(); }
 
@@ -1195,18 +1379,18 @@ function renderDetail(){
   return `
   <div class="screen active" style="display:flex;">
     <div class="detail-header">
-      <button class="back-btn" onclick="goHome()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <div class="profile-row">
+      <div class="nav-strip">
+        <button class="back-link" onclick="goHome()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero">
         <div class="avatar">${initials(l.name)}</div>
-        <div>
-          <div class="profile-name">${l.name}</div>
-          <div class="profile-spec">${l.specializations.join(', ')}</div>
-          <div class="profile-stats">
-            <div><b>★ ${l.rating.toFixed(1)}</b> (${l.reviewCount})</div>
-            <div><b>${l.yearsExperience}</b> thn pengalaman</div>
-          </div>
+        <div class="profile-name">${l.name}</div>
+        <div class="profile-spec">${l.specializations.join(', ')}</div>
+        <div class="profile-stats">
+          <div><b>★ ${l.rating.toFixed(1)}</b> (${l.reviewCount})</div>
+          <div><b>${l.yearsExperience}</b> thn pengalaman</div>
         </div>
       </div>
     </div>
@@ -1243,7 +1427,9 @@ function renderDetail(){
 ============================================================ */
 function startBooking(){
   state.selectedSlot = null;
-  state.selectedMethod = null;
+  // A "Lawyer / Pendampingan" request only makes sense in person, so that
+  // method is preselected — the client can still switch to chat/video.
+  state.selectedMethod = state.bookingServiceNote ? 'tatap-muka' : null;
   state.bookingError = null;
   state.screen = 'booking';
   render();
@@ -1252,23 +1438,36 @@ function startBooking(){
 function renderBooking(){
   const l = state.selectedLawyerDetail;
   const slots = ['09:00','10:30','13:00','14:30','16:00','19:00'];
-  const rate = state.selectedMethod === 'video' ? l.hourlyRateVideo : l.hourlyRateChat;
-  const total = state.selectedMethod ? rate : null; // durationMinutes fixed at 60 → total == hourly rate
+  const rateFor = m => m==='video' ? l.hourlyRateVideo : m==='tatap-muka' ? (l.hourlyRateInPerson || l.hourlyRateVideo) : l.hourlyRateChat;
+  const total = state.selectedMethod ? rateFor(state.selectedMethod) : null; // durationMinutes fixed at 60 → total == hourly rate
 
   return `
   <div class="screen active" style="display:flex;">
-    <div class="detail-header" style="padding-bottom:16px;">
-      <button class="back-btn" onclick="openDetail('${l.id}')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <div style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;">Atur Konsultasi</div>
-      <div style="font-size:12.5px;color:#C8D1E3;margin-top:3px;">dengan ${l.name}</div>
+    <div class="detail-header">
+      <div class="nav-strip">
+        <button class="back-link" onclick="openDetail('${l.id}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero" style="padding-bottom:20px;">
+        <div class="hero-title">Atur Konsultasi</div>
+        <div class="hero-sub">dengan ${l.name}</div>
+      </div>
     </div>
     <div class="content" style="padding-top:18px;">
       ${state.bookingError ? `<div class="error-box">${state.bookingError}</div>` : ''}
+      ${state.bookingServiceNote ? `
+        <div class="error-box" style="background:var(--navy-pale);color:var(--navy);margin-bottom:14px;">
+          Mengajukan untuk: <b>${state.bookingServiceNote}</b>
+        </div>` : ''}
       <div class="booking-block">
         <span class="lbl">Pilih metode konsultasi (durasi 60 menit)</span>
-        <div class="method-row">
+        <div class="method-row" style="${state.bookingServiceNote ? 'flex-wrap:wrap;' : ''}">
+          ${state.bookingServiceNote ? `
+          <div class="method-card ${state.selectedMethod==='tatap-muka'?'selected':''}" onclick="selectMethod('tatap-muka')">
+            <div class="m-title">Tatap Muka</div>
+            <div class="m-price">${formatRupiah(rateFor('tatap-muka'))}</div>
+          </div>` : ''}
           <div class="method-card ${state.selectedMethod==='chat'?'selected':''}" onclick="selectMethod('chat')">
             <div class="m-title">Chat</div>
             <div class="m-price">${formatRupiah(l.hourlyRateChat)}</div>
@@ -1290,18 +1489,22 @@ function renderBooking(){
       <div class="booking-block">
         <span class="lbl">Ringkasan</span>
         <div class="summary-box">
-          <div class="summary-row"><span>Metode</span><span>${state.selectedMethod ? (state.selectedMethod==='chat'?'Chat':'Video Call') : '—'}</span></div>
+          <div class="summary-row"><span>Metode</span><span>${state.selectedMethod ? methodLabelTitle(state.selectedMethod) : '—'}</span></div>
           <div class="summary-row"><span>Jadwal</span><span>${state.selectedSlot || '—'}</span></div>
-          <div class="summary-row total"><span>Total biaya</span><span>${total !== null ? formatRupiah(total) : '—'}</span></div>
+          <div class="summary-row total"><span>Estimasi biaya</span><span>${total !== null ? formatRupiah(total) : '—'}</span></div>
         </div>
       </div>
     </div>
     <div class="cta-bar">
       <button class="btn btn-primary" ${(!state.selectedMethod || !state.selectedSlot || state.bookingSubmitting) ? 'disabled' : ''} onclick="confirmBooking()">
-        ${state.bookingSubmitting ? 'Memproses…' : 'Konfirmasi & Bayar'}
+        ${state.bookingSubmitting ? 'Mengirim…' : 'Kirim Permintaan'}
       </button>
     </div>
   </div>`;
+}
+
+function methodLabelTitle(m){
+  return m==='chat' ? 'Chat' : m==='video' ? 'Video Call' : 'Tatap Muka';
 }
 
 function selectMethod(m){ state.selectedMethod = m; render(); }
@@ -1314,6 +1517,13 @@ function slotToDate(slot){
   return d;
 }
 
+// Sends the booking as a REQUEST only — no payment yet. The lawyer has to
+// accept it first (dashboard "Permintaan Baru" section, further down) before
+// the client is asked to pay. This assumes the backend creates the booking
+// with status 'pending_approval' rather than auto-confirming it; the actual
+// Express/Prisma backend needs a matching status + accept/reject endpoints
+// (see acceptBookingRequest/rejectBookingRequest below) for this to work
+// end-to-end — this mockup only covers the front-end side of that contract.
 async function confirmBooking(){
   if(!state.selectedMethod || !state.selectedSlot) return;
   state.bookingSubmitting = true;
@@ -1327,11 +1537,11 @@ async function confirmBooking(){
         method: state.selectedMethod,
         scheduledAt: slotToDate(state.selectedSlot).toISOString(),
         durationMinutes: 60,
+        ...(state.bookingServiceNote ? { note: state.bookingServiceNote } : {}),
       },
     });
-    const paymentResult = await api('/payments/initiate', { method:'POST', body:{ bookingId: booking.id } });
     state.lastBooking = booking;
-    state.lastPaymentRedirect = paymentResult.redirectUrl;
+    state.lastPaymentRedirect = null;
     state.screen = 'confirm';
   }catch(e){
     state.bookingError = e.message;
@@ -1341,27 +1551,77 @@ async function confirmBooking(){
   }
 }
 
+// Called from the client's "Konsultasi Saya" list once a booking has been
+// approved by the lawyer (status === 'pending_payment'). Kicks off the same
+// Midtrans redirect the old instant-booking flow used to trigger right away.
+async function payForBooking(bookingId){
+  state.payingBookingId = bookingId;
+  render();
+  try{
+    const paymentResult = await api('/payments/initiate', { method:'POST', body:{ bookingId } });
+    if(paymentResult.redirectUrl) window.open(paymentResult.redirectUrl, '_blank');
+  }catch(e){
+    alert('Gagal memulai pembayaran: ' + e.message);
+  }finally{
+    state.payingBookingId = null;
+    render();
+  }
+}
+
+/* ---- Lawyer side: accept / reject an incoming request ---- */
+async function acceptBookingRequest(bookingId){
+  state.bookingActionId = bookingId;
+  render();
+  try{
+    await api('/bookings/' + bookingId + '/accept', { method:'PATCH' });
+    await loadMyBookings();
+  }catch(e){
+    alert('Gagal menerima permintaan: ' + e.message);
+  }finally{
+    state.bookingActionId = null;
+    render();
+  }
+}
+async function rejectBookingRequest(bookingId){
+  if(!confirm('Tolak permintaan konsultasi ini?')) return;
+  state.bookingActionId = bookingId;
+  render();
+  try{
+    await api('/bookings/' + bookingId + '/reject', { method:'PATCH' });
+    await loadMyBookings();
+  }catch(e){
+    alert('Gagal menolak permintaan: ' + e.message);
+  }finally{
+    state.bookingActionId = null;
+    render();
+  }
+}
+
+function methodLabel(m){
+  return m==='chat' ? 'chat' : m==='video' ? 'video call' : 'tatap muka';
+}
+
 function renderConfirm(){
   const l = state.selectedLawyerDetail;
   const b = state.lastBooking;
+  const waitingApproval = b.status === 'pending_approval';
   return `
   <div class="screen active" style="display:flex;">
     <div class="confirm-wrap">
-      <div class="confirm-icon">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4F7358" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+      <div class="confirm-icon" ${waitingApproval ? 'style="background:var(--gold-pale);"' : ''}>
+        ${waitingApproval
+          ? `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>`
+          : `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4F7358" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>`}
       </div>
-      <div class="confirm-title">Booking Dibuat</div>
+      <div class="confirm-title">${waitingApproval ? 'Permintaan Terkirim' : 'Booking Dibuat'}</div>
       <div class="confirm-text">
-        Konsultasi ${b.method==='chat'?'chat':'video call'} Anda dengan ${l.name} telah dibuat untuk hari ini pukul ${state.selectedSlot}.
-        Status saat ini: <b>${STATUS_LABEL[b.status] || b.status}</b>. Selesaikan pembayaran lewat Midtrans untuk mengonfirmasi jadwal ke pengacara.
+        ${state.bookingServiceNote ? `<b>${state.bookingServiceNote}</b><br>` : ''}
+        Permintaan konsultasi ${methodLabel(b.method)} Anda dengan ${l.name} untuk hari ini pukul ${state.selectedSlot} sudah dikirim.
+        ${waitingApproval
+          ? 'Menunggu <b>' + l.name + '</b> menerima permintaan ini — Anda akan diminta membayar begitu diterima. Anda bisa memantau statusnya di halaman Konsultasi Saya.'
+          : 'Status saat ini: <b>' + (STATUS_LABEL[b.status] || b.status) + '</b>.'}
       </div>
-      ${state.lastPaymentRedirect ? `
-        <a href="${state.lastPaymentRedirect}" target="_blank" class="btn btn-gold" style="width:100%;flex:none;display:block;margin-bottom:10px;text-decoration:none;box-sizing:border-box;">Lanjutkan Pembayaran</a>
-        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5;">
-          Tautan ini adalah simulasi Midtrans (backend belum terhubung ke kredensial sandbox asli). Jadwal akan berstatus "Terjadwal" otomatis setelah webhook pembayaran diterima server.
-        </div>
-      ` : ''}
-      <button class="btn btn-primary" style="width:100%;flex:none;" onclick="goToKonsultasi()">Lihat Jadwal Saya</button>
+      <button class="btn btn-primary" style="width:100%;flex:none;" onclick="goToKonsultasi()">Lihat Status Permintaan</button>
     </div>
   </div>`;
 }
@@ -1387,8 +1647,11 @@ async function loadMyBookings(){
 }
 
 function renderKonsultasi(){
-  const upcoming = state.myBookings.filter(b => ['pending_payment','confirmed','ongoing'].includes(b.status));
-  const history = state.myBookings.filter(b => ['completed','cancelled'].includes(b.status));
+  // Opening this screen counts as "seeing" whatever's currently loaded, so
+  // the bottom-nav badge for it clears (see navBadge() / getSeenBookingSet()).
+  if(!state.myBookingsLoading) markBookingsSeen(state.myBookings);
+  const upcoming = state.myBookings.filter(b => ['pending_approval','pending_payment','confirmed','ongoing'].includes(b.status));
+  const history = state.myBookings.filter(b => ['completed','cancelled','rejected'].includes(b.status));
 
   let body;
   if(state.myBookingsLoading){
@@ -1430,6 +1693,7 @@ function renderBookingItem(b){
   const name = b.lawyer ? b.lawyer.user.fullName : (b.client ? b.client.fullName : '—');
   const canReview = b.status === 'completed' && !b.review && state.user.role === 'client';
   const isDraftingThis = state.reviewDraft && state.reviewDraft.bookingId === b.id;
+  const isClientView = state.user.role === 'client' || state.mode === 'klien';
 
   let actions = '';
   if(b.review){
@@ -1437,6 +1701,13 @@ function renderBookingItem(b){
   }else if(canReview){
     actions = isDraftingThis ? renderReviewForm(b) : `
       <div class="bi-actions"><button class="btn btn-outline" style="flex:1;" onclick="openReviewForm('${b.id}')">Beri Ulasan</button></div>`;
+  }else if(isClientView && b.status === 'pending_approval'){
+    actions = `<div class="review-text" style="margin-top:8px;color:var(--ink-soft);">Menunggu ${name} menerima permintaan ini.</div>`;
+  }else if(isClientView && b.status === 'pending_payment'){
+    actions = `<div class="bi-actions"><button class="btn btn-gold" style="flex:1;" ${state.payingBookingId===b.id?'disabled':''} onclick="payForBooking('${b.id}')">
+      ${state.payingBookingId===b.id ? 'Memproses…' : 'Bayar Sekarang'}</button></div>`;
+  }else if(isClientView && b.status === 'rejected'){
+    actions = `<div class="review-text" style="margin-top:8px;color:var(--danger);">${name} tidak dapat menerima permintaan ini. Coba cari pengacara lain.</div>`;
   }
 
   return `
@@ -1445,7 +1716,8 @@ function renderBookingItem(b){
       <div class="bi-name">${name}</div>
       <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status] || b.status}</div>
     </div>
-    <div class="bi-meta">${b.method==='chat'?'Chat':'Video Call'} · ${formatDateTime(b.scheduledAt)} · ${formatRupiah(b.price)}</div>
+    <div class="bi-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)} · ${formatRupiah(b.price)}</div>
+    ${b.note ? `<div class="bi-meta" style="color:var(--gold);margin-top:2px;">${b.note}</div>` : ''}
     ${actions}
   </div>`;
 }
@@ -1489,6 +1761,264 @@ async function submitReview(){
   }finally{
     state.reviewSubmitting = false;
     render();
+  }
+}
+
+/* ============================================================
+   Cakrawala — social feed
+   ------------------------------------------------------------
+   Backed by the real /posts API (see backend/src/modules/posts). Photos
+   are resized client-side to a max 1280px edge and re-encoded as JPEG
+   before upload — keeps the base64 payload well under the backend's
+   ~3.5MB ceiling and the request from ever hitting Vercel's body-size
+   limit, since a raw phone-camera photo can otherwise be 5-10MB.
+============================================================ */
+async function loadCakrawalaFeed(){
+  state.cakrawalaLoading = true;
+  state.cakrawalaError = null;
+  render();
+  try{
+    const result = await api('/posts');
+    state.cakrawalaPosts = result.items;
+  }catch(e){
+    state.cakrawalaError = e.message;
+  }finally{
+    state.cakrawalaLoading = false;
+    render();
+  }
+}
+
+function timeAgo(iso){
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if(min < 1) return 'Baru saja';
+  if(min < 60) return min + ' menit lalu';
+  const hr = Math.floor(min / 60);
+  if(hr < 24) return hr + ' jam lalu';
+  const day = Math.floor(hr / 24);
+  if(day === 1) return 'Kemarin';
+  if(day < 7) return day + ' hari lalu';
+  return new Date(iso).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function onCakrawalaComposerInput(v){ state.cakrawalaComposerText = v; }
+
+// Downscales/re-encodes the picked image on a <canvas> before it ever
+// becomes a data URL, so a 10MB phone photo turns into a few hundred KB
+// JPEG — the actual thing keeping uploads under the backend's size limit.
+function onCakrawalaPhotoPicked(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_EDGE = 1280;
+      let { width, height } = img;
+      if(width > MAX_EDGE || height > MAX_EDGE){
+        if(width >= height){ height = Math.round(height * (MAX_EDGE / width)); width = MAX_EDGE; }
+        else{ width = Math.round(width * (MAX_EDGE / height)); height = MAX_EDGE; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      state.cakrawalaComposerPhoto = canvas.toDataURL('image/jpeg', 0.78);
+      render();
+    };
+    img.onerror = () => { alert('Foto tidak bisa dibaca, coba foto lain.'); };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeComposerPhoto(){ state.cakrawalaComposerPhoto = null; render(); }
+
+async function submitCakrawalaPost(){
+  const text = state.cakrawalaComposerText.trim();
+  const photo = state.cakrawalaComposerPhoto;
+  if(!text && !photo) return;
+
+  state.cakrawalaPosting = true;
+  render();
+  try{
+    const post = await api('/posts', { method:'POST', body:{ text: text || undefined, photo: photo || undefined } });
+    state.cakrawalaPosts.unshift(post);
+    state.cakrawalaComposerText = '';
+    state.cakrawalaComposerPhoto = null;
+  }catch(e){
+    alert(e.message);
+  }finally{
+    state.cakrawalaPosting = false;
+    render();
+  }
+}
+
+async function toggleLikePost(postId){
+  const post = state.cakrawalaPosts.find(p => p.id === postId);
+  if(!post || state.cakrawalaLikeBusy[postId]) return;
+  state.cakrawalaLikeBusy[postId] = true;
+
+  // Optimistic update — flip immediately, reconcile (or roll back) once
+  // the request settles, so tapping "Suka" feels instant on a slow network.
+  const prevLiked = post.likedByMe;
+  post.likedByMe = !prevLiked;
+  post.likesCount += post.likedByMe ? 1 : -1;
+  render();
+
+  try{
+    const result = await api(`/posts/${postId}/like`, { method:'POST' });
+    post.likedByMe = result.liked;
+  }catch(e){
+    post.likedByMe = prevLiked;
+    post.likesCount += prevLiked ? 1 : -1;
+  }finally{
+    delete state.cakrawalaLikeBusy[postId];
+    render();
+  }
+}
+
+function toggleComments(postId){
+  state.cakrawalaOpenComments[postId] = !state.cakrawalaOpenComments[postId];
+  render();
+}
+function onCommentDraftInput(postId, v){ state.cakrawalaCommentDraft[postId] = v; }
+
+async function submitComment(postId){
+  const text = (state.cakrawalaCommentDraft[postId] || '').trim();
+  if(!text || state.cakrawalaCommentBusy[postId]) return;
+  const post = state.cakrawalaPosts.find(p => p.id === postId);
+  if(!post) return;
+
+  state.cakrawalaCommentBusy[postId] = true;
+  render();
+  try{
+    const comment = await api(`/posts/${postId}/comments`, { method:'POST', body:{ text } });
+    post.comments.push(comment);
+    state.cakrawalaCommentDraft[postId] = '';
+  }catch(e){
+    alert(e.message);
+  }finally{
+    delete state.cakrawalaCommentBusy[postId];
+    render();
+  }
+}
+
+function renderCakrawala(){
+  const u = state.user;
+  const composerPhoto = state.cakrawalaComposerPhoto;
+  const canPost = (state.cakrawalaComposerText.trim().length > 0 || !!composerPhoto) && !state.cakrawalaPosting;
+
+  let body;
+  if(state.cakrawalaLoading){
+    body = `<div class="loading-state">Memuat postingan…</div>`;
+  }else if(state.cakrawalaError){
+    body = `<div class="error-box">${state.cakrawalaError}</div>`;
+  }else if(state.cakrawalaPosts.length === 0){
+    body = `
+      <div class="empty-state">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#A7A296" stroke-width="1.5"><circle cx="12" cy="14" r="4"/><path d="M4 20h16"/><path d="M7.5 20a4.5 4.5 0 0 1 9 0"/></svg>
+        <div class="e-title">Belum ada postingan</div>
+        <div class="e-sub">Jadilah yang pertama membagikan kabar atau kegiatan hari ini.</div>
+      </div>`;
+  }else{
+    body = state.cakrawalaPosts.map(p => renderPostCard(p)).join('');
+  }
+
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="topbar" style="padding-bottom:16px;">
+      <div class="brand"><div class="logo"><span class="mark">Lexa</span><span style="color:#000;">ra</span></div></div>
+      <div style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;">Cakrawala</div>
+      <div style="font-size:11.5px;color:#C8D1E3;margin-top:2px;">Kabar &amp; aktivitas dari komunitas Lexara</div>
+    </div>
+    <div class="content" style="padding-top:18px;">
+      <div class="feed-composer">
+        <div class="feed-composer-top">
+          <div class="avatar" style="width:38px;height:38px;font-size:13px;flex-shrink:0;">${initials(u.fullName)}</div>
+          <textarea rows="2" placeholder="Apa yang sedang Anda pikirkan, ${u.fullName.split(' ')[0]}?"
+            oninput="onCakrawalaComposerInput(this.value)">${state.cakrawalaComposerText}</textarea>
+        </div>
+        ${composerPhoto ? `
+          <div class="feed-composer-photo-wrap">
+            <img src="${composerPhoto}" alt="Pratinjau foto">
+            <button class="feed-composer-photo-remove" onclick="removeComposerPhoto()">✕</button>
+          </div>` : ''}
+        <div class="feed-composer-actions">
+          <label class="feed-composer-photo-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-6-5-4 4-3-2-5 4"/></svg>
+            Foto
+            <input type="file" accept="image/*" style="display:none;" onchange="onCakrawalaPhotoPicked(this)">
+          </label>
+          <button class="btn btn-primary" ${canPost ? '' : 'disabled'} onclick="submitCakrawalaPost()">${state.cakrawalaPosting ? 'Mengirim…' : 'Bagikan'}</button>
+        </div>
+      </div>
+
+      ${body}
+    </div>
+  </div>`;
+}
+
+function renderPostCard(post){
+  const commentsOpen = !!state.cakrawalaOpenComments[post.id];
+  const draft = state.cakrawalaCommentDraft[post.id] || '';
+  const isMine = post.author.id === state.user.id;
+
+  const photoHtml = post.photo ? `<img class="post-photo" src="${post.photo}" alt="Foto postingan">` : '';
+
+  return `
+  <div class="post-card">
+    <div class="post-head">
+      <div class="avatar">${initials(post.author.fullName)}</div>
+      <div style="flex:1;">
+        <div class="post-author-name">${post.author.fullName}
+          <span class="post-role-badge ${post.author.role === 'client' ? 'client' : ''}">${post.author.role === 'lawyer' ? 'Pengacara' : 'Klien'}</span>
+        </div>
+        <div class="post-time">${timeAgo(post.createdAt)}</div>
+      </div>
+      ${isMine ? `<button class="btn-link" onclick="deleteCakrawalaPost('${post.id}')">Hapus</button>` : ''}
+    </div>
+    ${post.text ? `<div class="post-text">${post.text}</div>` : ''}
+    ${photoHtml}
+    <div class="post-actions">
+      <button class="post-action-btn ${post.likedByMe ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="${post.likedByMe ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        ${post.likesCount > 0 ? post.likesCount : ''} Suka
+      </button>
+      <button class="post-action-btn" onclick="toggleComments('${post.id}')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        ${post.comments.length > 0 ? post.comments.length : ''} Komentar
+      </button>
+    </div>
+    ${commentsOpen ? `
+    <div class="post-comments">
+      ${post.comments.map(c => `
+        <div class="comment-row">
+          <div class="avatar">${initials(c.author.fullName)}</div>
+          <div class="comment-bubble">
+            <div class="comment-author">${c.author.fullName}</div>
+            <div class="comment-text">${c.text}</div>
+          </div>
+        </div>`).join('')}
+      <div class="comment-input-row">
+        <div class="avatar">${initials(state.user.fullName)}</div>
+        <input type="text" placeholder="Tulis komentar…" value="${draft}"
+          oninput="onCommentDraftInput('${post.id}', this.value)"
+          onkeydown="if(event.key==='Enter'){ submitComment('${post.id}'); }">
+        <button class="comment-send-btn" ${draft.trim() ? '' : 'disabled'} onclick="submitComment('${post.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>` : ''}
+  </div>`;
+}
+
+async function deleteCakrawalaPost(postId){
+  if(!confirm('Hapus postingan ini?')) return;
+  try{
+    await api(`/posts/${postId}`, { method:'DELETE' });
+    state.cakrawalaPosts = state.cakrawalaPosts.filter(p => p.id !== postId);
+    render();
+  }catch(e){
+    alert(e.message);
   }
 }
 
@@ -1571,7 +2101,8 @@ function renderLawyerDashboard(){
   }
 
   const p = state.myLawyerProfile;
-  const upcoming = state.myBookings.filter(b => b.status === 'confirmed' || b.status === 'ongoing');
+  const pendingRequests = state.myBookings.filter(b => b.status === 'pending_approval');
+  const upcoming = state.myBookings.filter(b => b.status === 'confirmed' || b.status === 'ongoing' || b.status === 'pending_payment');
   const monthCount = state.myBookings.filter(b => b.status === 'completed').length;
 
   const verifBadge = p.verificationStatus === 'verified'
@@ -1601,6 +2132,29 @@ function renderLawyerDashboard(){
         </div>
       ` : ''}
 
+      ${pendingRequests.length ? `
+        <div class="section-title">
+          Permintaan Baru
+          <span class="see-all" style="background:var(--danger);color:#fff;border-radius:10px;padding:1px 8px;">${pendingRequests.length}</span>
+        </div>
+        ${pendingRequests.map(b => `
+        <div class="request-card">
+          <div class="req-top">
+            <div>
+              <div class="req-name">${b.client.fullName}</div>
+              <div class="req-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)}${b.note ? ' · ' + b.note : ''}</div>
+            </div>
+            <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status]}</div>
+          </div>
+          <div class="request-actions">
+            <button class="req-reject" ${state.bookingActionId===b.id?'disabled':''} onclick="rejectBookingRequest('${b.id}')">Tolak</button>
+            <button class="req-accept" ${state.bookingActionId===b.id?'disabled':''} onclick="acceptBookingRequest('${b.id}')">
+              ${state.bookingActionId===b.id ? '…' : 'Terima'}
+            </button>
+          </div>
+        </div>`).join('')}
+      ` : ''}
+
       <div class="stat-row">
         <div class="stat-card"><div class="s-num">${monthCount}</div><div class="s-lbl">Konsultasi selesai</div></div>
         <div class="stat-card"><div class="s-num">${p.rating.toFixed(1)}</div><div class="s-lbl">Rating rata-rata</div></div>
@@ -1617,15 +2171,15 @@ function renderLawyerDashboard(){
         <b>Spesialisasi:</b> ${p.specializations.length ? p.specializations.join(', ') : '<i>belum diisi</i>'}
       </div>
 
-      <div class="section-title" style="margin-top:20px;">Jadwal Terkonfirmasi</div>
-      ${upcoming.length === 0 ? `<div class="about-box">Belum ada jadwal terkonfirmasi.</div>` :
+      <div class="section-title" style="margin-top:20px;">Jadwal</div>
+      ${upcoming.length === 0 ? `<div class="about-box">Belum ada jadwal.</div>` :
         upcoming.map(b => `
         <div class="booking-item">
           <div class="bi-top">
             <div class="bi-name">${b.client.fullName}</div>
             <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status]}</div>
           </div>
-          <div class="bi-meta">${b.method==='chat'?'Chat':'Video Call'} · ${formatDateTime(b.scheduledAt)}</div>
+          <div class="bi-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)}${b.note ? ' · ' + b.note : ''}</div>
         </div>`).join('')}
     </div>
   </div>`;
@@ -1658,12 +2212,16 @@ function renderLawyerProfileForm(){
   const catalog = state.specializationsCatalog;
   return `
   <div class="screen active" style="display:flex;">
-    <div class="detail-header" style="padding-bottom:16px;">
-      <button class="back-btn" onclick="backToLawyerDashboard()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <div style="font-family:'Source Serif 4',serif;font-size:18px;font-weight:600;">Lengkapi Profil Pengacara</div>
-      <div style="font-size:12px;color:#C8D1E3;margin-top:3px;">Mengubah profil akan mengembalikan status verifikasi ke "pending".</div>
+    <div class="detail-header">
+      <div class="nav-strip">
+        <button class="back-link" onclick="backToLawyerDashboard()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero" style="padding-bottom:20px;">
+        <div class="hero-title">Lengkapi Profil Pengacara</div>
+        <div class="hero-sub">Mengubah profil akan mengembalikan status verifikasi ke "pending".</div>
+      </div>
     </div>
     <div class="content" style="padding-top:18px;">
       ${state.profileFormError ? `<div class="error-box">${state.profileFormError}</div>` : ''}
@@ -1730,10 +2288,18 @@ async function submitLawyerProfile(){
    Bottom nav + navigation
 ============================================================ */
 function renderBottomNav(){
+  // "Konsultasi" doubles as the requests inbox: for a lawyer (mode ===
+  // 'pengacara') it counts open requests waiting for Terima/Tolak; for a
+  // client it counts bookings whose status changed since last viewed
+  // (approved, rejected, etc.) — see markBookingsSeen()/countUnseen().
+  const konsultasiBadge = state.mode === 'pengacara'
+    ? state.myBookings.filter(b => b.status === 'pending_approval').length
+    : countUnseen(state.myBookings);
+
   const items = [
     {key:'home', label:'Beranda', icon:`<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/>`},
-    {key:'kasus', label:'Kasus', icon:`<path d="M9 3h6l1 3h4v2H4V6h4l1-3z"/><path d="M5 8l1.5 11a2 2 0 0 0 2 1.8h7a2 2 0 0 0 2-1.8L19 8"/>`, soon:true},
-    {key:'konsultasi', label:'Konsultasi', icon:`<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>`},
+    {key:'cakrawala', label:'Cakrawala', icon:`<circle cx="12" cy="14" r="4"/><path d="M3 14h2M19 14h2M12 3v2"/><path d="M4 20h16"/><path d="M7.5 20a4.5 4.5 0 0 1 9 0"/>`},
+    {key:'konsultasi', label:'Konsultasi', icon:`<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>`, badge:konsultasiBadge},
     {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
@@ -1741,7 +2307,8 @@ function renderBottomNav(){
   return `
   <div class="bottomnav">
     ${items.map(i=>`
-      <button class="navitem ${activeKey===i.key?'active':''}" onclick="${i.soon ? `comingSoon('${i.label}')` : `goScreen('${i.key}')`}">
+      <button class="navitem ${activeKey===i.key?'active':''}" style="position:relative;" onclick="${i.soon ? `comingSoon('${i.label}')` : `goScreen('${i.key}')`}">
+        ${navBadge(i.badge || 0)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${i.icon}</svg>
         ${i.label}
       </button>`).join('')}
@@ -1755,15 +2322,62 @@ function goScreen(s){
   render();
   if(s === 'home' && state.lawyers.length === 0) loadLawyers();
   if(s === 'konsultasi') loadMyBookings();
+  if(s === 'cakrawala') loadCakrawalaFeed();
 }
 function goHome(){ state.screen = 'home'; state.showAllServices = false; render(); }
+
+/* ============================================================
+   Live-ish updates while the tab stays open
+   ------------------------------------------------------------
+   This mockup has no real push-notification channel — it's a static
+   HTML file with no server to push from. What it CAN do honestly is
+   poll the API for booking changes while the app is open and, if
+   anything new shows up, both bump the nav badge above and fire a
+   browser Notification() popup (notifyNewActivity()). That covers the
+   "I'm using the app right now" case. Getting a phone notification
+   while Lexara is closed needs real infrastructure on the actual
+   Express/Prisma backend — e.g. Firebase Cloud Messaging or web push
+   (VAPID) — which is outside what a front-end mockup file can provide.
+============================================================ */
+async function pollForBookingUpdates(){
+  if(!state.token || !state.user) return;
+  if(typeof document !== 'undefined' && document.hidden) return; // tab not in front — skip this tick
+  const before = new Map(state.myBookings.map(b => [b.id, b.status]));
+  try{
+    const fresh = await api('/bookings/me');
+    const isLawyer = state.user.role === 'lawyer';
+    fresh.forEach(b => {
+      const prevStatus = before.get(b.id);
+      if(prevStatus === undefined) return; // first load — nothing to compare yet
+      if(prevStatus === b.status) return;
+      if(isLawyer && b.status === 'pending_approval'){
+        notifyNewActivity('Permintaan konsultasi baru', (b.client ? b.client.fullName : 'Klien') + ' mengajukan konsultasi.');
+      }else if(!isLawyer && b.status === 'pending_payment'){
+        notifyNewActivity('Permintaan diterima', (b.lawyer ? b.lawyer.user.fullName : 'Pengacara') + ' menerima permintaan Anda — lanjutkan pembayaran.');
+      }else if(!isLawyer && b.status === 'rejected'){
+        notifyNewActivity('Permintaan ditolak', (b.lawyer ? b.lawyer.user.fullName : 'Pengacara') + ' tidak dapat menerima permintaan Anda.');
+      }
+    });
+    state.myBookings = fresh;
+    render();
+  }catch(e){ /* silent — this is a background refresh, not a user action */ }
+}
 
 /* ============================================================
    Boot
 ============================================================ */
 loadSession();
 render();
-if(state.token){ loadLawyers(); }
+if(state.token){
+  loadLawyers();
+  loadMyBookings();
+  loadCakrawalaFeed();
+  // 60s, not 20s — this hits the API on every open tab; too short risks
+  // exhausting Supabase's connection pool on small/free-tier plans and
+  // showing "terjadi kesalahan pada server" more often than before this
+  // polling existed. Widen further (or drop it) if errors keep happening.
+  setInterval(pollForBookingUpdates, 60000);
+}
 startBannerAutoplay();
 </script>
 </body>
