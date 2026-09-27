@@ -81,6 +81,7 @@
     flex:1;
     min-height:0;
     overflow-y:auto;
+    overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     display:none;
     flex-direction:column;
@@ -317,7 +318,7 @@
     box-shadow:0 2px 6px rgba(0,0,0,0.15);transition:transform .12s ease;
   }
   .sheet-close:active{transform:scale(0.92);}
-  .sheet-body{overflow-y:auto;padding:18px 18px 26px;scrollbar-width:none;-ms-overflow-style:none;}
+  .sheet-body{overflow-y:auto;overflow-x:hidden;padding:18px 18px 26px;scrollbar-width:none;-ms-overflow-style:none;}
   .sheet-body::-webkit-scrollbar{display:none;}
   @keyframes sheetFadeIn{from{opacity:0;}to{opacity:1;}}
   @keyframes sheetSlideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
@@ -1114,11 +1115,31 @@ function formatDateTime(iso){
 /* ============================================================
    Render root
 ============================================================ */
+// render() always rebuilds #app's HTML from scratch, which would otherwise
+// silently reset any open scrollable panel — the active screen, or a filter
+// bottom sheet's .sheet-body — back to the top on every single tap (e.g.
+// picking a filter chip). This captures the current scroll position(s)
+// before the rebuild and restores them on the freshly-created elements
+// right after, so scrolling only happens when the client actually scrolls.
+function setAppHtml(app, html){
+  const screenScroll = app.querySelector('.screen.active')?.scrollTop || 0;
+  const sheetScroll = app.querySelector('.sheet-body')?.scrollTop || 0;
+  app.innerHTML = html;
+  if(screenScroll){
+    const el = app.querySelector('.screen.active');
+    if(el) el.scrollTop = screenScroll;
+  }
+  if(sheetScroll){
+    const el = app.querySelector('.sheet-body');
+    if(el) el.scrollTop = sheetScroll;
+  }
+}
+
 function render(){
   const app = document.getElementById('app');
 
   if(!state.token || !state.user){
-    app.innerHTML = state.authScreen === 'login' ? renderLogin() : renderRegister();
+    setAppHtml(app, state.authScreen === 'login' ? renderLogin() : renderRegister());
     return;
   }
 
@@ -1126,7 +1147,7 @@ function render(){
   // lawyer has drilled into the profile-completion form — that form needs
   // its own back button rather than the dashboard's fixed layout.
   if(state.mode === 'pengacara' && state.screen !== 'lawyer-profile-form'){
-    app.innerHTML = renderLawyerDashboard() + renderBottomNav();
+    setAppHtml(app, renderLawyerDashboard() + renderBottomNav());
     return;
   }
 
@@ -1149,7 +1170,7 @@ function render(){
   // so the client sees the filter as a bottom sheet, not a full page nav.
   if(state.showLawyerFilterSheet) html += renderCariLawyerFilter();
   if(state.showNotarisFilterSheet) html += renderCariNotarisFilter();
-  app.innerHTML = html;
+  setAppHtml(app, html);
   setupHomeScroll();
 }
 
