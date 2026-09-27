@@ -558,6 +558,41 @@
   }
   .active-filter-actions{display:flex;gap:12px;}
 
+  /* Accordion-style filter sections — each section label is itself a
+     button that reveals its choices, and (for Area Praktik / Jenis
+     Layanan) categories drill down into a further row of leaf buttons. */
+  .filter-accordion-toggle{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    border:1px solid var(--line);border-radius:var(--radius-s);background:#fff;
+    padding:13px 14px;font-size:13.5px;font-weight:700;color:var(--navy);
+    cursor:pointer;font-family:inherit;text-align:left;
+  }
+  .filter-accordion-toggle.has-selection{border-color:var(--gold);background:var(--gold-pale);}
+  .filter-accordion-toggle .fa-arrow{color:var(--ink-soft);font-size:11px;flex-shrink:0;}
+  .fa-count{font-weight:600;color:var(--ink-soft);font-size:12px;}
+  .filter-accordion-body{margin-top:10px;padding:0 1px;}
+  .area-cat-btn{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    border:1px solid var(--line);border-radius:var(--radius-s);background:#fff;
+    padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--ink);
+    cursor:pointer;font-family:inherit;text-align:left;
+  }
+  .area-cat-btn.has-selection{border-color:var(--gold);background:var(--gold-pale);}
+  .area-cat-leaf-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px;padding-left:4px;}
+
+  /* Live "Filter dipilih" summary — shown at the top of the filter screen
+     itself as soon as the client picks anything, so they can see (and
+     quickly remove) selections without re-opening every accordion section. */
+  .selected-filter-summary{background:var(--gold-pale);border:1px solid var(--gold);border-radius:var(--radius-s);padding:12px 13px;margin-bottom:18px;}
+  .sfs-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:9px;}
+  .sfs-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .sfs-chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 6px 5px 12px;font-size:11.5px;font-weight:600;color:var(--ink);}
+  .sfs-chip button{
+    border:none;background:var(--navy);color:#fff;width:16px;height:16px;border-radius:50%;
+    font-size:9px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;padding:0;font-family:inherit;
+  }
+
   /* Empty / loading / error state */
   .empty-state{text-align:center;padding:50px 30px;color:var(--ink-soft);}
   .empty-state svg{margin-bottom:14px;opacity:0.5;}
@@ -1460,7 +1495,7 @@ function selectLayananItem(serviceKey, item){
 function defaultLawyerSearchFilter(){
   return {
     areaPraktik: new Set(),
-    areaPraktikOpen: new Set(),   // which Area Praktik cards are expanded
+    areaPraktikOpen: new Set(),   // which Area Praktik category buttons are expanded
     tingkatPerkara: new Set(),
     jenisLayanan: new Set(),
     dokumenOpen: false,           // "Pembuatan Dokumen Hukum" group expanded?
@@ -1470,6 +1505,7 @@ function defaultLawyerSearchFilter(){
     pengalamanMin: '', pengalamanMax: '',
     gender: 'semua',              // 'semua' | 'male' | 'female'
     biayaMin: '', biayaMax: '',
+    sectionOpen: new Set(),       // which of the 7 accordion sections are expanded
   };
 }
 
@@ -1477,7 +1513,7 @@ function defaultLawyerSearchFilter(){
 // submitted, so the client doesn't have to redo their whole search from
 // scratch just to tweak one thing.
 function openLawyerSearchFilter(){
-  const prev = state.activeSearchFilters;
+  const prev = state.activeSearchFilters && state.activeSearchFilters.kind === 'lawyer' ? state.activeSearchFilters : null;
   state.lawyerSearchFilter = prev ? {
     areaPraktik: new Set(prev.areaPraktik),
     areaPraktikOpen: new Set(),
@@ -1489,6 +1525,7 @@ function openLawyerSearchFilter(){
     pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
     gender: prev.gender ?? 'semua',
     biayaMin: prev.biayaMin ?? '', biayaMax: prev.biayaMax ?? '',
+    sectionOpen: new Set(),
   } : defaultLawyerSearchFilter();
   state.screen = 'cari-lawyer-filter';
   render();
@@ -1618,6 +1655,29 @@ function openActiveSearchFilterEditor(){
   }
 }
 
+// Each of the 7 (lawyer) / 6 (notaris) filter sections is collapsed by
+// default and expands into its choices only once its header button is
+// tapped — shared by both "Cari Lawyer/Advokat" (kind='lawyer') and
+// "Cari Notaris/PPAT" (kind='notaris').
+function toggleFilterSection(kind, key){
+  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  f.sectionOpen.has(key) ? f.sectionOpen.delete(key) : f.sectionOpen.add(key);
+  render();
+}
+
+// Renders one filter section as an accordion: a full-width header button
+// (with a live selection-count badge) that, when open, reveals `bodyHtml`.
+function renderFilterAccordion(kind, key, label, count, bodyHtml, isOpen){
+  return `
+  <div class="filter-section">
+    <button type="button" class="filter-accordion-toggle ${count ? 'has-selection' : ''}" onclick="toggleFilterSection('${kind}','${key}')">
+      <span>${label}${count ? ` <span class="fa-count">(${count})</span>` : ''}</span>
+      <span class="fa-arrow">${isOpen ? '▲' : '▼'}</span>
+    </button>
+    ${isOpen ? `<div class="filter-accordion-body">${bodyHtml}</div>` : ''}
+  </div>`;
+}
+
 /* ============================================================
    "Cari Notaris/PPAT" — advanced multi-filter search
    Reuses the exact same backend (/lawyers search, LawyerProfile fields) as
@@ -1646,6 +1706,7 @@ function defaultNotarisSearchFilter(){
     // submitNotarisSearchFilter() and the caveat note in the UI itself.
     biayaKonsultasiMin: '', biayaKonsultasiMax: '',
     biayaDokumenMin: '', biayaDokumenMax: '',
+    sectionOpen: new Set(),      // which of the 6 accordion sections are expanded
   };
 }
 
@@ -1664,6 +1725,7 @@ function openNotarisSearchFilter(){
     gender: prev.gender ?? 'semua',
     biayaKonsultasiMin: prev.biayaMin ?? '', biayaKonsultasiMax: prev.biayaMax ?? '',
     biayaDokumenMin: prev.biayaDokumenMin ?? '', biayaDokumenMax: prev.biayaDokumenMax ?? '',
+    sectionOpen: new Set(),
   } : defaultNotarisSearchFilter();
   state.screen = 'cari-notaris-filter';
   render();
@@ -1756,6 +1818,154 @@ function submitNotarisSearchFilter(){
   loadLawyers().then(scrollToAllLawyers);
 }
 
+// Area Praktik is a two-level drill-down: clicking a category button
+// expands it into its leaf sub-items, and only the LEAF is an actual
+// selectable/searchable value (matching the "Parent – Leaf" specialization
+// names seeded via cari-lawyer-area-praktik-migration.sql). The category
+// button itself never gets selected — it's purely a folder to open.
+function renderAreaPraktikBody(){
+  const f = state.lawyerSearchFilter;
+  return `
+  <div class="area-praktik-list">
+    ${AREA_PRAKTIK_CATALOG.map(a => {
+      const isOpen = f.areaPraktikOpen.has(a.name);
+      const selectedInCat = a.subs.filter(s => f.areaPraktik.has(a.name + ' – ' + s)).length;
+      return `
+      <div class="area-praktik-card">
+        <button type="button" class="area-cat-btn ${selectedInCat ? 'has-selection' : ''}" onclick="toggleAreaPraktikOpen('${a.name.replace(/'/g, "\\'")}')">
+          <span>${a.name}${selectedInCat ? ` <span class="fa-count">(${selectedInCat})</span>` : ''}</span>
+          <span class="fa-arrow">${isOpen ? '▲' : '▼'}</span>
+        </button>
+        ${isOpen ? `<div class="area-cat-leaf-row">${a.subs.map(s => {
+          const leaf = a.name + ' – ' + s;
+          return `<button type="button" class="filter-chip ${f.areaPraktik.has(leaf) ? 'selected' : ''}" onclick="toggleAreaPraktik('${leaf.replace(/'/g, "\\'")}')">${s}</button>`;
+        }).join('')}</div>` : ''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderJenisLayananBody(){
+  const f = state.lawyerSearchFilter;
+  return `
+  <div class="filter-chip-row">
+    ${JENIS_LAYANAN_TOP.map(v => `
+      <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}
+  </div>
+  <div class="area-praktik-card" style="margin-top:10px;">
+    <button type="button" class="area-cat-btn ${JENIS_LAYANAN_DOKUMEN.some(v => f.jenisLayanan.has(v)) ? 'has-selection' : ''}" onclick="toggleDokumenOpen()">
+      <span>Pembuatan Dokumen Hukum${JENIS_LAYANAN_DOKUMEN.some(v => f.jenisLayanan.has(v)) ? ` <span class="fa-count">(${JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length})</span>` : ''}</span>
+      <span class="fa-arrow">${f.dokumenOpen ? '▲' : '▼'}</span>
+    </button>
+    ${f.dokumenOpen ? `<div class="area-cat-leaf-row">${JENIS_LAYANAN_DOKUMEN.map(v => `
+      <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+// Clears one min/max pair on the draft filter (used by the "Filter dipilih"
+// chip row's ✕ button on a range like Pengalaman/Biaya) and re-renders, so
+// both the chip and the number inputs update immediately.
+function clearRangeFilter(kind, minField, maxField){
+  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  f[minField] = '';
+  f[maxField] = '';
+  render();
+}
+
+// Resets the whole draft back to defaults (keeping whichever accordion
+// sections are currently open, so the screen doesn't visually jump).
+function clearAllDraftFilters(kind){
+  const openSections = (kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter).sectionOpen;
+  if(kind === 'notaris'){
+    state.notarisSearchFilter = defaultNotarisSearchFilter();
+    state.notarisSearchFilter.sectionOpen = openSections;
+  }else{
+    state.lawyerSearchFilter = defaultLawyerSearchFilter();
+    state.lawyerSearchFilter.sectionOpen = openSections;
+  }
+  render();
+}
+
+// Builds the live "Filter dipilih" summary shown at the top of the filter
+// screen — every currently-selected value across all sections, as a
+// removable chip, so the client can see (and undo) picks without having to
+// re-open each accordion section to find them again.
+function renderSelectedFilterChips(kind){
+  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  const esc = (s) => s.replace(/'/g, "\\'");
+  const chips = [];
+
+  // Area Praktik — leaf values are stored as "Kategori – Sub-bidang"; show
+  // just the sub-bidang part so chips stay short and readable.
+  const areaFn = kind === 'notaris' ? 'toggleNotarisAreaPraktik' : 'toggleAreaPraktik';
+  Array.from(f.areaPraktik).forEach(v => {
+    const idx = v.lastIndexOf(' – ');
+    chips.push({ text: idx >= 0 ? v.slice(idx + 3) : v, onclick: `${areaFn}('${esc(v)}')` });
+  });
+
+  if(kind === 'lawyer'){
+    Array.from(f.tingkatPerkara).forEach(v => {
+      const t = TINGKAT_PERKARA_CATALOG.find(x => x.value === v);
+      chips.push({ text: t ? t.label : v, onclick: `toggleTingkatPerkara('${v}')` });
+    });
+  }
+
+  const jenisFn = kind === 'notaris' ? 'toggleNotarisJenisLayanan' : 'toggleJenisLayanan';
+  Array.from(f.jenisLayanan).forEach(v => {
+    chips.push({ text: v, onclick: `${jenisFn}('${esc(v)}')` });
+  });
+
+  if(f.wilayah === 'terdekat'){
+    const fn = kind === 'notaris' ? 'setNotarisWilayah' : 'setWilayah';
+    chips.push({ text: kind === 'notaris' ? 'Notaris Terdekat' : 'Lawyer Terdekat', onclick: `${fn}('semua')` });
+  }
+
+  if(f.pengalamanMin || f.pengalamanMax){
+    chips.push({
+      text: `Pengalaman ${f.pengalamanMin || '0'}–${f.pengalamanMax || '∞'} th`,
+      onclick: `clearRangeFilter('${kind}','pengalamanMin','pengalamanMax')`,
+    });
+  }
+
+  if(f.gender !== 'semua'){
+    const fn = kind === 'notaris' ? 'setNotarisGender' : 'setGender';
+    chips.push({ text: f.gender === 'male' ? 'Laki-laki' : 'Perempuan', onclick: `${fn}('semua')` });
+  }
+
+  if(kind === 'notaris'){
+    if(f.biayaKonsultasiMin || f.biayaKonsultasiMax){
+      chips.push({
+        text: `Konsultasi Rp${f.biayaKonsultasiMin || '0'}–Rp${f.biayaKonsultasiMax || '∞'}`,
+        onclick: `clearRangeFilter('notaris','biayaKonsultasiMin','biayaKonsultasiMax')`,
+      });
+    }
+    if(f.biayaDokumenMin || f.biayaDokumenMax){
+      chips.push({
+        text: `Dokumen Rp${f.biayaDokumenMin || '0'}–Rp${f.biayaDokumenMax || '∞'}`,
+        onclick: `clearRangeFilter('notaris','biayaDokumenMin','biayaDokumenMax')`,
+      });
+    }
+  }else if(f.biayaMin || f.biayaMax){
+    chips.push({
+      text: `Biaya Rp${f.biayaMin || '0'}–Rp${f.biayaMax || '∞'}`,
+      onclick: `clearRangeFilter('lawyer','biayaMin','biayaMax')`,
+    });
+  }
+
+  if(!chips.length) return '';
+
+  return `
+  <div class="selected-filter-summary">
+    <div class="sfs-head">
+      <span>Filter dipilih (${chips.length})</span>
+      <button type="button" class="btn-link" onclick="clearAllDraftFilters('${kind}')">Hapus semua</button>
+    </div>
+    <div class="sfs-chips">
+      ${chips.map(c => `<span class="sfs-chip">${c.text}<button type="button" onclick="${c.onclick}">✕</button></span>`).join('')}
+    </div>
+  </div>`;
+}
+
 function renderCariLawyerFilter(){
   const f = state.lawyerSearchFilter;
   return `
@@ -1773,47 +1983,19 @@ function renderCariLawyerFilter(){
     </div>
     <div class="content" style="padding-top:18px;padding-bottom:100px;">
 
-      <div class="filter-section">
-        <div class="filter-label">1. Area Praktik</div>
-        <div class="area-praktik-list">
-          ${AREA_PRAKTIK_CATALOG.map(a => `
-            <div class="area-praktik-card ${f.areaPraktik.has(a.name) ? 'selected' : ''}">
-              <div class="apc-head">
-                <label class="apc-check">
-                  <input type="checkbox" ${f.areaPraktik.has(a.name) ? 'checked' : ''} onchange="toggleAreaPraktik('${a.name.replace(/'/g, "\\'")}')">
-                  <span>${a.name}</span>
-                </label>
-                <button type="button" class="apc-expand" onclick="toggleAreaPraktikOpen('${a.name.replace(/'/g, "\\'")}')">${f.areaPraktikOpen.has(a.name) ? '▲' : '▼'}</button>
-              </div>
-              ${f.areaPraktikOpen.has(a.name) ? `<ul class="apc-subs">${a.subs.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
-            </div>`).join('')}
-        </div>
-      </div>
+      ${renderSelectedFilterChips('lawyer')}
 
-      <div class="filter-section">
-        <div class="filter-label">2. Tingkat Perkara</div>
+      ${renderFilterAccordion('lawyer', 'area', 'Area Praktik', f.areaPraktik.size, renderAreaPraktikBody(), f.sectionOpen.has('area'))}
+
+      ${renderFilterAccordion('lawyer', 'tingkat', 'Tingkat Perkara', f.tingkatPerkara.size, `
         <div class="filter-chip-row">
           ${TINGKAT_PERKARA_CATALOG.map(t => `
             <button type="button" class="filter-chip ${f.tingkatPerkara.has(t.value) ? 'selected' : ''}" onclick="toggleTingkatPerkara('${t.value}')">${t.label}</button>`).join('')}
-        </div>
-      </div>
+        </div>`, f.sectionOpen.has('tingkat'))}
 
-      <div class="filter-section">
-        <div class="filter-label">3. Jenis Layanan</div>
-        <div class="filter-checklist">
-          ${JENIS_LAYANAN_TOP.map(v => `
-            <label class="filter-check-row"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('')}
-          <div class="apc-head" style="padding:9px 0 5px;">
-            <span style="font-size:13px;font-weight:600;color:var(--ink);">Pembuatan Dokumen Hukum</span>
-            <button type="button" class="apc-expand" onclick="toggleDokumenOpen()">${f.dokumenOpen ? '▲' : '▼'}</button>
-          </div>
-          ${f.dokumenOpen ? JENIS_LAYANAN_DOKUMEN.map(v => `
-            <label class="filter-check-row" style="padding-left:14px;"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('') : ''}
-        </div>
-      </div>
+      ${renderFilterAccordion('lawyer', 'jenis', 'Jenis Layanan', f.jenisLayanan.size, renderJenisLayananBody(), f.sectionOpen.has('jenis'))}
 
-      <div class="filter-section">
-        <div class="filter-label">4. Wilayah Kerja</div>
+      ${renderFilterAccordion('lawyer', 'wilayah', 'Wilayah Kerja', f.wilayah === 'terdekat' ? 1 : 0, `
         <div class="role-toggle">
           <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setWilayah('semua')">Seluruh Area</button>
           <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setWilayah('terdekat')">Cari Lawyer Terdekat</button>
@@ -1823,40 +2005,81 @@ function renderCariLawyerFilter(){
             ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari lawyer terdekat.'}
             ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
             ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestUserLocation()">Gunakan lokasi saya</button>` : ''}
-          </div>` : ''}
-      </div>
+          </div>` : ''}`, f.sectionOpen.has('wilayah'))}
 
-      <div class="filter-section">
-        <div class="filter-label">5. Pengalaman (tahun)</div>
+      ${renderFilterAccordion('lawyer', 'pengalaman', 'Pengalaman (tahun)', (f.pengalamanMin || f.pengalamanMax) ? 1 : 0, `
         <div class="filter-range-row">
           <input type="number" min="0" placeholder="Min" value="${f.pengalamanMin}" oninput="onFilterNumberInput('pengalamanMin', this.value)">
           <span>—</span>
           <input type="number" min="0" placeholder="Maks" value="${f.pengalamanMax}" oninput="onFilterNumberInput('pengalamanMax', this.value)">
-        </div>
-      </div>
+        </div>`, f.sectionOpen.has('pengalaman'))}
 
-      <div class="filter-section">
-        <div class="filter-label">6. Jenis Kelamin</div>
+      ${renderFilterAccordion('lawyer', 'gender', 'Jenis Kelamin', f.gender !== 'semua' ? 1 : 0, `
         <div class="role-toggle">
           <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setGender('semua')">Semua</button>
           <button type="button" class="${f.gender==='male'?'active':''}" onclick="setGender('male')">Laki-laki</button>
           <button type="button" class="${f.gender==='female'?'active':''}" onclick="setGender('female')">Perempuan</button>
-        </div>
-      </div>
+        </div>`, f.sectionOpen.has('gender'))}
 
-      <div class="filter-section">
-        <div class="filter-label">7. Biaya Investasi (Rp / sesi chat)</div>
+      ${renderFilterAccordion('lawyer', 'biaya', 'Biaya Investasi (Rp / sesi chat)', (f.biayaMin || f.biayaMax) ? 1 : 0, `
         <div class="filter-range-row">
           <input type="number" min="0" placeholder="Min" value="${f.biayaMin}" oninput="onFilterNumberInput('biayaMin', this.value)">
           <span>—</span>
           <input type="number" min="0" placeholder="Maks" value="${f.biayaMax}" oninput="onFilterNumberInput('biayaMax', this.value)">
-        </div>
-      </div>
+        </div>`, f.sectionOpen.has('biaya'))}
 
     </div>
     <div class="cta-bar">
       <button class="btn btn-primary" onclick="submitLawyerSearchFilter()">Cari Lawyer/Advokat</button>
     </div>
+  </div>`;
+}
+
+function renderNotarisAreaPraktikBody(){
+  const f = state.notarisSearchFilter;
+  return `
+  <div class="area-praktik-list">
+    ${NOTARIS_AREA_PRAKTIK_CATALOG.map(a => {
+      if(!a.subs.length){
+        // Leaf-only category (no sub-items) — directly selectable, no drill-down.
+        return `
+        <div class="area-praktik-card">
+          <button type="button" class="area-cat-btn ${f.areaPraktik.has(a.label) ? 'has-selection' : ''}" onclick="toggleNotarisAreaPraktik('${a.label.replace(/'/g, "\\'")}')">
+            <span>${a.label}</span>
+          </button>
+        </div>`;
+      }
+      const isOpen = f.areaPraktikOpen.has(a.label);
+      const selectedInCat = a.subs.filter(s => f.areaPraktik.has(a.label + ' – ' + s)).length;
+      return `
+      <div class="area-praktik-card">
+        <button type="button" class="area-cat-btn ${selectedInCat ? 'has-selection' : ''}" onclick="toggleNotarisAreaPraktikOpen('${a.label.replace(/'/g, "\\'")}')">
+          <span>${a.label}${selectedInCat ? ` <span class="fa-count">(${selectedInCat})</span>` : ''}</span>
+          <span class="fa-arrow">${isOpen ? '▲' : '▼'}</span>
+        </button>
+        ${isOpen ? `<div class="area-cat-leaf-row">${a.subs.map(s => {
+          const leaf = a.label + ' – ' + s;
+          return `<button type="button" class="filter-chip ${f.areaPraktik.has(leaf) ? 'selected' : ''}" onclick="toggleNotarisAreaPraktik('${leaf.replace(/'/g, "\\'")}')">${s}</button>`;
+        }).join('')}</div>` : ''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderNotarisJenisLayananBody(){
+  const f = state.notarisSearchFilter;
+  return `
+  <div class="filter-chip-row">
+    ${NOTARIS_JENIS_LAYANAN_TOP.map(v => `
+      <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}
+  </div>
+  <div class="area-praktik-card" style="margin-top:10px;">
+    <button type="button" class="area-cat-btn ${NOTARIS_JENIS_LAYANAN_DOKUMEN.some(v => f.jenisLayanan.has(v)) ? 'has-selection' : ''}" onclick="toggleNotarisDokumenOpen()">
+      <span>Pembuatan Dokumen Notaris${NOTARIS_JENIS_LAYANAN_DOKUMEN.some(v => f.jenisLayanan.has(v)) ? ` <span class="fa-count">(${NOTARIS_JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length})</span>` : ''}</span>
+      <span class="fa-arrow">${f.dokumenOpen ? '▲' : '▼'}</span>
+    </button>
+    ${f.dokumenOpen ? `<div class="area-cat-leaf-row">${NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
+      <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}</div>` : ''}
   </div>`;
 }
 
@@ -1877,52 +2100,13 @@ function renderCariNotarisFilter(){
     </div>
     <div class="content" style="padding-top:18px;padding-bottom:100px;">
 
-      <div class="filter-section">
-        <div class="filter-label">1. Area Praktik</div>
-        <div class="area-praktik-list">
-          ${NOTARIS_AREA_PRAKTIK_CATALOG.map(a => {
-            if(!a.subs.length){
-              return `
-              <div class="area-praktik-card ${f.areaPraktik.has(a.label) ? 'selected' : ''}">
-                <div class="apc-head">
-                  <label class="apc-check">
-                    <input type="checkbox" ${f.areaPraktik.has(a.label) ? 'checked' : ''} onchange="toggleNotarisAreaPraktik('${a.label.replace(/'/g, "\\'")}')">
-                    <span>${a.label}</span>
-                  </label>
-                </div>
-              </div>`;
-            }
-            return `
-            <div class="area-praktik-card">
-              <div class="apc-head">
-                <span style="font-size:13px;font-weight:600;color:var(--ink);">${a.label}</span>
-                <button type="button" class="apc-expand" onclick="toggleNotarisAreaPraktikOpen('${a.label.replace(/'/g, "\\'")}')">${f.areaPraktikOpen.has(a.label) ? '▲' : '▼'}</button>
-              </div>
-              ${f.areaPraktikOpen.has(a.label) ? `<ul class="apc-subs" style="list-style:none;padding:0;margin:6px 0 0;">${a.subs.map(s => {
-                const leaf = a.label + ' – ' + s;
-                return `<label class="filter-check-row"><input type="checkbox" ${f.areaPraktik.has(leaf)?'checked':''} onchange="toggleNotarisAreaPraktik('${leaf.replace(/'/g, "\\'")}')"><span>${s}</span></label>`;
-              }).join('')}</ul>` : ''}
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
+      ${renderSelectedFilterChips('notaris')}
 
-      <div class="filter-section">
-        <div class="filter-label">2. Jenis Layanan</div>
-        <div class="filter-checklist">
-          ${NOTARIS_JENIS_LAYANAN_TOP.map(v => `
-            <label class="filter-check-row"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('')}
-          <div class="apc-head" style="padding:9px 0 5px;">
-            <span style="font-size:13px;font-weight:600;color:var(--ink);">Pembuatan Dokumen Notaris</span>
-            <button type="button" class="apc-expand" onclick="toggleNotarisDokumenOpen()">${f.dokumenOpen ? '▲' : '▼'}</button>
-          </div>
-          ${f.dokumenOpen ? NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
-            <label class="filter-check-row" style="padding-left:14px;"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('') : ''}
-        </div>
-      </div>
+      ${renderFilterAccordion('notaris', 'area', 'Area Praktik', f.areaPraktik.size, renderNotarisAreaPraktikBody(), f.sectionOpen.has('area'))}
 
-      <div class="filter-section">
-        <div class="filter-label">3. Wilayah Kerja</div>
+      ${renderFilterAccordion('notaris', 'jenis', 'Jenis Layanan', f.jenisLayanan.size, renderNotarisJenisLayananBody(), f.sectionOpen.has('jenis'))}
+
+      ${renderFilterAccordion('notaris', 'wilayah', 'Wilayah Kerja', f.wilayah === 'terdekat' ? 1 : 0, `
         <div class="role-toggle">
           <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setNotarisWilayah('semua')">Seluruh Indonesia</button>
           <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setNotarisWilayah('terdekat')">Cari Notaris Terdekat</button>
@@ -1932,29 +2116,23 @@ function renderCariNotarisFilter(){
             ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari notaris terdekat.'}
             ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
             ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestNotarisUserLocation()">Gunakan lokasi saya</button>` : ''}
-          </div>` : ''}
-      </div>
+          </div>` : ''}`, f.sectionOpen.has('wilayah'))}
 
-      <div class="filter-section">
-        <div class="filter-label">4. Pengalaman (tahun)</div>
+      ${renderFilterAccordion('notaris', 'pengalaman', 'Pengalaman (tahun)', (f.pengalamanMin || f.pengalamanMax) ? 1 : 0, `
         <div class="filter-range-row">
           <input type="number" min="0" placeholder="Min" value="${f.pengalamanMin}" oninput="onNotarisFilterNumberInput('pengalamanMin', this.value)">
           <span>—</span>
           <input type="number" min="0" placeholder="Maks" value="${f.pengalamanMax}" oninput="onNotarisFilterNumberInput('pengalamanMax', this.value)">
-        </div>
-      </div>
+        </div>`, f.sectionOpen.has('pengalaman'))}
 
-      <div class="filter-section">
-        <div class="filter-label">5. Jenis Kelamin</div>
+      ${renderFilterAccordion('notaris', 'gender', 'Jenis Kelamin', f.gender !== 'semua' ? 1 : 0, `
         <div class="role-toggle">
           <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setNotarisGender('semua')">Semua</button>
           <button type="button" class="${f.gender==='male'?'active':''}" onclick="setNotarisGender('male')">Laki-laki</button>
           <button type="button" class="${f.gender==='female'?'active':''}" onclick="setNotarisGender('female')">Perempuan</button>
-        </div>
-      </div>
+        </div>`, f.sectionOpen.has('gender'))}
 
-      <div class="filter-section">
-        <div class="filter-label">6. Biaya Investasi</div>
+      ${renderFilterAccordion('notaris', 'biaya', 'Biaya Investasi', ((f.biayaKonsultasiMin || f.biayaKonsultasiMax) ? 1 : 0) + ((f.biayaDokumenMin || f.biayaDokumenMax) ? 1 : 0), `
         <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px;">Biaya Konsultasi (Rp / sesi chat)</div>
         <div class="filter-range-row">
           <input type="number" min="0" placeholder="Min" value="${f.biayaKonsultasiMin}" oninput="onNotarisFilterNumberInput('biayaKonsultasiMin', this.value)">
@@ -1967,8 +2145,7 @@ function renderCariNotarisFilter(){
           <span>—</span>
           <input type="number" min="0" placeholder="Disesuaikan" value="${f.biayaDokumenMax}" oninput="onNotarisFilterNumberInput('biayaDokumenMax', this.value)">
         </div>
-        <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Biaya dokumen notaris sangat bervariasi tergantung jenis akta — kisaran ini hanya gambaran awal dan belum menyaring hasil pencarian. Biaya pasti dikonfirmasi langsung oleh notaris yang bersangkutan.</div>
-      </div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Biaya dokumen notaris sangat bervariasi tergantung jenis akta — kisaran ini hanya gambaran awal dan belum menyaring hasil pencarian. Biaya pasti dikonfirmasi langsung oleh notaris yang bersangkutan.</div>`, f.sectionOpen.has('biaya'))}
 
     </div>
     <div class="cta-bar">
@@ -2940,6 +3117,8 @@ function openLawyerProfileForm(){
     serviceTypes: new Set(p.serviceTypes || []),
     dokumenOpen: false,
     dokumenNotarisOpen: false,
+    areaPraktikOpen: new Set(),        // expanded categories, legal Area Praktik catalog
+    notarisAreaPraktikOpen: new Set(), // expanded categories, notaris Area Praktik catalog
     latitude: p.latitude ?? null,
     longitude: p.longitude ?? null,
     locating: false,
@@ -2976,8 +3155,59 @@ function renderLawyerProfileForm(){
       <div class="field"><label>Tarif video call / sesi (Rp)</label><input id="pf-rate-video" type="number" min="0" value="${f.hourlyRateVideo}"></div>
       <div class="field">
         <label>Spesialisasi (Area Praktik)</label>
-        <div class="spec-check-list">
-          ${catalog.map(s => `<div class="spec-check ${f.specializationIds.has(s.id)?'selected':''}" onclick="toggleSpec('${s.id}')">${s.name}</div>`).join('')}
+        <div style="font-size:11px;color:var(--ink-soft);margin-bottom:8px;">Untuk pengacara: buka kategori hukum lalu pilih bidang spesifiknya. Untuk notaris/PPAT: gunakan daftar "Area Praktik Notaris/PPAT" di bawahnya. Boleh pilih dari keduanya sesuai layanan yang benar-benar ditawarkan.</div>
+        <div class="area-praktik-list">
+          ${AREA_PRAKTIK_CATALOG.map(a => {
+            const isOpen = f.areaPraktikOpen.has(a.name);
+            const selectedInCat = a.subs.filter(s => {
+              const spec = catalog.find(c => c.name === (a.name + ' – ' + s));
+              return spec && f.specializationIds.has(spec.id);
+            }).length;
+            return `
+            <div class="area-praktik-card">
+              <button type="button" class="area-cat-btn ${selectedInCat ? 'has-selection' : ''}" onclick="toggleProfileAreaPraktikOpen('${a.name.replace(/'/g, "\\'")}')">
+                <span>${a.name}${selectedInCat ? ` <span class="fa-count">(${selectedInCat})</span>` : ''}</span>
+                <span class="fa-arrow">${isOpen ? '▲' : '▼'}</span>
+              </button>
+              ${isOpen ? `<div class="area-cat-leaf-row">${a.subs.map(s => {
+                const spec = catalog.find(c => c.name === (a.name + ' – ' + s));
+                if(!spec) return ''; // not yet seeded in the backend — skip rather than break
+                return `<button type="button" class="filter-chip ${f.specializationIds.has(spec.id)?'selected':''}" onclick="toggleSpec('${spec.id}')">${s}</button>`;
+              }).join('')}</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;">Area Praktik Notaris/PPAT</div>
+        <div class="area-praktik-list">
+          ${NOTARIS_AREA_PRAKTIK_CATALOG.map(a => {
+            if(!a.subs.length){
+              const spec = catalog.find(c => c.name === a.label);
+              if(!spec) return '';
+              return `
+              <div class="area-praktik-card">
+                <button type="button" class="area-cat-btn ${f.specializationIds.has(spec.id) ? 'has-selection' : ''}" onclick="toggleSpec('${spec.id}')">
+                  <span>${a.label}</span>
+                </button>
+              </div>`;
+            }
+            const isOpen = f.notarisAreaPraktikOpen.has(a.label);
+            const selectedInCat = a.subs.filter(s => {
+              const spec = catalog.find(c => c.name === (a.label + ' – ' + s));
+              return spec && f.specializationIds.has(spec.id);
+            }).length;
+            return `
+            <div class="area-praktik-card">
+              <button type="button" class="area-cat-btn ${selectedInCat ? 'has-selection' : ''}" onclick="toggleProfileNotarisAreaPraktikOpen('${a.label.replace(/'/g, "\\'")}')">
+                <span>${a.label}${selectedInCat ? ` <span class="fa-count">(${selectedInCat})</span>` : ''}</span>
+                <span class="fa-arrow">${isOpen ? '▲' : '▼'}</span>
+              </button>
+              ${isOpen ? `<div class="area-cat-leaf-row">${a.subs.map(s => {
+                const spec = catalog.find(c => c.name === (a.label + ' – ' + s));
+                if(!spec) return '';
+                return `<button type="button" class="filter-chip ${f.specializationIds.has(spec.id)?'selected':''}" onclick="toggleSpec('${spec.id}')">${s}</button>`;
+              }).join('')}</div>` : ''}
+            </div>`;
+          }).join('')}
         </div>
       </div>
 
@@ -3054,6 +3284,16 @@ function toggleProfileDokumenOpen(){
 }
 function toggleProfileDokumenNotarisOpen(){
   state.profileForm.dokumenNotarisOpen = !state.profileForm.dokumenNotarisOpen;
+  render();
+}
+function toggleProfileAreaPraktikOpen(name){
+  const set = state.profileForm.areaPraktikOpen;
+  set.has(name) ? set.delete(name) : set.add(name);
+  render();
+}
+function toggleProfileNotarisAreaPraktikOpen(name){
+  const set = state.profileForm.notarisAreaPraktikOpen;
+  set.has(name) ? set.delete(name) : set.add(name);
   render();
 }
 function useCurrentLocationForProfile(){
