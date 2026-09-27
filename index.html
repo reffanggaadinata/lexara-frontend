@@ -526,6 +526,38 @@
   }
   .comment-send-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
+  /* "Cari Lawyer/Advokat" filter screen */
+  .filter-section{margin-bottom:22px;}
+  .filter-label{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;}
+  .area-praktik-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;padding:2px;}
+  .area-praktik-card{border:1px solid var(--line);border-radius:var(--radius-s);padding:10px 12px;background:#fff;}
+  .area-praktik-card.selected{border-color:var(--gold);background:var(--gold-pale);}
+  .apc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .apc-check{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:var(--ink);flex:1;cursor:pointer;}
+  .apc-check input{flex-shrink:0;width:16px;height:16px;}
+  .apc-expand{background:none;border:none;color:var(--ink-soft);font-size:11px;cursor:pointer;padding:4px;flex-shrink:0;}
+  .apc-subs{margin:8px 0 0;padding-left:18px;font-size:11.5px;color:var(--ink-soft);line-height:1.6;}
+  .filter-chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .filter-chip{
+    border:1px solid var(--line);background:#fff;color:var(--navy);padding:8px 13px;border-radius:8px;
+    font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .filter-chip.selected{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .filter-checklist{display:flex;flex-direction:column;}
+  .filter-check-row{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:12.5px;color:var(--ink);cursor:pointer;}
+  .filter-check-row input{flex-shrink:0;width:16px;height:16px;}
+  .filter-range-row{display:flex;align-items:center;gap:10px;}
+  .filter-range-row input{
+    flex:1;border:1px solid var(--line);border-radius:var(--radius-s);padding:10px 12px;
+    font-family:inherit;font-size:13px;color:var(--ink);background:#fff;
+  }
+  .filter-range-row span{color:var(--ink-soft);font-size:12px;}
+  .active-filter-bar{
+    display:flex;justify-content:space-between;align-items:center;background:var(--gold-pale);
+    border-radius:var(--radius-s);padding:10px 13px;margin-bottom:14px;font-size:12px;font-weight:600;color:var(--navy);
+  }
+  .active-filter-actions{display:flex;gap:12px;}
+
   /* Empty / loading / error state */
   .empty-state{text-align:center;padding:50px 30px;color:var(--ink-soft);}
   .empty-state svg{margin-bottom:14px;opacity:0.5;}
@@ -669,8 +701,12 @@ const SERVICE_ICONS = {
 
 const SERVICE_CATALOG = [
   {
-    key: 'konsultasi-hukum', label: 'Konsultasi Hukum', icon: SERVICE_ICONS.scale,
-    items: ['Konsultasi Perdata', 'Konsultasi Pidana', 'Konsultasi Bisnis', 'Konsultasi Ketenagakerjaan', 'Konsultasi Keluarga', 'Konsultasi Properti', 'Konsultasi Pajak', 'Konsultasi HKI', 'Legal Opinion', 'Second Opinion'],
+    // Tapping this tile skips the usual sub-item picker (renderLayananDetail)
+    // — openService() special-cases this key to open the dedicated
+    // multi-filter screen (renderCariLawyerFilter) instead. `items` stays
+    // empty since it's unused for this key.
+    key: 'konsultasi-hukum', label: 'Cari Lawyer/Advokat', icon: SERVICE_ICONS.scale,
+    items: [],
   },
   {
     key: 'dokumen-hukum', label: 'Dokumen Hukum', icon: SERVICE_ICONS.document,
@@ -685,8 +721,11 @@ const SERVICE_CATALOG = [
     items: ['Pendirian PT', 'Pendirian PT Perorangan', 'Pendirian CV', 'Pendirian Yayasan', 'NIB & OSS', 'Perubahan Data Perusahaan', 'Perubahan Direksi/Komisaris', 'Perubahan Pemegang Saham', 'Perubahan Modal', 'Pembubaran Perusahaan'],
   },
   {
+    // Like 'konsultasi-hukum', openService() special-cases this key to open
+    // its own dedicated multi-filter screen (renderCariNotarisFilter)
+    // instead of the generic sub-item picker.
     key: 'notaris-ppat', label: 'Notaris & PPAT', icon: SERVICE_ICONS.signature,
-    items: ['Pendirian Akta', 'Perubahan Akta', 'Legalisasi Dokumen', 'Waarmerking', 'Akta Perjanjian', 'Akta Hibah', 'Akta Wasiat', 'RUPS', 'AJB', 'PPJB', 'Balik Nama', 'Hak Tanggungan'],
+    items: [],
   },
   {
     key: 'ketenagakerjaan', label: 'Ketenagakerjaan', icon: SERVICE_ICONS.id, mapCategory: 'Ketenagakerjaan',
@@ -701,6 +740,112 @@ const SERVICE_CATALOG = [
     items: ['Legal Audit', 'Contract Review', 'Corporate Compliance', 'Perizinan', 'Perlindungan Data', 'Kebijakan Privasi', 'Terms & Conditions', 'Compliance Review'],
   },
 ].map((s, i) => ({ ...s, bg: TOPIC_TILE_COLORS[i % TOPIC_TILE_COLORS.length] }));
+
+/* ============================================================
+   "Cari Lawyer/Advokat" filter catalog
+   ------------------------------------------------------------
+   AREA_PRAKTIK_CATALOG's `name` values are seeded server-side as
+   Specialization rows with the exact same spelling (see the SQL
+   migration) — selecting a checkbox here sends that name straight
+   through as a `specialization` filter value, no translation layer.
+   `subs` is purely descriptive (shown collapsed, for context) and isn't
+   sent to the backend or matched against anything.
+============================================================ */
+const AREA_PRAKTIK_CATALOG = [
+  { name: 'Hukum Pidana', subs: ['Pidana umum (KUHP)', 'Pidana khusus: korupsi, TPPU (pencucian uang), narkotika dan psikotropika', 'Pidana siber (ITE, kejahatan digital)', 'Pidana perlindungan anak dan kekerasan seksual', 'Pidana lingkungan hidup', 'Pidana perikanan dan kelautan', 'Pidana kehutanan', 'Pidana perbankan dan pasar modal', 'Pidana kepabeanan dan cukai', 'Pidana perpajakan', 'Pidana militer', 'Pelanggaran HAM berat', 'Praperadilan'] },
+  { name: 'Hukum Perdata', subs: ['Wanprestasi dan perbuatan melawan hukum (PMH)', 'Hukum kontrak dan perjanjian', 'Hukum waris', 'Hukum keluarga (perkawinan, perceraian, hak asuh anak, harta bersama)', 'Hukum jaminan (fidusia, hak tanggungan, gadai)', 'Hukum benda dan kebendaan', 'Gugatan sederhana (small claim court)', 'Hukum perlindungan konsumen', 'Hukum asuransi'] },
+  { name: 'Hukum Ketenagakerjaan', subs: ['Perselisihan hubungan industrial (PHI)', 'Pemutusan hubungan kerja (PHK)', 'Upah, pesangon, dan kompensasi', 'Perjanjian kerja dan outsourcing', 'Serikat pekerja dan perundingan kolektif', 'Jaminan sosial ketenagakerjaan (BPJS)', 'Tenaga kerja asing (TKA)'] },
+  { name: 'Hukum Pertanahan dan Agraria', subs: ['Sengketa kepemilikan dan batas tanah', 'Sertifikasi dan pendaftaran tanah', 'Hak atas tanah (HGB, HGU, HM, HP)', 'Pengadaan tanah untuk kepentingan umum', 'Tata ruang dan izin lokasi', 'Reforma agraria dan redistribusi tanah', 'Hukum adat atas tanah'] },
+  { name: 'Hukum Tata Usaha Negara (TUN)', subs: ['Gugatan atas keputusan/tindakan pejabat pemerintahan', 'Sengketa perizinan (izin usaha, izin lingkungan, dsb.)', 'Sengketa kepegawaian (ASN)', 'Upaya administratif (keberatan dan banding administratif)', 'Fiktif positif'] },
+  { name: 'Hukum Tata Negara dan Konstitusi', subs: ['Judicial review (pengujian undang-undang terhadap UUD di Mahkamah Konstitusi)', 'Judicial review peraturan di bawah UU terhadap UU (di Mahkamah Agung)', 'Sengketa kewenangan lembaga negara', 'Sengketa hasil pemilu dan pilkada', 'Pemakzulan (impeachment)', 'Perselisihan partai politik'] },
+  { name: 'Arbitrase dan Penyelesaian Sengketa Alternatif (APS)', subs: ['Arbitrase nasional dan internasional', 'Mediasi', 'Konsiliasi', 'Negosiasi', 'Pembatalan dan eksekusi putusan arbitrase'] },
+  { name: 'Hukum Korporasi dan Bisnis', subs: ['Pendirian dan pembubaran badan usaha (PT, CV, firma, yayasan, koperasi)', 'Merger, akuisisi, dan konsolidasi (M&A)', 'Restrukturisasi perusahaan', 'Corporate governance dan kepatuhan (compliance)', 'Kontrak bisnis dan komersial', 'Perjanjian pemegang saham (shareholders agreement)', 'Due diligence hukum'] },
+  { name: 'Hukum Kepailitan dan PKPU', subs: ['Permohonan pailit', 'Penundaan Kewajiban Pembayaran Utang (PKPU)', 'Restrukturisasi utang', 'Kurator dan pengurus'] },
+  { name: 'Hukum Perbankan dan Keuangan', subs: ['Perjanjian kredit dan pembiayaan', 'Restrukturisasi kredit bermasalah', 'Regulasi OJK dan BI', 'Fintech dan pembiayaan digital (P2P lending)', 'Perbankan syariah', 'Lembaga keuangan non-bank'] },
+  { name: 'Hukum Pasar Modal', subs: ['Penawaran umum (IPO)', 'Emiten dan perusahaan publik', 'Sengketa efek dan investasi', 'Kepatuhan OJK dan Bursa Efek'] },
+  { name: 'Hukum Persaingan Usaha', subs: ['Praktik monopoli dan persaingan tidak sehat', 'Merger control dan notifikasi KPPU', 'Kemitraan usaha'] },
+  { name: 'Hukum Kekayaan Intelektual (HKI)', subs: ['Merek dagang', 'Hak cipta', 'Paten', 'Desain industri', 'Rahasia dagang', 'Indikasi geografis', 'Lisensi dan waralaba (franchise)'] },
+  { name: 'Hukum Investasi dan Penanaman Modal', subs: ['Penanaman Modal Asing (PMA) dan Dalam Negeri (PMDN)', 'Perizinan berusaha (OSS/RBA)', 'Insentif dan fasilitas investasi', 'Kawasan ekonomi khusus (KEK)'] },
+  { name: 'Hukum Pajak', subs: ['Sengketa pajak di Pengadilan Pajak', 'Perencanaan pajak (tax planning)', 'Bea masuk dan cukai', 'Restitusi dan keberatan pajak'] },
+  { name: 'Hukum Lingkungan Hidup', subs: ['Perizinan lingkungan (AMDAL, UKL-UPL)', 'Sengketa pencemaran dan kerusakan lingkungan', 'Class action dan citizen lawsuit lingkungan', 'Kehutanan dan tata kelola sumber daya alam'] },
+  { name: 'Hukum Energi dan Sumber Daya Alam', subs: ['Minyak dan gas bumi', 'Pertambangan mineral dan batubara', 'Ketenagalistrikan', 'Energi baru dan terbarukan (EBT)'] },
+  { name: 'Hukum Teknologi, Informasi, dan Data Pribadi', subs: ['Perlindungan data pribadi (UU PDP)', 'E-commerce dan transaksi elektronik', 'Kontrak teknologi (SaaS, lisensi software)', 'Kecerdasan buatan dan regulasi teknologi', 'Keamanan siber'] },
+  { name: 'Hukum Perdagangan Internasional dan Kepabeanan', subs: ['Ekspor-impor', 'Anti-dumping dan safeguard', 'Kepabeanan dan cukai', 'Sengketa dagang internasional (WTO, dsb.)'] },
+  { name: 'Hukum Properti dan Konstruksi', subs: ['Jual beli dan sewa-menyewa properti', 'Kontrak konstruksi (FIDIC, dsb.)', 'Sengketa konstruksi', 'Rumah susun dan strata title'] },
+  { name: 'Hukum Kesehatan', subs: ['Malpraktik medis', 'Regulasi obat dan alat kesehatan (BPOM)', 'Rumah sakit dan fasilitas kesehatan', 'Uji klinis'] },
+  { name: 'Hukum Asuransi', subs: ['Klaim asuransi', 'Regulasi perasuransian', 'Reasuransi'] },
+  { name: 'Hukum Media, Penyiaran, dan Telekomunikasi', subs: ['Regulasi penyiaran', 'Pers dan kebebasan berekspresi', 'Telekomunikasi dan spektrum frekuensi'] },
+  { name: 'Hukum Imigrasi dan Kewarganegaraan', subs: ['Visa dan izin tinggal', 'Naturalisasi dan kewarganegaraan', 'Deportasi'] },
+  { name: 'Hukum Adat dan Masyarakat Hukum Adat', subs: ['Pengakuan hak masyarakat adat', 'Sengketa tanah ulayat'] },
+  { name: 'Hukum Notariat dan Kepailitan Dokumen', subs: ['Akta otentik dan legalisasi', 'Waarmerking', 'Legalisasi dan apostille dokumen'] },
+  { name: 'Hukum Militer', subs: ['Peradilan militer', 'Disiplin militer'] },
+  { name: 'Hukum Zakat, Wakaf, dan Syariah', subs: ['Perbankan dan ekonomi syariah', 'Wakaf dan zakat', 'Sengketa syariah (Pengadilan Agama)'] },
+];
+
+const TINGKAT_PERKARA_CATALOG = [
+  { value: 'konsultasi', label: 'Konsultasi' },
+  { value: 'pn', label: 'PN (Tingkat Pertama)' },
+  { value: 'pt', label: 'PT (Pengadilan Tinggi)' },
+  { value: 'ma', label: 'MA (Kasasi)' },
+  { value: 'pk', label: 'Peninjauan Kembali (PK)' },
+  { value: 'lainnya', label: 'Upaya Hukum Lainnya' },
+];
+
+// "Jenis Layanan" — the first two are standalone checkboxes; the rest are
+// document-drafting sub-types nested under an expandable "Pembuatan
+// Dokumen Hukum" group (matching the attachment's structure exactly).
+const JENIS_LAYANAN_TOP = ['Pendampingan Persidangan', 'Konsultasi'];
+const JENIS_LAYANAN_DOKUMEN = [
+  'Legal Opinion (LO)', 'Legal Memorandum (LM)', 'Non-Disclosure Agreement (NDA)',
+  'Memorandum of Understanding (MOU)', 'Memorandum of Agreement (MOA)',
+  'Perjanjian/kontrak dalam berbagai jenis (kerja sama, sewa-menyewa, jual beli, dll.)',
+  'Somasi / Surat Peringatan', 'Surat Kuasa Khusus', 'Policy Brief',
+  'Legal Due Diligence Report', 'Dokumen hukum lainnya sesuai kebutuhan klien',
+];
+
+/* ============================================================
+   "Cari Notaris/PPAT" filter catalog
+   ------------------------------------------------------------
+   Reuses the exact same underlying professional pool, search endpoint and
+   LawyerProfile fields as "Cari Lawyer/Advokat" (specializations,
+   serviceTypes, gender, yearsExperience, hourlyRateChat, latitude/
+   longitude) — there's no separate "notary" role/table in this app, so a
+   notaris/PPAT is just a LawyerProfile carrying notary-flavored
+   specialization tags instead of advocate ones. No new backend fields
+   needed for this screen; only new Specialization rows to seed.
+
+   Where an item below has `subs`, the PARENT label is a non-selectable
+   group header (like "Pembuatan Dokumen Hukum" in the lawyer catalog) —
+   only the leaf sub-items are actual filter/specialization values.
+============================================================ */
+const NOTARIS_AREA_PRAKTIK_CATALOG = [
+  { label: 'Akta Pendirian & Perubahan Badan Usaha', subs: ['PT', 'CV', 'Yayasan', 'Koperasi', 'Firma', 'Perkumpulan', 'Perorangan'] },
+  { label: 'Akta Pertanahan', subs: ['Jual Beli', 'Hibah', 'Pembagian Hak Bersama'] },
+  { label: 'Akta Perkawinan (Perjanjian Perkawinan/Pra-Nikah)', subs: [] },
+  { label: 'Akta Wasiat & Waris', subs: [] },
+  { label: 'Akta Fidusia & Hak Tanggungan', subs: [] },
+  { label: 'Akta Kuasa', subs: [] },
+  { label: 'Legalisasi & Waarmerking Dokumen', subs: [] },
+  { label: 'Akta Perjanjian Kredit/Pembiayaan', subs: [] },
+];
+// Flat list of the actual selectable specialization names this catalog can
+// produce — leaves get "Parent – Leaf" names (seeded in SQL), parent-only
+// items use their own label as the name.
+const NOTARIS_AREA_PRAKTIK_VALUES = NOTARIS_AREA_PRAKTIK_CATALOG.flatMap(a =>
+  a.subs.length ? a.subs.map(s => `${a.label} – ${s}`) : [a.label]
+);
+
+const NOTARIS_JENIS_LAYANAN_TOP = ['Konsultasi'];
+const NOTARIS_JENIS_LAYANAN_DOKUMEN = [
+  'Akta Pendirian Perseroan/CV/Yayasan/Koperasi',
+  'Akta Perubahan Anggaran Dasar & Data Perusahaan (termasuk NIB & OSS)',
+  'Akta Jual Beli (AJB) Tanah/Bangunan',
+  'Akta Hak Tanggungan & Fidusia',
+  'Akta Perjanjian Perkawinan',
+  'Akta Wasiat & Akta Kuasa',
+  'Legalisasi & Waarmerking Dokumen',
+  'Dokumen kenotariatan lainnya sesuai kebutuhan klien',
+];
 
 // Promo banner — 6 slides that auto-advance; each links to something that
 // actually exists in the app (no made-up features).
@@ -827,6 +972,11 @@ const state = {
   cakrawalaCommentDraft: {},      // { [postId]: string }
   cakrawalaLikeBusy: {},          // { [postId]: true } — like request in flight, guards double-tap
   cakrawalaCommentBusy: {},       // { [postId]: true } — comment request in flight
+
+  // "Cari Lawyer/Advokat" advanced filter screen
+  lawyerSearchFilter: null,   // draft being edited on the filter screen (or null when not open)
+  notarisSearchFilter: null,  // same idea, for "Cari Notaris/PPAT"
+  activeSearchFilters: null,  // last-submitted filters actually applied to the results list (carries a `kind: 'lawyer'|'notaris'` tag)
 };
 
 /* ---------- persistence (session only — this is a real app file, not a hosted artifact) ---------- */
@@ -913,6 +1063,8 @@ function render(){
   else if(state.screen === 'profil') html = renderProfil();
   else if(state.screen === 'lawyer-profile-form') html = renderLawyerProfileForm();
   else if(state.screen === 'layanan-detail') html = renderLayananDetail();
+  else if(state.screen === 'cari-lawyer-filter') html = renderCariLawyerFilter();
+  else if(state.screen === 'cari-notaris-filter') html = renderCariNotarisFilter();
   else html = renderHome();
 
   html += renderBottomNav();
@@ -1053,12 +1205,33 @@ async function loadLawyers(){
   state.lawyersError = null;
   render();
   try{
-    const category = CATEGORIES.find(c => c.label === state.activeCategory);
     const params = new URLSearchParams();
-    if(category && category.specialization) params.set('specialization', category.specialization);
     const sortMap = { rating:'rating', price:'price', exp:'experience' };
     params.set('sortBy', sortMap[state.sortBy] || 'rating');
     params.set('pageSize', '50');
+
+    const f = state.activeSearchFilters;
+    if(f){
+      // Advanced filters from "Cari Lawyer/Advokat" take priority over the
+      // plain category chips — setCategory()/setSort() clear f when the
+      // client goes back to simple chip browsing.
+      if(f.areaPraktik.length) params.set('specialization', f.areaPraktik.join(','));
+      if(f.tingkatPerkara && f.tingkatPerkara.length) params.set('caseLevel', f.tingkatPerkara.join(','));
+      if(f.jenisLayanan.length) params.set('serviceType', f.jenisLayanan.join(','));
+      if(f.gender && f.gender !== 'semua') params.set('gender', f.gender);
+      if(f.pengalamanMin) params.set('minExperience', f.pengalamanMin);
+      if(f.pengalamanMax) params.set('maxExperience', f.pengalamanMax);
+      if(f.biayaMin) params.set('minFee', f.biayaMin);
+      if(f.biayaMax) params.set('maxFee', f.biayaMax);
+      if(f.wilayah === 'terdekat' && f.userLat !== null){
+        params.set('lat', f.userLat);
+        params.set('lng', f.userLng);
+      }
+    }else{
+      const category = CATEGORIES.find(c => c.label === state.activeCategory);
+      if(category && category.specialization) params.set('specialization', category.specialization);
+    }
+
     const result = await api('/lawyers?' + params.toString(), { auth:false });
     state.lawyers = result.items;
   }catch(e){
@@ -1118,9 +1291,17 @@ function renderHome(){
     </div>`}
 
     <div id="all-lawyers" class="section-title" style="margin-top:6px;">Semua Pengacara</div>
+    ${state.activeSearchFilters ? `
+    <div class="active-filter-bar">
+      <span>🔎 Filter ${state.activeSearchFilters.kind === 'notaris' ? 'Notaris/PPAT' : 'Lawyer/Advokat'} aktif (${countActiveFilters(state.activeSearchFilters)} kriteria)</span>
+      <span class="active-filter-actions">
+        <button type="button" class="btn-link" onclick="openActiveSearchFilterEditor()">Ubah</button>
+        <button type="button" class="btn-link" onclick="clearLawyerSearchFilters()">Hapus</button>
+      </span>
+    </div>` : `
     <div class="chips">
       ${CATEGORIES.map(c=>`<button class="chip ${state.activeCategory===c.label?'active':''}" onclick="setCategory('${c.label}')">${c.label}</button>`).join('')}
-    </div>
+    </div>`}
 
     <div class="sort-row">
       <div class="result-count">${state.lawyersLoading ? '…' : filtered.length + ' pengacara ditemukan'}</div>
@@ -1142,7 +1323,7 @@ function renderLawyerTile(l){
     <div class="avatar">${initials(l.name)}</div>
     <div class="lt-name">${l.name}</div>
     <div class="lt-spec">${l.specializations[0] || '—'}</div>
-    <div class="lt-rating">★ ${l.rating.toFixed(1)}</div>
+    <div class="lt-rating">★ ${l.rating.toFixed(1)}${l.distanceKm != null ? ' · ' + l.distanceKm + ' km' : ''}</div>
   </div>`;
 }
 
@@ -1164,6 +1345,14 @@ function comingSoon(featureName){
    Pilih Layanan — service sub-menu picker
 ============================================================ */
 function openService(key){
+  if(key === 'konsultasi-hukum'){
+    openLawyerSearchFilter();
+    return;
+  }
+  if(key === 'notaris-ppat'){
+    openNotarisSearchFilter();
+    return;
+  }
   state.serviceDetailKey = key;
   state.screen = 'layanan-detail';
   render();
@@ -1265,6 +1454,529 @@ function selectLayananItem(serviceKey, item){
   }
 }
 
+/* ============================================================
+   "Cari Lawyer/Advokat" — advanced multi-filter search
+============================================================ */
+function defaultLawyerSearchFilter(){
+  return {
+    areaPraktik: new Set(),
+    areaPraktikOpen: new Set(),   // which Area Praktik cards are expanded
+    tingkatPerkara: new Set(),
+    jenisLayanan: new Set(),
+    dokumenOpen: false,           // "Pembuatan Dokumen Hukum" group expanded?
+    wilayah: 'semua',             // 'semua' | 'terdekat'
+    userLat: null, userLng: null,
+    locating: false, locationError: null,
+    pengalamanMin: '', pengalamanMax: '',
+    gender: 'semua',              // 'semua' | 'male' | 'female'
+    biayaMin: '', biayaMax: '',
+  };
+}
+
+// Re-opening the filter screen ("Ubah") preloads whatever was last
+// submitted, so the client doesn't have to redo their whole search from
+// scratch just to tweak one thing.
+function openLawyerSearchFilter(){
+  const prev = state.activeSearchFilters;
+  state.lawyerSearchFilter = prev ? {
+    areaPraktik: new Set(prev.areaPraktik),
+    areaPraktikOpen: new Set(),
+    tingkatPerkara: new Set(prev.tingkatPerkara),
+    jenisLayanan: new Set(prev.jenisLayanan),
+    dokumenOpen: false,
+    wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
+    locating: false, locationError: null,
+    pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
+    gender: prev.gender ?? 'semua',
+    biayaMin: prev.biayaMin ?? '', biayaMax: prev.biayaMax ?? '',
+  } : defaultLawyerSearchFilter();
+  state.screen = 'cari-lawyer-filter';
+  render();
+}
+
+function closeLawyerSearchFilter(){
+  state.lawyerSearchFilter = null;
+  state.screen = 'home';
+  render();
+}
+
+function toggleAreaPraktik(name){
+  const f = state.lawyerSearchFilter;
+  f.areaPraktik.has(name) ? f.areaPraktik.delete(name) : f.areaPraktik.add(name);
+  render();
+}
+function toggleAreaPraktikOpen(name){
+  const f = state.lawyerSearchFilter;
+  f.areaPraktikOpen.has(name) ? f.areaPraktikOpen.delete(name) : f.areaPraktikOpen.add(name);
+  render();
+}
+function toggleTingkatPerkara(value){
+  const f = state.lawyerSearchFilter;
+  f.tingkatPerkara.has(value) ? f.tingkatPerkara.delete(value) : f.tingkatPerkara.add(value);
+  render();
+}
+function toggleJenisLayanan(value){
+  const f = state.lawyerSearchFilter;
+  f.jenisLayanan.has(value) ? f.jenisLayanan.delete(value) : f.jenisLayanan.add(value);
+  render();
+}
+function toggleDokumenOpen(){
+  state.lawyerSearchFilter.dokumenOpen = !state.lawyerSearchFilter.dokumenOpen;
+  render();
+}
+function setWilayah(mode){
+  const f = state.lawyerSearchFilter;
+  f.wilayah = mode;
+  f.locationError = null;
+  if(mode === 'terdekat' && f.userLat === null) requestUserLocation();
+  else render();
+}
+function requestUserLocation(){
+  const f = state.lawyerSearchFilter;
+  if(!navigator.geolocation){
+    f.locationError = 'Perangkat/browser ini tidak mendukung deteksi lokasi.';
+    render();
+    return;
+  }
+  f.locating = true;
+  f.locationError = null;
+  render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      f.userLat = pos.coords.latitude;
+      f.userLng = pos.coords.longitude;
+      f.locating = false;
+      render();
+    },
+    (err) => {
+      f.locating = false;
+      f.locationError = err.code === 1
+        ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini lalu coba lagi.'
+        : 'Gagal mendapatkan lokasi. Coba lagi.';
+      render();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+function setGender(g){ state.lawyerSearchFilter.gender = g; render(); }
+function onFilterNumberInput(field, v){ state.lawyerSearchFilter[field] = v; }
+
+// Works for either shape: the draft filter (Sets, while editing on the
+// filter screen) or the submitted filter (plain arrays, once applied).
+function countActiveFilters(f){
+  if(!f) return 0;
+  const sizeOf = (x) => (x.size !== undefined ? x.size : x.length);
+  let n = 0;
+  if(f.areaPraktik && sizeOf(f.areaPraktik)) n++;
+  if(f.tingkatPerkara && sizeOf(f.tingkatPerkara)) n++; // only present for "Cari Lawyer/Advokat"
+  if(f.jenisLayanan && sizeOf(f.jenisLayanan)) n++;
+  if(f.wilayah === 'terdekat') n++;
+  if(f.pengalamanMin || f.pengalamanMax) n++;
+  if(f.gender !== 'semua') n++;
+  if(f.biayaMin || f.biayaMax) n++;
+  if(f.biayaDokumenMin || f.biayaDokumenMax) n++; // only present for "Cari Notaris/PPAT" (informational tier)
+  return n;
+}
+
+function submitLawyerSearchFilter(){
+  const f = state.lawyerSearchFilter;
+  if(f.wilayah === 'terdekat' && f.userLat === null){
+    requestUserLocation();
+    return;
+  }
+  state.activeSearchFilters = {
+    kind: 'lawyer',
+    areaPraktik: Array.from(f.areaPraktik),
+    tingkatPerkara: Array.from(f.tingkatPerkara),
+    jenisLayanan: Array.from(f.jenisLayanan),
+    wilayah: f.wilayah,
+    userLat: f.userLat, userLng: f.userLng,
+    pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
+    gender: f.gender,
+    biayaMin: f.biayaMin, biayaMax: f.biayaMax,
+  };
+  state.lawyerSearchFilter = null;
+  state.screen = 'home';
+  loadLawyers().then(scrollToAllLawyers);
+}
+
+// Shared by both "Cari Lawyer/Advokat" and "Cari Notaris/PPAT" — the
+// submitted filter shape is generic enough (see kind above) that clearing
+// it back to plain category browsing doesn't need to know which one it was.
+function clearLawyerSearchFilters(){
+  state.activeSearchFilters = null;
+  loadLawyers();
+}
+
+// The home screen's "Filter aktif" bar's "Ubah" button needs to reopen
+// whichever filter screen produced the current activeSearchFilters.
+function openActiveSearchFilterEditor(){
+  if(state.activeSearchFilters && state.activeSearchFilters.kind === 'notaris'){
+    openNotarisSearchFilter();
+  }else{
+    openLawyerSearchFilter();
+  }
+}
+
+/* ============================================================
+   "Cari Notaris/PPAT" — advanced multi-filter search
+   Reuses the exact same backend (/lawyers search, LawyerProfile fields) as
+   "Cari Lawyer/Advokat" — notaris/PPAT are stored as the same generic
+   professional-role record, just tagged with notaris-specific
+   specializations (Area Praktik) and free-form serviceTypes (Jenis
+   Layanan). No new schema — only new Specialization catalog rows, seeded
+   via SQL, and this parallel front-end filter screen.
+============================================================ */
+function defaultNotarisSearchFilter(){
+  return {
+    areaPraktik: new Set(),
+    areaPraktikOpen: new Set(),  // which Area Praktik cards are expanded
+    jenisLayanan: new Set(),
+    dokumenOpen: false,          // "Pembuatan Dokumen Notaris" group expanded?
+    wilayah: 'semua',            // 'semua' | 'terdekat'
+    userLat: null, userLng: null,
+    locating: false, locationError: null,
+    pengalamanMin: '', pengalamanMax: '',
+    gender: 'semua',             // 'semua' | 'male' | 'female'
+    // Two-tier "Biaya Investasi": Konsultasi genuinely filters against the
+    // backend (same hourlyRateChat mechanism as "Cari Lawyer/Advokat").
+    // Dokumen Notaris fees vary far too much by akta type to filter on with
+    // the current single hourlyRateChat field, so that range is collected
+    // for display only and is NOT sent to the backend — see
+    // submitNotarisSearchFilter() and the caveat note in the UI itself.
+    biayaKonsultasiMin: '', biayaKonsultasiMax: '',
+    biayaDokumenMin: '', biayaDokumenMax: '',
+  };
+}
+
+// Re-opening the filter screen ("Ubah") preloads the last submitted notaris
+// filter, same idea as openLawyerSearchFilter().
+function openNotarisSearchFilter(){
+  const prev = state.activeSearchFilters && state.activeSearchFilters.kind === 'notaris' ? state.activeSearchFilters : null;
+  state.notarisSearchFilter = prev ? {
+    areaPraktik: new Set(prev.areaPraktik),
+    areaPraktikOpen: new Set(),
+    jenisLayanan: new Set(prev.jenisLayanan),
+    dokumenOpen: false,
+    wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
+    locating: false, locationError: null,
+    pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
+    gender: prev.gender ?? 'semua',
+    biayaKonsultasiMin: prev.biayaMin ?? '', biayaKonsultasiMax: prev.biayaMax ?? '',
+    biayaDokumenMin: prev.biayaDokumenMin ?? '', biayaDokumenMax: prev.biayaDokumenMax ?? '',
+  } : defaultNotarisSearchFilter();
+  state.screen = 'cari-notaris-filter';
+  render();
+}
+
+function closeNotarisSearchFilter(){
+  state.notarisSearchFilter = null;
+  state.screen = 'home';
+  render();
+}
+
+function toggleNotarisAreaPraktik(name){
+  const f = state.notarisSearchFilter;
+  f.areaPraktik.has(name) ? f.areaPraktik.delete(name) : f.areaPraktik.add(name);
+  render();
+}
+function toggleNotarisAreaPraktikOpen(name){
+  const f = state.notarisSearchFilter;
+  f.areaPraktikOpen.has(name) ? f.areaPraktikOpen.delete(name) : f.areaPraktikOpen.add(name);
+  render();
+}
+function toggleNotarisJenisLayanan(value){
+  const f = state.notarisSearchFilter;
+  f.jenisLayanan.has(value) ? f.jenisLayanan.delete(value) : f.jenisLayanan.add(value);
+  render();
+}
+function toggleNotarisDokumenOpen(){
+  state.notarisSearchFilter.dokumenOpen = !state.notarisSearchFilter.dokumenOpen;
+  render();
+}
+function setNotarisWilayah(mode){
+  const f = state.notarisSearchFilter;
+  f.wilayah = mode;
+  f.locationError = null;
+  if(mode === 'terdekat' && f.userLat === null) requestNotarisUserLocation();
+  else render();
+}
+function requestNotarisUserLocation(){
+  const f = state.notarisSearchFilter;
+  if(!navigator.geolocation){
+    f.locationError = 'Perangkat/browser ini tidak mendukung deteksi lokasi.';
+    render();
+    return;
+  }
+  f.locating = true;
+  f.locationError = null;
+  render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      f.userLat = pos.coords.latitude;
+      f.userLng = pos.coords.longitude;
+      f.locating = false;
+      render();
+    },
+    (err) => {
+      f.locating = false;
+      f.locationError = err.code === 1
+        ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini lalu coba lagi.'
+        : 'Gagal mendapatkan lokasi. Coba lagi.';
+      render();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+function setNotarisGender(g){ state.notarisSearchFilter.gender = g; render(); }
+function onNotarisFilterNumberInput(field, v){ state.notarisSearchFilter[field] = v; }
+
+function submitNotarisSearchFilter(){
+  const f = state.notarisSearchFilter;
+  if(f.wilayah === 'terdekat' && f.userLat === null){
+    requestNotarisUserLocation();
+    return;
+  }
+  state.activeSearchFilters = {
+    kind: 'notaris',
+    areaPraktik: Array.from(f.areaPraktik),
+    jenisLayanan: Array.from(f.jenisLayanan),
+    wilayah: f.wilayah,
+    userLat: f.userLat, userLng: f.userLng,
+    pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
+    gender: f.gender,
+    // Only the "Biaya Konsultasi" tier is real — see the comment on
+    // defaultNotarisSearchFilter(). biayaMin/biayaMax match the same field
+    // names loadLawyers() already sends to the backend for lawyers.
+    biayaMin: f.biayaKonsultasiMin, biayaMax: f.biayaKonsultasiMax,
+    biayaDokumenMin: f.biayaDokumenMin, biayaDokumenMax: f.biayaDokumenMax,
+  };
+  state.notarisSearchFilter = null;
+  state.screen = 'home';
+  loadLawyers().then(scrollToAllLawyers);
+}
+
+function renderCariLawyerFilter(){
+  const f = state.lawyerSearchFilter;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header">
+      <div class="nav-strip">
+        <button class="back-link" onclick="closeLawyerSearchFilter()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero" style="padding-bottom:20px;">
+        <div class="hero-title">Cari Lawyer/Advokat</div>
+        <div class="hero-sub">Atur kriteria pencarian sesuai kebutuhan hukum Anda</div>
+      </div>
+    </div>
+    <div class="content" style="padding-top:18px;padding-bottom:100px;">
+
+      <div class="filter-section">
+        <div class="filter-label">1. Area Praktik</div>
+        <div class="area-praktik-list">
+          ${AREA_PRAKTIK_CATALOG.map(a => `
+            <div class="area-praktik-card ${f.areaPraktik.has(a.name) ? 'selected' : ''}">
+              <div class="apc-head">
+                <label class="apc-check">
+                  <input type="checkbox" ${f.areaPraktik.has(a.name) ? 'checked' : ''} onchange="toggleAreaPraktik('${a.name.replace(/'/g, "\\'")}')">
+                  <span>${a.name}</span>
+                </label>
+                <button type="button" class="apc-expand" onclick="toggleAreaPraktikOpen('${a.name.replace(/'/g, "\\'")}')">${f.areaPraktikOpen.has(a.name) ? '▲' : '▼'}</button>
+              </div>
+              ${f.areaPraktikOpen.has(a.name) ? `<ul class="apc-subs">${a.subs.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">2. Tingkat Perkara</div>
+        <div class="filter-chip-row">
+          ${TINGKAT_PERKARA_CATALOG.map(t => `
+            <button type="button" class="filter-chip ${f.tingkatPerkara.has(t.value) ? 'selected' : ''}" onclick="toggleTingkatPerkara('${t.value}')">${t.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">3. Jenis Layanan</div>
+        <div class="filter-checklist">
+          ${JENIS_LAYANAN_TOP.map(v => `
+            <label class="filter-check-row"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('')}
+          <div class="apc-head" style="padding:9px 0 5px;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink);">Pembuatan Dokumen Hukum</span>
+            <button type="button" class="apc-expand" onclick="toggleDokumenOpen()">${f.dokumenOpen ? '▲' : '▼'}</button>
+          </div>
+          ${f.dokumenOpen ? JENIS_LAYANAN_DOKUMEN.map(v => `
+            <label class="filter-check-row" style="padding-left:14px;"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('') : ''}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">4. Wilayah Kerja</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setWilayah('semua')">Seluruh Area</button>
+          <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setWilayah('terdekat')">Cari Lawyer Terdekat</button>
+        </div>
+        ${f.wilayah === 'terdekat' ? `
+          <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
+            ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari lawyer terdekat.'}
+            ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
+            ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestUserLocation()">Gunakan lokasi saya</button>` : ''}
+          </div>` : ''}
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">5. Pengalaman (tahun)</div>
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.pengalamanMin}" oninput="onFilterNumberInput('pengalamanMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks" value="${f.pengalamanMax}" oninput="onFilterNumberInput('pengalamanMax', this.value)">
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">6. Jenis Kelamin</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setGender('semua')">Semua</button>
+          <button type="button" class="${f.gender==='male'?'active':''}" onclick="setGender('male')">Laki-laki</button>
+          <button type="button" class="${f.gender==='female'?'active':''}" onclick="setGender('female')">Perempuan</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">7. Biaya Investasi (Rp / sesi chat)</div>
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.biayaMin}" oninput="onFilterNumberInput('biayaMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks" value="${f.biayaMax}" oninput="onFilterNumberInput('biayaMax', this.value)">
+        </div>
+      </div>
+
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-primary" onclick="submitLawyerSearchFilter()">Cari Lawyer/Advokat</button>
+    </div>
+  </div>`;
+}
+
+function renderCariNotarisFilter(){
+  const f = state.notarisSearchFilter;
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header">
+      <div class="nav-strip">
+        <button class="back-link" onclick="closeNotarisSearchFilter()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero" style="padding-bottom:20px;">
+        <div class="hero-title">Cari Notaris/PPAT</div>
+        <div class="hero-sub">Atur kriteria pencarian sesuai kebutuhan kenotariatan Anda</div>
+      </div>
+    </div>
+    <div class="content" style="padding-top:18px;padding-bottom:100px;">
+
+      <div class="filter-section">
+        <div class="filter-label">1. Area Praktik</div>
+        <div class="area-praktik-list">
+          ${NOTARIS_AREA_PRAKTIK_CATALOG.map(a => {
+            if(!a.subs.length){
+              return `
+              <div class="area-praktik-card ${f.areaPraktik.has(a.label) ? 'selected' : ''}">
+                <div class="apc-head">
+                  <label class="apc-check">
+                    <input type="checkbox" ${f.areaPraktik.has(a.label) ? 'checked' : ''} onchange="toggleNotarisAreaPraktik('${a.label.replace(/'/g, "\\'")}')">
+                    <span>${a.label}</span>
+                  </label>
+                </div>
+              </div>`;
+            }
+            return `
+            <div class="area-praktik-card">
+              <div class="apc-head">
+                <span style="font-size:13px;font-weight:600;color:var(--ink);">${a.label}</span>
+                <button type="button" class="apc-expand" onclick="toggleNotarisAreaPraktikOpen('${a.label.replace(/'/g, "\\'")}')">${f.areaPraktikOpen.has(a.label) ? '▲' : '▼'}</button>
+              </div>
+              ${f.areaPraktikOpen.has(a.label) ? `<ul class="apc-subs" style="list-style:none;padding:0;margin:6px 0 0;">${a.subs.map(s => {
+                const leaf = a.label + ' – ' + s;
+                return `<label class="filter-check-row"><input type="checkbox" ${f.areaPraktik.has(leaf)?'checked':''} onchange="toggleNotarisAreaPraktik('${leaf.replace(/'/g, "\\'")}')"><span>${s}</span></label>`;
+              }).join('')}</ul>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">2. Jenis Layanan</div>
+        <div class="filter-checklist">
+          ${NOTARIS_JENIS_LAYANAN_TOP.map(v => `
+            <label class="filter-check-row"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('')}
+          <div class="apc-head" style="padding:9px 0 5px;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink);">Pembuatan Dokumen Notaris</span>
+            <button type="button" class="apc-expand" onclick="toggleNotarisDokumenOpen()">${f.dokumenOpen ? '▲' : '▼'}</button>
+          </div>
+          ${f.dokumenOpen ? NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
+            <label class="filter-check-row" style="padding-left:14px;"><input type="checkbox" ${f.jenisLayanan.has(v)?'checked':''} onchange="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('') : ''}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">3. Wilayah Kerja</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setNotarisWilayah('semua')">Seluruh Indonesia</button>
+          <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setNotarisWilayah('terdekat')">Cari Notaris Terdekat</button>
+        </div>
+        ${f.wilayah === 'terdekat' ? `
+          <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
+            ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari notaris terdekat.'}
+            ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
+            ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestNotarisUserLocation()">Gunakan lokasi saya</button>` : ''}
+          </div>` : ''}
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">4. Pengalaman (tahun)</div>
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.pengalamanMin}" oninput="onNotarisFilterNumberInput('pengalamanMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks" value="${f.pengalamanMax}" oninput="onNotarisFilterNumberInput('pengalamanMax', this.value)">
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">5. Jenis Kelamin</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setNotarisGender('semua')">Semua</button>
+          <button type="button" class="${f.gender==='male'?'active':''}" onclick="setNotarisGender('male')">Laki-laki</button>
+          <button type="button" class="${f.gender==='female'?'active':''}" onclick="setNotarisGender('female')">Perempuan</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">6. Biaya Investasi</div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:4px;">Biaya Konsultasi (Rp / sesi chat)</div>
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.biayaKonsultasiMin}" oninput="onNotarisFilterNumberInput('biayaKonsultasiMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks (mis. 1.000.000)" value="${f.biayaKonsultasiMax}" oninput="onNotarisFilterNumberInput('biayaKonsultasiMax', this.value)">
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin:12px 0 4px;">Biaya Pembuatan Dokumen Notaris (Rp)</div>
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.biayaDokumenMin}" oninput="onNotarisFilterNumberInput('biayaDokumenMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Disesuaikan" value="${f.biayaDokumenMax}" oninput="onNotarisFilterNumberInput('biayaDokumenMax', this.value)">
+        </div>
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Biaya dokumen notaris sangat bervariasi tergantung jenis akta — kisaran ini hanya gambaran awal dan belum menyaring hasil pencarian. Biaya pasti dikonfirmasi langsung oleh notaris yang bersangkutan.</div>
+      </div>
+
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-primary" onclick="submitNotarisSearchFilter()">Cari Notaris/PPAT</button>
+    </div>
+  </div>`;
+}
+
 function showHelp(){
   alert(
     'Cara pakai Lexara:\n\n' +
@@ -1335,13 +2047,18 @@ function renderLawyerCard(l){
       </div>
       <div class="lc-footer">
         <div class="lc-price">${formatRupiah(l.hourlyRateChat)} <span>/ sesi chat</span></div>
-        <div class="tag">${l.city}</div>
+        <div class="tag">${l.distanceKm != null ? l.distanceKm + ' km' : l.city}</div>
       </div>
     </div>
   </div>`;
 }
 
-function setCategory(c){ state.activeCategory = c; state.bookingServiceNote = null; loadLawyers(); }
+function setCategory(c){
+  state.activeCategory = c;
+  state.bookingServiceNote = null;
+  state.activeSearchFilters = null; // picking a plain chip drops the advanced filter set
+  loadLawyers();
+}
 function setSort(v){ state.sortBy = v; loadLawyers(); }
 function handleSearch(v){ state.searchQuery = v; render(); }
 
@@ -2218,6 +2935,15 @@ function openLawyerProfileForm(){
     hourlyRateChat: p.hourlyRateChat || 0,
     hourlyRateVideo: p.hourlyRateVideo || 0,
     specializationIds: new Set(preselected),
+    gender: p.gender || '',
+    caseLevels: new Set(p.caseLevels || []),
+    serviceTypes: new Set(p.serviceTypes || []),
+    dokumenOpen: false,
+    dokumenNotarisOpen: false,
+    latitude: p.latitude ?? null,
+    longitude: p.longitude ?? null,
+    locating: false,
+    locationError: null,
   };
   state.profileFormError = null;
   state.screen = 'lawyer-profile-form';
@@ -2249,16 +2975,113 @@ function renderLawyerProfileForm(){
       <div class="field"><label>Tarif chat / sesi (Rp)</label><input id="pf-rate-chat" type="number" min="0" value="${f.hourlyRateChat}"></div>
       <div class="field"><label>Tarif video call / sesi (Rp)</label><input id="pf-rate-video" type="number" min="0" value="${f.hourlyRateVideo}"></div>
       <div class="field">
-        <label>Spesialisasi</label>
+        <label>Spesialisasi (Area Praktik)</label>
         <div class="spec-check-list">
           ${catalog.map(s => `<div class="spec-check ${f.specializationIds.has(s.id)?'selected':''}" onclick="toggleSpec('${s.id}')">${s.name}</div>`).join('')}
         </div>
+      </div>
+
+      <div class="field">
+        <label>Jenis Kelamin</label>
+        <div class="role-toggle">
+          <button type="button" class="${f.gender==='male'?'active':''}" onclick="setProfileGender('male')">Laki-laki</button>
+          <button type="button" class="${f.gender==='female'?'active':''}" onclick="setProfileGender('female')">Perempuan</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Tingkat Perkara yang Ditangani</label>
+        <div class="filter-chip-row">
+          ${TINGKAT_PERKARA_CATALOG.map(t => `
+            <button type="button" class="filter-chip ${f.caseLevels.has(t.value)?'selected':''}" onclick="toggleProfileCaseLevel('${t.value}')">${t.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Jenis Layanan yang Ditawarkan</label>
+        <div class="filter-checklist">
+          ${JENIS_LAYANAN_TOP.map(v => `
+            <label class="filter-check-row"><input type="checkbox" ${f.serviceTypes.has(v)?'checked':''} onchange="toggleProfileServiceType('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('')}
+          <div class="apc-head" style="padding:9px 0 5px;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink);">Pembuatan Dokumen Hukum</span>
+            <button type="button" class="apc-expand" onclick="toggleProfileDokumenOpen()">${f.dokumenOpen ? '▲' : '▼'}</button>
+          </div>
+          ${f.dokumenOpen ? JENIS_LAYANAN_DOKUMEN.map(v => `
+            <label class="filter-check-row" style="padding-left:14px;"><input type="checkbox" ${f.serviceTypes.has(v)?'checked':''} onchange="toggleProfileServiceType('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('') : ''}
+          <div class="apc-head" style="padding:9px 0 5px;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink);">Pembuatan Dokumen Notaris</span>
+            <button type="button" class="apc-expand" onclick="toggleProfileDokumenNotarisOpen()">${f.dokumenNotarisOpen ? '▲' : '▼'}</button>
+          </div>
+          ${f.dokumenNotarisOpen ? NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
+            <label class="filter-check-row" style="padding-left:14px;"><input type="checkbox" ${f.serviceTypes.has(v)?'checked':''} onchange="toggleProfileServiceType('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('') : ''}
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Pengacara maupun notaris/PPAT bisa memilih dari kedua daftar di atas sesuai layanan yang benar-benar ditawarkan.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Lokasi (untuk pencarian "lawyer/notaris terdekat")</label>
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:8px;">
+          ${f.locating ? 'Mendeteksi lokasi…' : f.latitude !== null ? '📍 Lokasi tersimpan.' : 'Belum diatur — klien tidak akan menemukan Anda lewat pencarian "lawyer terdekat".'}
+        </div>
+        ${f.locationError ? `<div class="error-box">${f.locationError}</div>` : ''}
+        <button type="button" class="btn btn-outline" style="width:100%;" ${f.locating?'disabled':''} onclick="useCurrentLocationForProfile()">Gunakan Lokasi Saat Ini</button>
       </div>
     </div>
     <div class="cta-bar">
       <button class="btn btn-primary" ${state.profileFormSubmitting?'disabled':''} onclick="submitLawyerProfile()">${state.profileFormSubmitting?'Menyimpan…':'Simpan Profil'}</button>
     </div>
   </div>`;
+}
+
+function setProfileGender(g){
+  const f = state.profileForm;
+  f.gender = f.gender === g ? '' : g;
+  render();
+}
+function toggleProfileCaseLevel(value){
+  const set = state.profileForm.caseLevels;
+  set.has(value) ? set.delete(value) : set.add(value);
+  render();
+}
+function toggleProfileServiceType(value){
+  const set = state.profileForm.serviceTypes;
+  set.has(value) ? set.delete(value) : set.add(value);
+  render();
+}
+function toggleProfileDokumenOpen(){
+  state.profileForm.dokumenOpen = !state.profileForm.dokumenOpen;
+  render();
+}
+function toggleProfileDokumenNotarisOpen(){
+  state.profileForm.dokumenNotarisOpen = !state.profileForm.dokumenNotarisOpen;
+  render();
+}
+function useCurrentLocationForProfile(){
+  const f = state.profileForm;
+  if(!navigator.geolocation){
+    f.locationError = 'Perangkat/browser ini tidak mendukung deteksi lokasi.';
+    render();
+    return;
+  }
+  f.locating = true;
+  f.locationError = null;
+  render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      f.latitude = pos.coords.latitude;
+      f.longitude = pos.coords.longitude;
+      f.locating = false;
+      render();
+    },
+    (err) => {
+      f.locating = false;
+      f.locationError = err.code === 1
+        ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini lalu coba lagi.'
+        : 'Gagal mendapatkan lokasi. Coba lagi.';
+      render();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
 }
 
 function backToLawyerDashboard(){ state.screen = 'home'; render(); }
@@ -2288,6 +3111,11 @@ async function submitLawyerProfile(){
         barRegistrationNumber, city, bio: bio || undefined,
         yearsExperience, hourlyRateChat, hourlyRateVideo,
         specializationIds: Array.from(f.specializationIds),
+        gender: f.gender || undefined,
+        caseLevels: Array.from(f.caseLevels),
+        serviceTypes: Array.from(f.serviceTypes),
+        latitude: f.latitude ?? undefined,
+        longitude: f.longitude ?? undefined,
       },
     });
     state.screen = 'home'; // back to dashboard content, mode stays 'pengacara'
@@ -2320,7 +3148,7 @@ function renderBottomNav(){
     {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
-  const activeKey = ['home','detail','booking','confirm','layanan-detail'].includes(state.screen) ? 'home' : state.screen;
+  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-filter','cari-notaris-filter'].includes(state.screen) ? 'home' : state.screen;
   return `
   <div class="bottomnav">
     ${items.map(i=>`
