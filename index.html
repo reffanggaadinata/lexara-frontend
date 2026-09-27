@@ -553,10 +553,10 @@
   .filter-check-row input{flex-shrink:0;width:16px;height:16px;}
   .filter-range-row{display:flex;align-items:center;gap:10px;}
   .filter-range-row input{
-    flex:1;border:1px solid var(--line);border-radius:var(--radius-s);padding:10px 12px;
+    flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--radius-s);padding:10px 12px;
     font-family:inherit;font-size:13px;color:var(--ink);background:#fff;
   }
-  .filter-range-row span{color:var(--ink-soft);font-size:12px;}
+  .filter-range-row span{color:var(--ink-soft);font-size:12px;flex-shrink:0;}
   .active-filter-bar{
     display:flex;justify-content:space-between;align-items:center;background:var(--gold-pale);
     border-radius:var(--radius-s);padding:10px 13px;margin-bottom:14px;font-size:12px;font-weight:600;color:var(--navy);
@@ -1124,6 +1124,14 @@ function formatDateTime(iso){
 function setAppHtml(app, html){
   const screenScroll = app.querySelector('.screen.active')?.scrollTop || 0;
   const sheetScroll = app.querySelector('.sheet-body')?.scrollTop || 0;
+  // A bottom sheet (filter sheet, "Lihat Semua", etc.) plays a slide-up +
+  // fade-in entrance animation when it first opens. Because render() always
+  // rebuilds the whole #app from scratch, the sheet's DOM nodes get
+  // recreated on every single tap too — which would replay that same
+  // entrance animation each time, making a simple filter pick look like the
+  // whole screen "refreshing"/jumping. Remember whether a sheet was already
+  // open before this rebuild so we can skip the animation on the new nodes.
+  const sheetWasOpen = !!app.querySelector('.sheet-panel');
   app.innerHTML = html;
   if(screenScroll){
     const el = app.querySelector('.screen.active');
@@ -1132,6 +1140,12 @@ function setAppHtml(app, html){
   if(sheetScroll){
     const el = app.querySelector('.sheet-body');
     if(el) el.scrollTop = sheetScroll;
+  }
+  if(sheetWasOpen){
+    const panel = app.querySelector('.sheet-panel');
+    const backdrop = app.querySelector('.sheet-backdrop');
+    if(panel) panel.style.animation = 'none';
+    if(backdrop) backdrop.style.animation = 'none';
   }
 }
 
