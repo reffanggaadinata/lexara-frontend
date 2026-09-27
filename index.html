@@ -1175,13 +1175,17 @@ function render(){
   else if(state.screen === 'profil') html = renderProfil();
   else if(state.screen === 'lawyer-profile-form') html = renderLawyerProfileForm();
   else if(state.screen === 'layanan-detail') html = renderLayananDetail();
+  else if(state.screen === 'cari-lawyer-hasil') html = renderSearchResultsScreen('lawyer');
+  else if(state.screen === 'cari-notaris-hasil') html = renderSearchResultsScreen('notaris');
   else html = renderHome();
 
   html += renderBottomNav();
   if(state.showAllServices) html += renderAllServicesSheet();
-  // These two overlay whichever screen is behind them (always 'home' in
-  // practice) rather than replacing it, same mechanism as the sheet above —
-  // so the client sees the filter as a bottom sheet, not a full page nav.
+  // These two overlay whichever screen is behind them — normally 'home',
+  // but also 'cari-lawyer-hasil'/'cari-notaris-hasil' when the client taps
+  // "Ubah" on an already-submitted search — rather than replacing it, same
+  // mechanism as the sheet above, so the client sees the filter as a
+  // bottom sheet, not a full page nav.
   if(state.showLawyerFilterSheet) html += renderCariLawyerFilter();
   if(state.showNotarisFilterSheet) html += renderCariNotarisFilter();
   setAppHtml(app, html);
@@ -1569,6 +1573,73 @@ function selectLayananItem(serviceKey, item){
   }
 }
 
+// Dedicated results page for "Cari Lawyer/Advokat" / "Cari Notaris/PPAT" —
+// shown once the client taps "Lihat Hasil" on the filter sheet, instead of
+// dumping the results back into the home screen's own separate lawyer list
+// (which has its own promo banner, category grid, etc. and would bury the
+// results the client specifically asked for). Reuses the exact same
+// state.lawyers / state.activeSearchFilters / sort machinery as the home
+// screen's list — this is just a focused, single-purpose view of it.
+function renderSearchResultsScreen(kind){
+  let filtered = state.lawyers;
+  if(state.searchQuery){
+    const q = state.searchQuery.toLowerCase();
+    filtered = filtered.filter(l => l.name.toLowerCase().includes(q) || l.specializations.join(' ').toLowerCase().includes(q));
+  }
+
+  let body;
+  if(state.lawyersLoading){
+    body = `<div class="loading-state">Memuat daftar pengacara…</div>`;
+  }else if(state.lawyersError){
+    body = `<div class="error-box">${state.lawyersError}</div>`;
+  }else if(filtered.length === 0){
+    body = renderEmptySearch();
+  }else{
+    body = filtered.map(l => renderLawyerCard(l)).join('');
+  }
+
+  const title = kind === 'notaris' ? 'Cari Notaris/PPAT' : 'Cari Lawyer/Advokat';
+  const hasFilters = state.activeSearchFilters && state.activeSearchFilters.kind === kind;
+
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="detail-header">
+      <div class="nav-strip">
+        <button class="back-link" onclick="goHome()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>Kembali
+        </button>
+      </div>
+      <div class="detail-hero">
+        <div class="profile-name">${title}</div>
+        <div class="profile-spec" style="color:#C8D1E3;">${state.lawyersLoading ? 'Memuat…' : filtered.length + ' ditemukan'}</div>
+      </div>
+    </div>
+    <div class="content">
+
+      ${hasFilters ? `
+      <div class="active-filter-bar">
+        <span>🔎 Filter aktif (${countActiveFilters(state.activeSearchFilters)} kriteria)</span>
+        <span class="active-filter-actions">
+          <button type="button" class="btn-link" onclick="openActiveSearchFilterEditor()">Ubah</button>
+          <button type="button" class="btn-link" onclick="clearLawyerSearchFilters()">Hapus</button>
+        </span>
+      </div>` : `
+      <button type="button" class="btn btn-outline" style="width:100%;margin-bottom:14px;" onclick="openActiveSearchFilterEditor()">Atur Filter</button>`}
+
+      <div class="sort-row">
+        <div class="result-count">${state.lawyersLoading ? '…' : filtered.length + ' pengacara ditemukan'}</div>
+        <select onchange="setSort(this.value)">
+          <option value="rating" ${state.sortBy==='rating'?'selected':''}>Rating tertinggi</option>
+          <option value="price" ${state.sortBy==='price'?'selected':''}>Harga terendah</option>
+          <option value="exp" ${state.sortBy==='exp'?'selected':''}>Pengalaman</option>
+        </select>
+      </div>
+
+      ${body}
+    </div>
+  </div>`;
+}
+
 /* ============================================================
    "Cari Lawyer/Advokat" — advanced multi-filter search
 ============================================================ */
@@ -1724,7 +1795,10 @@ function submitLawyerSearchFilter(){
   };
   state.lawyerSearchFilter = null;
   state.showLawyerFilterSheet = false;
-  loadLawyers().then(scrollToAllLawyers);
+  // Show the results on their own "Cari Lawyer/Advokat" page — not back on
+  // the home screen, which has its own separate (unfiltered) lawyer list.
+  state.screen = 'cari-lawyer-hasil';
+  loadLawyers();
 }
 
 // Shared by both "Cari Lawyer/Advokat" and "Cari Notaris/PPAT" — the
@@ -1890,7 +1964,10 @@ function submitNotarisSearchFilter(){
   };
   state.notarisSearchFilter = null;
   state.showNotarisFilterSheet = false;
-  loadLawyers().then(scrollToAllLawyers);
+  // Show the results on their own "Cari Notaris/PPAT" page — not back on
+  // the home screen, which has its own separate (unfiltered) lawyer list.
+  state.screen = 'cari-notaris-hasil';
+  loadLawyers();
 }
 
 // Area Praktik is a two-level drill-down: clicking a category button
@@ -3587,7 +3664,7 @@ function renderBottomNav(){
     {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
-  const activeKey = ['home','detail','booking','confirm','layanan-detail'].includes(state.screen) ? 'home' : state.screen;
+  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil'].includes(state.screen) ? 'home' : state.screen;
   return `
   <div class="bottomnav">
     ${items.map(i=>`
