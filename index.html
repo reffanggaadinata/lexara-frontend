@@ -619,6 +619,14 @@
      category above it" rather than the next unrelated section. */
   .area-sub-panel{background:var(--gold-pale);border-radius:var(--radius-s);padding:12px 13px;margin-top:-8px;}
 
+  /* Same tinted panel look, but for the "Pembuatan Dokumen…" chip's
+     document-type list — this one sits NESTED inside the "Jenis Layanan"
+     .filter-section (right under the chip row, not as its own sibling
+     section), so it needs ordinary positive spacing above it instead of
+     .area-sub-panel's negative margin-top, which would otherwise pull it
+     up into the chip row and make it look like it's overlapping. */
+  .chip-sub-panel{background:var(--gold-pale);border-radius:var(--radius-s);padding:12px 13px;margin-top:10px;}
+
   /* Bordered-card variant of the same category-row idea, used on the
      "Lengkapi/ubah profil" Area Praktik picker (a longer-lived screen where
      the card look reads better than the filter sheet's flat list). */
@@ -2109,7 +2117,7 @@ function renderJenisLayananBody(){
     </button>
   </div>
   ${f.dokumenOpen ? `
-  <div class="filter-section area-sub-panel">
+  <div class="chip-sub-panel">
     <div class="filter-flat-label">Jenis Dokumen</div>
     <div class="area-chip-wrap">
       ${JENIS_LAYANAN_DOKUMEN.map(v => `
@@ -2367,7 +2375,7 @@ function renderNotarisJenisLayananBody(){
     </button>
   </div>
   ${f.dokumenOpen ? `
-  <div class="filter-section area-sub-panel">
+  <div class="chip-sub-panel">
     <div class="filter-flat-label">Jenis Dokumen</div>
     <div class="area-chip-wrap">
       ${NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
