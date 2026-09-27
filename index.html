@@ -236,13 +236,22 @@
     content:'';position:absolute;right:-30px;bottom:-40px;width:120px;height:120px;
     border-radius:50%;background:rgba(169,130,47,0.25);pointer-events:none;
   }
-  .avatar-btn{
-    width:40px;height:40px;border-radius:50%;flex-shrink:0;border:none;cursor:pointer;
-    background:var(--gold-pale);color:var(--navy);font-family:'Source Serif 4',serif;font-weight:700;
-    font-size:14px;display:flex;align-items:center;justify-content:center;
+  /* Home header's notification bell — replaces what used to be a profile
+     avatar shortcut there (profile is already reachable via the "Akun" tab
+     in the bottom nav, so this slot is free for something more useful:
+     a real unseen-activity indicator, reusing the same countUnseen()
+     tracking already driving the "Konsultasi" tab's badge). */
+  .bell-btn{
+    position:relative;width:40px;height:40px;border-radius:50%;flex-shrink:0;border:none;cursor:pointer;
+    background:var(--gold-pale);color:var(--navy);display:flex;align-items:center;justify-content:center;
     box-shadow:0 2px 6px rgba(0,0,0,0.18);transition:transform .12s ease;
   }
-  .avatar-btn:active{transform:scale(0.94);}
+  .bell-btn:active{transform:scale(0.94);}
+  .bell-btn .bell-badge{
+    position:absolute;top:-2px;right:-2px;min-width:15px;height:15px;padding:0 3px;
+    background:var(--danger);color:#fff;border-radius:8px;font-size:9px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 0 2px var(--gold-pale);
+  }
 
   /* Promo content — sits inside the hero, right below the sticky header */
   .promo-content{padding:0 20px 20px;position:relative;}
@@ -545,7 +554,7 @@
   .filter-chip-row{display:flex;flex-wrap:wrap;gap:8px;}
   .filter-chip{
     border:1px solid var(--line);background:#fff;color:var(--navy);padding:8px 13px;border-radius:8px;
-    font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+    font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;
   }
   .filter-chip.selected{background:var(--navy);border-color:var(--navy);color:#fff;}
   .filter-checklist{display:flex;flex-direction:column;}
@@ -596,7 +605,7 @@
   .area-chip{
     border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:9px 15px;
     font-size:12.5px;font-weight:600;color:var(--navy);display:inline-flex;align-items:center;gap:6px;
-    cursor:pointer;font-family:inherit;
+    cursor:pointer;font-family:inherit;text-align:left;
   }
   .area-chip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
   .area-chip .chip-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;}
@@ -1297,13 +1306,21 @@ function logout(){
    Home / search
 ============================================================ */
 function renderTopbarHome(){
+  // Same unseen-activity count already shown on the bottom nav's
+  // "Konsultasi" tab (see countUnseen()'s comment) — tapping the bell takes
+  // the client straight to that list, since there's no separate
+  // notification inbox/backend yet.
+  const unseen = countUnseen(state.myBookings);
   return `
   <div class="home-header" id="homeHeader">
     <div class="search-box">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A8578" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input value="${state.searchQuery || ''}" placeholder="Cari nama pengacara" oninput="handleSearch(this.value)">
     </div>
-    <button class="avatar-btn" onclick="goScreen('profil')" title="Profil">${initials(state.user.fullName)}</button>
+    <button class="bell-btn" onclick="goScreen('konsultasi')" title="Notifikasi">
+      ${unseen > 0 ? `<span class="bell-badge">${unseen > 9 ? '9+' : unseen}</span>` : ''}
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
   </div>`;
 }
 
@@ -2075,20 +2092,30 @@ function renderAreaSubPanel(kind){
   </div>`;
 }
 
+// Same wrapping pill-chip look as Area Praktik — "Pembuatan Dokumen Hukum"
+// is just another chip in the row that toggles a sub-panel of document
+// types underneath (▼/▲ shown inline in its own label), instead of the old
+// bordered accordion row style.
 function renderJenisLayananBody(){
   const f = state.lawyerSearchFilter;
   const dokumenCount = JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length;
+  const dokumenActive = f.dokumenOpen || dokumenCount > 0;
   return `
-  <div class="filter-chip-row" style="margin-bottom:6px;">
+  <div class="area-chip-wrap">
     ${JENIS_LAYANAN_TOP.map(v => `
-      <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}
+      <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
+    <button type="button" class="area-chip ${dokumenActive ? 'active' : ''}" onclick="toggleDokumenOpen()">
+      ${dokumenActive ? '<span class="chip-dot"></span>' : ''}Pembuatan Dokumen Hukum${dokumenCount ? ` (${dokumenCount})` : ''} ${f.dokumenOpen ? '˄' : '˅'}
+    </button>
   </div>
-  <button type="button" class="area-cat-row ${dokumenCount ? 'row-selected' : ''}" onclick="toggleDokumenOpen()">
-    <span>Pembuatan Dokumen Hukum${dokumenCount ? ` <span class="fa-count">(${dokumenCount})</span>` : ''}</span>
-    <span class="fa-arrow">${f.dokumenOpen ? '▲' : '▼'}</span>
-  </button>
-  ${f.dokumenOpen ? `<div class="area-cat-leaf-row">${JENIS_LAYANAN_DOKUMEN.map(v => `
-    <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}</div>` : ''}`;
+  ${f.dokumenOpen ? `
+  <div class="filter-section area-sub-panel">
+    <div class="filter-flat-label">Jenis Dokumen</div>
+    <div class="area-chip-wrap">
+      ${JENIS_LAYANAN_DOKUMEN.map(v => `
+        <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
+    </div>
+  </div>` : ''}`;
 }
 
 // Clears one min/max pair on the draft filter (used by the "Filter dipilih"
@@ -2326,20 +2353,27 @@ function renderNotarisAreaPraktikBody(){
   </div>`;
 }
 
+// Same wrapping pill-chip treatment as renderJenisLayananBody() above.
 function renderNotarisJenisLayananBody(){
   const f = state.notarisSearchFilter;
   const dokumenCount = NOTARIS_JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length;
+  const dokumenActive = f.dokumenOpen || dokumenCount > 0;
   return `
-  <div class="filter-chip-row" style="margin-bottom:6px;">
+  <div class="area-chip-wrap">
     ${NOTARIS_JENIS_LAYANAN_TOP.map(v => `
-      <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}
+      <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
+    <button type="button" class="area-chip ${dokumenActive ? 'active' : ''}" onclick="toggleNotarisDokumenOpen()">
+      ${dokumenActive ? '<span class="chip-dot"></span>' : ''}Pembuatan Dokumen Notaris${dokumenCount ? ` (${dokumenCount})` : ''} ${f.dokumenOpen ? '˄' : '˅'}
+    </button>
   </div>
-  <button type="button" class="area-cat-row ${dokumenCount ? 'row-selected' : ''}" onclick="toggleNotarisDokumenOpen()">
-    <span>Pembuatan Dokumen Notaris${dokumenCount ? ` <span class="fa-count">(${dokumenCount})</span>` : ''}</span>
-    <span class="fa-arrow">${f.dokumenOpen ? '▲' : '▼'}</span>
-  </button>
-  ${f.dokumenOpen ? `<div class="area-cat-leaf-row">${NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
-    <button type="button" class="filter-chip ${f.jenisLayanan.has(v)?'selected':''}" onclick="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}</div>` : ''}`;
+  ${f.dokumenOpen ? `
+  <div class="filter-section area-sub-panel">
+    <div class="filter-flat-label">Jenis Dokumen</div>
+    <div class="area-chip-wrap">
+      ${NOTARIS_JENIS_LAYANAN_DOKUMEN.map(v => `
+        <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleNotarisJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
+    </div>
+  </div>` : ''}`;
 }
 
 function renderCariNotarisFilter(){
