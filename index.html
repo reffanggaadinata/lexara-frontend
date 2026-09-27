@@ -582,28 +582,22 @@
   .area-cat-row .fa-arrow{color:var(--ink-soft);font-size:11px;flex-shrink:0;}
   .area-cat-leaf-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px;padding-left:4px;}
 
-  /* Area Praktik colorful circular-icon grid (marketplace-app style) — the
-     design the client picked from the 10 mockups. All categories are shown
-     at once, 3 per row; tapping one doesn't expand inline, it sets the
-     "active" category and its sub-bidang show up in .area-sub-panel below. */
-  .cat-icon-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 8px;}
-  .cat-icon-item{
-    display:flex;flex-direction:column;align-items:center;gap:7px;
-    border:none;background:none;padding:2px;cursor:pointer;font-family:inherit;
+  /* Area Praktik as a wrapping "cloud" of rounded pill chips (marketplace
+     style) — the design the client picked from the 10 mockups. The active
+     category (the one whose sub-bidang panel is open) is a filled navy
+     pill with a small gold dot; everything else stays outlined. A trailing
+     dashed "+N lainnya" pill reveals the rest past AREA_PRAKTIK_VISIBLE_COUNT. */
+  .area-chip-wrap{display:flex;flex-wrap:wrap;gap:9px;}
+  .area-chip{
+    border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:9px 15px;
+    font-size:12.5px;font-weight:600;color:var(--navy);display:inline-flex;align-items:center;gap:6px;
+    cursor:pointer;font-family:inherit;
   }
-  .cat-icon-circle{
-    position:relative;width:48px;height:48px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;font-size:20px;
-    box-shadow:0 1px 3px rgba(0,0,0,0.15);
-  }
-  .cat-icon-item.active .cat-icon-circle{box-shadow:0 0 0 3px var(--gold), 0 1px 3px rgba(0,0,0,0.15);}
-  .cat-icon-label{font-size:10.5px;font-weight:700;color:var(--ink);text-align:center;line-height:1.25;}
-  .cat-icon-item.active .cat-icon-label{color:var(--navy);}
-  .cat-icon-badge{
-    position:absolute;top:-4px;right:-4px;background:var(--navy);color:#fff;
-    font-size:9.5px;font-weight:700;min-width:16px;height:16px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;padding:0 3px;
-    box-shadow:0 0 0 2px #fff;
+  .area-chip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .area-chip .chip-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+  .area-chip-more{
+    border:1.5px dashed var(--line);background:none;border-radius:20px;padding:9px 15px;
+    font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:inherit;
   }
 
   /* Sub-bidang panel for the tapped Area Praktik category — a normal
@@ -859,21 +853,6 @@ const AREA_PRAKTIK_CATALOG = [
   { name: 'Hukum Zakat, Wakaf, dan Syariah', subs: ['Perbankan dan ekonomi syariah', 'Wakaf dan zakat', 'Sengketa syariah (Pengadilan Agama)'] },
 ];
 
-// One emoji per AREA_PRAKTIK_CATALOG entry, index-aligned — purely visual
-// (colorful circular icon grid, per the client's chosen mockup design),
-// never sent to the backend.
-const AREA_PRAKTIK_ICONS = [
-  '⚖️','📜','👷','🌾','🏛️','📖','🤝','🏢','💸','🏦',
-  '📈','⚔️','💡','💰','🧾','🌳','⚡','💻','🚢','🏗️',
-  '🏥','🛡️','📡','🛂','🪘','📝','🎖️','🕌',
-];
-// Cycled by index (index % length) across the icon circles so neighboring
-// categories don't repeat the same color for a long stretch.
-const CATEGORY_COLOR_PALETTE = [
-  '#C0392B','#2471A3','#8E44AD','#16A085','#D68910',
-  '#2E86C1','#CB4335','#117864','#B7950B','#6C3483',
-];
-
 const TINGKAT_PERKARA_CATALOG = [
   { value: 'konsultasi', label: 'Konsultasi' },
   { value: 'pn', label: 'PN (Tingkat Pertama)' },
@@ -926,10 +905,6 @@ const NOTARIS_AREA_PRAKTIK_CATALOG = [
 const NOTARIS_AREA_PRAKTIK_VALUES = NOTARIS_AREA_PRAKTIK_CATALOG.flatMap(a =>
   a.subs.length ? a.subs.map(s => `${a.label} – ${s}`) : [a.label]
 );
-
-// One emoji per NOTARIS_AREA_PRAKTIK_CATALOG entry, index-aligned — same
-// icon-grid treatment as AREA_PRAKTIK_ICONS above.
-const NOTARIS_AREA_PRAKTIK_ICONS = ['🏢','🏞️','💍','📜','🔐','🖋️','✅','🏦'];
 
 const NOTARIS_JENIS_LAYANAN_TOP = ['Konsultasi'];
 const NOTARIS_JENIS_LAYANAN_DOKUMEN = [
@@ -1561,7 +1536,8 @@ function selectLayananItem(serviceKey, item){
 function defaultLawyerSearchFilter(){
   return {
     areaPraktik: new Set(),
-    areaActiveCat: null,          // which Area Praktik category icon is tapped — shows its sub-bidang panel
+    areaActiveCat: null,          // which Area Praktik chip is tapped — shows its sub-bidang panel
+    areaShowAll: false,           // "+N lainnya" chip tapped — show every Area Praktik category
     tingkatPerkara: new Set(),
     jenisLayanan: new Set(),
     dokumenOpen: false,           // "Pembuatan Dokumen Hukum" group expanded?
@@ -1582,6 +1558,7 @@ function openLawyerSearchFilter(){
   state.lawyerSearchFilter = prev ? {
     areaPraktik: new Set(prev.areaPraktik),
     areaActiveCat: null,
+    areaShowAll: false,
     tingkatPerkara: new Set(prev.tingkatPerkara),
     jenisLayanan: new Set(prev.jenisLayanan),
     dokumenOpen: false,
@@ -1613,6 +1590,12 @@ function toggleAreaPraktik(name){
 function setAreaActiveCat(name){
   const f = state.lawyerSearchFilter;
   f.areaActiveCat = (f.areaActiveCat === name) ? null : name;
+  render();
+}
+// Reveals the remaining Area Praktik categories past AREA_PRAKTIK_VISIBLE_COUNT
+// when the client taps the trailing "+N lainnya" chip.
+function toggleAreaShowAll(){
+  state.lawyerSearchFilter.areaShowAll = !state.lawyerSearchFilter.areaShowAll;
   render();
 }
 function toggleTingkatPerkara(value){
@@ -1736,7 +1719,8 @@ function openActiveSearchFilterEditor(){
 function defaultNotarisSearchFilter(){
   return {
     areaPraktik: new Set(),
-    areaActiveCat: null,         // which Area Praktik category icon is tapped — shows its sub-bidang panel
+    areaActiveCat: null,         // which Area Praktik chip is tapped — shows its sub-bidang panel
+    areaShowAll: false,          // "+N lainnya" chip tapped — show every Area Praktik category
     jenisLayanan: new Set(),
     dokumenOpen: false,          // "Pembuatan Dokumen Notaris" group expanded?
     wilayah: 'semua',            // 'semua' | 'terdekat'
@@ -1762,6 +1746,7 @@ function openNotarisSearchFilter(){
   state.notarisSearchFilter = prev ? {
     areaPraktik: new Set(prev.areaPraktik),
     areaActiveCat: null,
+    areaShowAll: false,
     jenisLayanan: new Set(prev.jenisLayanan),
     dokumenOpen: false,
     wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
@@ -1792,6 +1777,10 @@ function toggleNotarisAreaPraktik(name){
 function setNotarisAreaActiveCat(label){
   const f = state.notarisSearchFilter;
   f.areaActiveCat = (f.areaActiveCat === label) ? null : label;
+  render();
+}
+function toggleNotarisAreaShowAll(){
+  state.notarisSearchFilter.areaShowAll = !state.notarisSearchFilter.areaShowAll;
   render();
 }
 function toggleNotarisJenisLayanan(value){
@@ -1913,28 +1902,35 @@ function renderPresetChipRow(kind, minField, maxField, presets){
   </div>`;
 }
 
-// Area Praktik as a colorful circular-icon grid (marketplace-app style,
-// per the client's chosen mockup) — ALL 28 categories always shown, no
-// "Tampilkan lebih banyak" truncation and no generic filler tile. Tapping a
+// How many Area Praktik chips show before the "+N lainnya" chip that
+// reveals the rest — matches the "Awan chip (wrap)" mockup the client
+// picked (a handful of pills wrapping onto a few rows, plus a trailing
+// "+N lainnya" pill rather than a hard cutoff or a full 28-item wall).
+const AREA_PRAKTIK_VISIBLE_COUNT = 9;
+
+// Area Praktik as wrapping rounded pill chips (marketplace "cloud of
+// chips" style, per the client's chosen mockup) — the active category
+// (the one whose sub-bidang panel is currently open) renders as a filled
+// navy pill with a small dot, everything else stays outlined. Tapping a
 // category doesn't expand inline: it sets the "active category", and its
 // sub-bidang appear in a separate panel (renderAreaSubPanel) positioned
 // right above "Tingkat Perkara".
 function renderAreaPraktikBody(){
   const f = state.lawyerSearchFilter;
+  const showAll = f.areaShowAll;
+  const visible = showAll ? AREA_PRAKTIK_CATALOG : AREA_PRAKTIK_CATALOG.slice(0, AREA_PRAKTIK_VISIBLE_COUNT);
+  const remaining = AREA_PRAKTIK_CATALOG.length - AREA_PRAKTIK_VISIBLE_COUNT;
   return `
-  <div class="cat-icon-grid">
-    ${AREA_PRAKTIK_CATALOG.map((a, i) => {
+  <div class="area-chip-wrap">
+    ${visible.map(a => {
       const selectedInCat = a.subs.filter(s => f.areaPraktik.has(a.name + ' – ' + s)).length;
       const isActive = f.areaActiveCat === a.name;
       return `
-      <button type="button" class="cat-icon-item ${isActive ? 'active' : ''}" onclick="setAreaActiveCat('${a.name.replace(/'/g, "\\'")}')">
-        <span class="cat-icon-circle" style="background:${CATEGORY_COLOR_PALETTE[i % CATEGORY_COLOR_PALETTE.length]};">
-          ${AREA_PRAKTIK_ICONS[i] || '⚖️'}
-          ${selectedInCat ? `<span class="cat-icon-badge">${selectedInCat}</span>` : ''}
-        </span>
-        <span class="cat-icon-label">${a.name}</span>
+      <button type="button" class="area-chip ${isActive ? 'active' : ''}" onclick="setAreaActiveCat('${a.name.replace(/'/g, "\\'")}')">
+        ${isActive ? '<span class="chip-dot"></span>' : ''}${a.name}${selectedInCat ? ` (${selectedInCat})` : ''}
       </button>`;
     }).join('')}
+    ${(!showAll && remaining > 0) ? `<button type="button" class="area-chip-more" onclick="toggleAreaShowAll()">+${remaining} lainnya</button>` : ''}
   </div>`;
 }
 
@@ -1994,14 +1990,16 @@ function clearRangeFilter(kind, minField, maxField){
 // doesn't visually collapse out from under the client when they hit "Hapus".
 function clearAllDraftFilters(kind){
   if(kind === 'notaris'){
-    const { areaActiveCat, dokumenOpen } = state.notarisSearchFilter;
+    const { areaActiveCat, areaShowAll, dokumenOpen } = state.notarisSearchFilter;
     state.notarisSearchFilter = defaultNotarisSearchFilter();
     state.notarisSearchFilter.areaActiveCat = areaActiveCat;
+    state.notarisSearchFilter.areaShowAll = areaShowAll;
     state.notarisSearchFilter.dokumenOpen = dokumenOpen;
   }else{
-    const { areaActiveCat, dokumenOpen } = state.lawyerSearchFilter;
+    const { areaActiveCat, areaShowAll, dokumenOpen } = state.lawyerSearchFilter;
     state.lawyerSearchFilter = defaultLawyerSearchFilter();
     state.lawyerSearchFilter.areaActiveCat = areaActiveCat;
+    state.lawyerSearchFilter.areaShowAll = areaShowAll;
     state.lawyerSearchFilter.dokumenOpen = dokumenOpen;
   }
   render();
@@ -2181,16 +2179,20 @@ function renderCariLawyerFilter(){
   </div>`;
 }
 
-// Same colorful icon-grid treatment as the lawyer Area Praktik grid — all 8
-// notaris categories always shown. Leaf-only categories (no subs) toggle
-// their own selection directly on tap (no sub-panel to show); the two
-// categories that DO have subs set the active category instead, and their
-// sub-bidang appear via renderAreaSubPanel('notaris').
+// Same wrapping pill-chip treatment as the lawyer Area Praktik chips — with
+// 8 notaris categories total, everything fits without needing a "lainnya"
+// chip in practice. Leaf-only categories (no subs) toggle their own
+// selection directly on tap (no sub-panel to show); the two categories that
+// DO have subs set the active category instead, and their sub-bidang appear
+// via renderAreaSubPanel('notaris').
 function renderNotarisAreaPraktikBody(){
   const f = state.notarisSearchFilter;
+  const showAll = f.areaShowAll;
+  const visible = showAll ? NOTARIS_AREA_PRAKTIK_CATALOG : NOTARIS_AREA_PRAKTIK_CATALOG.slice(0, AREA_PRAKTIK_VISIBLE_COUNT);
+  const remaining = NOTARIS_AREA_PRAKTIK_CATALOG.length - AREA_PRAKTIK_VISIBLE_COUNT;
   return `
-  <div class="cat-icon-grid">
-    ${NOTARIS_AREA_PRAKTIK_CATALOG.map((a, i) => {
+  <div class="area-chip-wrap">
+    ${visible.map(a => {
       const isLeafOnly = !a.subs.length;
       const selectedInCat = isLeafOnly
         ? (f.areaPraktik.has(a.label) ? 1 : 0)
@@ -2200,14 +2202,11 @@ function renderNotarisAreaPraktikBody(){
         ? `toggleNotarisAreaPraktik('${a.label.replace(/'/g, "\\'")}')`
         : `setNotarisAreaActiveCat('${a.label.replace(/'/g, "\\'")}')`;
       return `
-      <button type="button" class="cat-icon-item ${isActive ? 'active' : ''}" onclick="${onclick}">
-        <span class="cat-icon-circle" style="background:${CATEGORY_COLOR_PALETTE[i % CATEGORY_COLOR_PALETTE.length]};">
-          ${NOTARIS_AREA_PRAKTIK_ICONS[i] || '📝'}
-          ${selectedInCat ? `<span class="cat-icon-badge">${selectedInCat}</span>` : ''}
-        </span>
-        <span class="cat-icon-label">${a.label}</span>
+      <button type="button" class="area-chip ${isActive ? 'active' : ''}" onclick="${onclick}">
+        ${isActive ? '<span class="chip-dot"></span>' : ''}${a.label}${(!isLeafOnly && selectedInCat) ? ` (${selectedInCat})` : ''}
       </button>`;
     }).join('')}
+    ${(!showAll && remaining > 0) ? `<button type="button" class="area-chip-more" onclick="toggleNotarisAreaShowAll()">+${remaining} lainnya</button>` : ''}
   </div>`;
 }
 
