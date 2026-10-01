@@ -790,6 +790,7 @@ const SERVICE_ICONS = {
   id: svgIcon('<path d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.13a1.88 1.88 0 1 1-3.75 0 1.88 1.88 0 0 1 3.75 0Zm1.29 6.34a6.72 6.72 0 0 1-3.17.79 6.72 6.72 0 0 1-3.17-.79 3.38 3.38 0 0 1 6.34 0Z"/>'),
   home: svgIcon('<path d="m2.25 12 8.95-8.96a1.13 1.13 0 0 1 1.59 0L21.75 12M4.5 9.75v10.13c0 .62.5 1.12 1.13 1.12H9.75v-4.88c0-.62.5-1.12 1.13-1.12h2.25c.62 0 1.12.5 1.12 1.12V21h4.13c.62 0 1.12-.5 1.12-1.12V9.75M8.25 21h8.25"/>'),
   shieldCheck: svgIcon('<path d="M9 12.75 11.25 15 15 9.75m-3-7.04a11.96 11.96 0 0 1-8.4 3.54A12 12 0 0 0 3 9.75c0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62 0-1.31-.21-2.57-.6-3.75h-.15c-3.2 0-6.1-1.25-8.25-3.29Z"/>'),
+  chat: svgIcon('<path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/>'),
 };
 
 const SERVICE_CATALOG = [
@@ -802,8 +803,11 @@ const SERVICE_CATALOG = [
     items: [],
   },
   {
-    key: 'dokumen-hukum', label: 'Dokumen Hukum', icon: SERVICE_ICONS.document,
-    items: ['Perjanjian Kerja Sama', 'Perjanjian Jual Beli', 'Perjanjian Sewa', 'Perjanjian Utang Piutang', 'NDA', 'MoU', 'Surat Kuasa', 'Somasi', 'Surat Pernyataan', 'Perjanjian Kerja', 'Perjanjian Perdamaian'],
+    // Like 'konsultasi-hukum'/'notaris-ppat', openService() special-cases
+    // this key to open its own dedicated multi-filter screen
+    // (renderCariKonsultanFilter) instead of the generic sub-item picker.
+    key: 'cari-konsultan', label: 'Cari Konsultan', icon: SERVICE_ICONS.chat,
+    items: [],
   },
   {
     key: 'pendampingan', label: 'Lawyer / Pendampingan', icon: SERVICE_ICONS.users,
@@ -961,6 +965,39 @@ const NOTARIS_JENIS_LAYANAN_DOKUMEN = [
   'Dokumen kenotariatan lainnya sesuai kebutuhan klien',
 ];
 
+/* ============================================================
+   "Cari Konsultan" filter catalog
+   ------------------------------------------------------------
+   Same reuse pattern as "Cari Notaris/PPAT" above — no new role/table,
+   just a LawyerProfile tagged with consultant-flavored specializations and
+   free-form serviceTypes. All 9 Area Praktik categories here are leaf-only
+   (no `subs`), simpler than the lawyer/notaris catalogs: tapping a chip
+   toggles its own selection directly, no sub-bidang drill-down panel.
+============================================================ */
+const KONSULTAN_AREA_PRAKTIK_CATALOG = [
+  { label: 'Konsultan Hukum', subs: [] },
+  { label: 'Konsultan Keuangan & Pajak', subs: [] },
+  { label: 'Konsultan Bisnis & Manajemen', subs: [] },
+  { label: 'Konsultan Sumber Daya Manusia (HR)', subs: [] },
+  { label: 'Konsultan ISO & Manajemen Mutu', subs: [] },
+  { label: 'Konsultan Teknologi Informasi & Digital', subs: [] },
+  { label: 'Konsultan Pemasaran (Marketing/Branding)', subs: [] },
+  { label: 'Konsultan Lingkungan (AMDAL)', subs: [] },
+  { label: 'Konsultan Lainnya', subs: [] },
+];
+
+const KONSULTAN_JENIS_LAYANAN_TOP = ['Konsultasi'];
+const KONSULTAN_JENIS_LAYANAN_DOKUMEN = [
+  'Legal Opinion (LO) & Legal Memorandum (LM) — untuk konsultan hukum',
+  'NDA, MOU, MOA, dan berbagai jenis perjanjian',
+  'Studi Kelayakan Bisnis (Business Feasibility Study) — untuk konsultan bisnis',
+  'Laporan Keuangan & Proyeksi Keuangan — untuk konsultan keuangan',
+  'Business Plan & SOP Perusahaan',
+  'Kebijakan Perusahaan (Policy Brief/Company Policy)',
+  'Company Profile',
+  'Dokumen konsultasi lainnya sesuai kebutuhan klien',
+];
+
 // Promo banner — 6 slides that auto-advance; each links to something that
 // actually exists in the app (no made-up features).
 const BANNER_SLIDES = [
@@ -1043,6 +1080,7 @@ const state = {
   showAllServices: false,
   showLawyerFilterSheet: false,  // "Cari Lawyer/Advokat" filter — overlays home, doesn't change `screen`
   showNotarisFilterSheet: false, // "Cari Notaris/PPAT" filter — same idea
+  showKonsultanFilterSheet: false, // "Cari Konsultan" filter — same idea
   lawyers: [],
   lawyersLoading: false,
   lawyersError: null,
@@ -1215,6 +1253,7 @@ function render(){
   else if(state.screen === 'layanan-detail') html = renderLayananDetail();
   else if(state.screen === 'cari-lawyer-hasil') html = renderSearchResultsScreen('lawyer');
   else if(state.screen === 'cari-notaris-hasil') html = renderSearchResultsScreen('notaris');
+  else if(state.screen === 'cari-konsultan-hasil') html = renderSearchResultsScreen('konsultan');
   else html = renderHome();
 
   html += renderBottomNav();
@@ -1226,6 +1265,7 @@ function render(){
   // bottom sheet, not a full page nav.
   if(state.showLawyerFilterSheet) html += renderCariLawyerFilter();
   if(state.showNotarisFilterSheet) html += renderCariNotarisFilter();
+  if(state.showKonsultanFilterSheet) html += renderCariKonsultanFilter();
   setAppHtml(app, html);
   setupHomeScroll();
 }
@@ -1522,6 +1562,10 @@ function openService(key){
     openNotarisSearchFilter();
     return;
   }
+  if(key === 'cari-konsultan'){
+    openKonsultanSearchFilter();
+    return;
+  }
   state.serviceDetailKey = key;
   state.screen = 'layanan-detail';
   render();
@@ -1648,7 +1692,7 @@ function renderSearchResultsScreen(kind){
     body = filtered.map(l => renderLawyerCard(l)).join('');
   }
 
-  const title = kind === 'notaris' ? 'Cari Notaris/PPAT' : 'Cari Lawyer/Advokat';
+  const title = kind === 'notaris' ? 'Cari Notaris/PPAT' : kind === 'konsultan' ? 'Cari Konsultan' : 'Cari Lawyer/Advokat';
   const hasFilters = state.activeSearchFilters && state.activeSearchFilters.kind === kind;
 
   return `
@@ -1839,8 +1883,11 @@ function clearLawyerSearchFilters(){
 // The home screen's "Filter aktif" bar's "Ubah" button needs to reopen
 // whichever filter screen produced the current activeSearchFilters.
 function openActiveSearchFilterEditor(){
-  if(state.activeSearchFilters && state.activeSearchFilters.kind === 'notaris'){
+  const kind = state.activeSearchFilters && state.activeSearchFilters.kind;
+  if(kind === 'notaris'){
     openNotarisSearchFilter();
+  }else if(kind === 'konsultan'){
+    openKonsultanSearchFilter();
   }else{
     openLawyerSearchFilter();
   }
@@ -1992,6 +2039,134 @@ function submitNotarisSearchFilter(){
   loadLawyers();
 }
 
+/* ============================================================
+   "Cari Konsultan" — advanced multi-filter search
+   Same reuse pattern as "Cari Notaris/PPAT" — no new schema, only new
+   Specialization catalog rows (seeded via SQL) tagged onto the same
+   LawyerProfile records. Biaya Investasi is single-tier here (like "Cari
+   Lawyer/Advokat"), not two-tier like Notaris's informational estimate —
+   it IS sent to the backend as a real filter.
+============================================================ */
+function defaultKonsultanSearchFilter(){
+  return {
+    areaPraktik: new Set(),
+    areaActiveCat: null,        // kept for symmetry with lawyer/notaris state shape; never set (no category here has subs)
+    areaShowAll: false,
+    jenisLayanan: new Set(),
+    dokumenOpen: false,         // "Pembuatan Dokumen" group expanded?
+    wilayah: 'semua',           // 'semua' | 'terdekat'
+    userLat: null, userLng: null,
+    locating: false, locationError: null,
+    pengalamanMin: '', pengalamanMax: '',
+    gender: 'semua',            // 'semua' | 'male' | 'female'
+    biayaMin: '', biayaMax: '',
+  };
+}
+
+// Re-opening the filter screen ("Ubah") preloads the last submitted
+// konsultan filter, same idea as openLawyerSearchFilter()/openNotarisSearchFilter().
+function openKonsultanSearchFilter(){
+  const prev = state.activeSearchFilters && state.activeSearchFilters.kind === 'konsultan' ? state.activeSearchFilters : null;
+  state.konsultanSearchFilter = prev ? {
+    areaPraktik: new Set(prev.areaPraktik),
+    areaActiveCat: null,
+    areaShowAll: false,
+    jenisLayanan: new Set(prev.jenisLayanan),
+    dokumenOpen: false,
+    wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
+    locating: false, locationError: null,
+    pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
+    gender: prev.gender ?? 'semua',
+    biayaMin: prev.biayaMin ?? '', biayaMax: prev.biayaMax ?? '',
+  } : defaultKonsultanSearchFilter();
+  state.showKonsultanFilterSheet = true;
+  render();
+}
+
+function closeKonsultanSearchFilter(){
+  state.konsultanSearchFilter = null;
+  state.showKonsultanFilterSheet = false;
+  render();
+}
+
+// All 9 Area Praktik categories here are leaf-only (no sub-bidang), so a
+// chip tap toggles its own selection directly — no "active category" /
+// sub-panel drill-down needed at all, unlike lawyer/notaris.
+function toggleKonsultanAreaPraktik(name){
+  const f = state.konsultanSearchFilter;
+  f.areaPraktik.has(name) ? f.areaPraktik.delete(name) : f.areaPraktik.add(name);
+  render();
+}
+function toggleKonsultanJenisLayanan(value){
+  const f = state.konsultanSearchFilter;
+  f.jenisLayanan.has(value) ? f.jenisLayanan.delete(value) : f.jenisLayanan.add(value);
+  render();
+}
+function toggleKonsultanDokumenOpen(){
+  state.konsultanSearchFilter.dokumenOpen = !state.konsultanSearchFilter.dokumenOpen;
+  render();
+}
+function setKonsultanWilayah(mode){
+  const f = state.konsultanSearchFilter;
+  f.wilayah = mode;
+  f.locationError = null;
+  if(mode === 'terdekat' && f.userLat === null) requestKonsultanUserLocation();
+  else render();
+}
+function requestKonsultanUserLocation(){
+  const f = state.konsultanSearchFilter;
+  if(!navigator.geolocation){
+    f.locationError = 'Perangkat/browser ini tidak mendukung deteksi lokasi.';
+    render();
+    return;
+  }
+  f.locating = true;
+  f.locationError = null;
+  render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      f.userLat = pos.coords.latitude;
+      f.userLng = pos.coords.longitude;
+      f.locating = false;
+      render();
+    },
+    (err) => {
+      f.locating = false;
+      f.locationError = err.code === 1
+        ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini lalu coba lagi.'
+        : 'Gagal mendapatkan lokasi. Coba lagi.';
+      render();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+function setKonsultanGender(g){ state.konsultanSearchFilter.gender = g; render(); }
+function onKonsultanFilterNumberInput(field, v){ state.konsultanSearchFilter[field] = v; }
+
+function submitKonsultanSearchFilter(){
+  const f = state.konsultanSearchFilter;
+  if(f.wilayah === 'terdekat' && f.userLat === null){
+    requestKonsultanUserLocation();
+    return;
+  }
+  state.activeSearchFilters = {
+    kind: 'konsultan',
+    areaPraktik: Array.from(f.areaPraktik),
+    jenisLayanan: Array.from(f.jenisLayanan),
+    wilayah: f.wilayah,
+    userLat: f.userLat, userLng: f.userLng,
+    pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
+    gender: f.gender,
+    biayaMin: f.biayaMin, biayaMax: f.biayaMax,
+  };
+  state.konsultanSearchFilter = null;
+  state.showKonsultanFilterSheet = false;
+  // Show the results on their own "Cari Konsultan" page — not back on the
+  // home screen, which has its own separate (unfiltered) lawyer list.
+  state.screen = 'cari-konsultan-hasil';
+  loadLawyers();
+}
+
 // Area Praktik is a two-level drill-down: clicking a category button
 // expands it into its leaf sub-items, and only the LEAF is an actual
 // selectable/searchable value (matching the "Parent – Leaf" specialization
@@ -2016,8 +2191,11 @@ function isPresetActive(f, minField, maxField, min, max){
 }
 // Tapping an already-active preset clears the range (acts as a toggle);
 // tapping a different one replaces min/max and updates the manual inputs too.
+function searchFilterByKind(kind){
+  return kind === 'notaris' ? state.notarisSearchFilter : kind === 'konsultan' ? state.konsultanSearchFilter : state.lawyerSearchFilter;
+}
 function setPresetRange(kind, minField, maxField, min, max){
-  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  const f = searchFilterByKind(kind);
   if(isPresetActive(f, minField, maxField, min, max)){
     f[minField] = ''; f[maxField] = '';
   }else{
@@ -2026,7 +2204,7 @@ function setPresetRange(kind, minField, maxField, min, max){
   render();
 }
 function renderPresetChipRow(kind, minField, maxField, presets){
-  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  const f = searchFilterByKind(kind);
   return `
   <div class="filter-chip-row" style="margin-bottom:10px;">
     ${presets.map(p => `
@@ -2095,7 +2273,7 @@ function renderAreaSubPanel(kind){
 // chip row's ✕ button on a range like Pengalaman/Biaya) and re-renders, so
 // both the chip, the preset row and the manual inputs all update immediately.
 function clearRangeFilter(kind, minField, maxField){
-  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  const f = searchFilterByKind(kind);
   f[minField] = '';
   f[maxField] = '';
   render();
@@ -2111,6 +2289,10 @@ function clearAllDraftFilters(kind){
     state.notarisSearchFilter.areaActiveCat = areaActiveCat;
     state.notarisSearchFilter.areaShowAll = areaShowAll;
     state.notarisSearchFilter.dokumenOpen = dokumenOpen;
+  }else if(kind === 'konsultan'){
+    const { dokumenOpen } = state.konsultanSearchFilter;
+    state.konsultanSearchFilter = defaultKonsultanSearchFilter();
+    state.konsultanSearchFilter.dokumenOpen = dokumenOpen;
   }else{
     const { areaActiveCat, areaShowAll } = state.lawyerSearchFilter;
     state.lawyerSearchFilter = defaultLawyerSearchFilter();
@@ -2125,30 +2307,33 @@ function clearAllDraftFilters(kind){
 // removable chip, so the client can see (and undo) picks without having to
 // re-open each accordion section to find them again.
 function renderSelectedFilterChips(kind){
-  const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
+  const f = searchFilterByKind(kind);
   const esc = (s) => s.replace(/'/g, "\\'");
   const chips = [];
 
-  // Area Praktik — leaf values are stored as "Kategori – Sub-bidang"; show
-  // just the sub-bidang part so chips stay short and readable.
-  const areaFn = kind === 'notaris' ? 'toggleNotarisAreaPraktik' : 'toggleAreaPraktik';
+  // Area Praktik — leaf values are stored as "Kategori – Sub-bidang" for
+  // lawyer/notaris; show just the sub-bidang part so chips stay short and
+  // readable. Konsultan categories are all leaf-only to begin with, so
+  // there's no " – " to strip there.
+  const areaFn = kind === 'notaris' ? 'toggleNotarisAreaPraktik' : kind === 'konsultan' ? 'toggleKonsultanAreaPraktik' : 'toggleAreaPraktik';
   Array.from(f.areaPraktik).forEach(v => {
     const idx = v.lastIndexOf(' – ');
     chips.push({ text: idx >= 0 ? v.slice(idx + 3) : v, onclick: `${areaFn}('${esc(v)}')` });
   });
 
-  // "Tingkat Perkara" and "Jenis Layanan" only still exist on the "Cari
-  // Notaris/PPAT" filter — removed from "Cari Lawyer/Advokat" per the
-  // client's request, so this only ever runs for kind === 'notaris'.
-  if(kind === 'notaris'){
+  // "Jenis Layanan" exists on "Cari Notaris/PPAT" and "Cari Konsultan" —
+  // removed from "Cari Lawyer/Advokat" per the client's request.
+  if(kind === 'notaris' || kind === 'konsultan'){
+    const jenisFn = kind === 'notaris' ? 'toggleNotarisJenisLayanan' : 'toggleKonsultanJenisLayanan';
     Array.from(f.jenisLayanan).forEach(v => {
-      chips.push({ text: v, onclick: `toggleNotarisJenisLayanan('${esc(v)}')` });
+      chips.push({ text: v, onclick: `${jenisFn}('${esc(v)}')` });
     });
   }
 
   if(f.wilayah === 'terdekat'){
-    const fn = kind === 'notaris' ? 'setNotarisWilayah' : 'setWilayah';
-    chips.push({ text: kind === 'notaris' ? 'Notaris Terdekat' : 'Lawyer Terdekat', onclick: `${fn}('semua')` });
+    const fn = kind === 'notaris' ? 'setNotarisWilayah' : kind === 'konsultan' ? 'setKonsultanWilayah' : 'setWilayah';
+    const label = kind === 'notaris' ? 'Notaris Terdekat' : kind === 'konsultan' ? 'Konsultan Terdekat' : 'Lawyer Terdekat';
+    chips.push({ text: label, onclick: `${fn}('semua')` });
   }
 
   if(f.pengalamanMin || f.pengalamanMax){
@@ -2159,7 +2344,7 @@ function renderSelectedFilterChips(kind){
   }
 
   if(f.gender !== 'semua'){
-    const fn = kind === 'notaris' ? 'setNotarisGender' : 'setGender';
+    const fn = kind === 'notaris' ? 'setNotarisGender' : kind === 'konsultan' ? 'setKonsultanGender' : 'setGender';
     chips.push({ text: f.gender === 'male' ? 'Laki-laki' : 'Perempuan', onclick: `${fn}('semua')` });
   }
 
@@ -2173,7 +2358,7 @@ function renderSelectedFilterChips(kind){
   }else if(f.biayaMin || f.biayaMax){
     chips.push({
       text: `Biaya Rp${f.biayaMin || '0'}–Rp${f.biayaMax || '∞'}`,
-      onclick: `clearRangeFilter('lawyer','biayaMin','biayaMax')`,
+      onclick: `clearRangeFilter('${kind}','biayaMin','biayaMax')`,
     });
   }
 
@@ -2404,6 +2589,136 @@ function renderCariNotarisFilter(){
     <div class="cta-bar">
       <button class="btn btn-outline" onclick="clearAllDraftFilters('notaris')">Hapus</button>
       <button class="btn btn-primary" onclick="submitNotarisSearchFilter()">Lihat Hasil</button>
+    </div>
+  </div>`;
+}
+
+// Same wrapping pill-chip treatment as lawyer/notaris Area Praktik — but
+// every one of the 9 Konsultan categories is leaf-only, so a tap toggles
+// its own selection directly (no "active category" / sub-panel drill-down
+// at all, simpler than both other filters). With exactly 9 categories and
+// AREA_PRAKTIK_VISIBLE_COUNT === 9, no "+N lainnya" chip ever appears.
+function renderKonsultanAreaPraktikBody(){
+  const f = state.konsultanSearchFilter;
+  const showAll = f.areaShowAll;
+  const visible = showAll ? KONSULTAN_AREA_PRAKTIK_CATALOG : KONSULTAN_AREA_PRAKTIK_CATALOG.slice(0, AREA_PRAKTIK_VISIBLE_COUNT);
+  const remaining = KONSULTAN_AREA_PRAKTIK_CATALOG.length - AREA_PRAKTIK_VISIBLE_COUNT;
+  return `
+  <div class="area-chip-wrap">
+    ${visible.map(a => {
+      const isActive = f.areaPraktik.has(a.label);
+      return `
+      <button type="button" class="area-chip ${isActive ? 'active' : ''}" onclick="toggleKonsultanAreaPraktik('${a.label.replace(/'/g, "\\'")}')">
+        ${isActive ? '<span class="chip-dot"></span>' : ''}${a.label}
+      </button>`;
+    }).join('')}
+    ${(!showAll && remaining > 0) ? `<button type="button" class="area-chip-more" onclick="toggleKonsultanAreaShowAll()">+${remaining} lainnya</button>` : ''}
+  </div>`;
+}
+function toggleKonsultanAreaShowAll(){
+  state.konsultanSearchFilter.areaShowAll = !state.konsultanSearchFilter.areaShowAll;
+  render();
+}
+
+// Wrapping pill-chip treatment, same look/behavior as "Cari Notaris/PPAT"'s
+// Jenis Layanan: a standalone "Konsultasi" chip plus an expandable
+// "Pembuatan Dokumen" group holding the 8 document items.
+function renderKonsultanJenisLayananBody(){
+  const f = state.konsultanSearchFilter;
+  const dokumenCount = KONSULTAN_JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length;
+  const dokumenActive = f.dokumenOpen || dokumenCount > 0;
+  return `
+  <div class="area-chip-wrap">
+    ${KONSULTAN_JENIS_LAYANAN_TOP.map(v => `
+      <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleKonsultanJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
+    <button type="button" class="area-chip ${dokumenActive ? 'active' : ''}" onclick="toggleKonsultanDokumenOpen()">
+      ${dokumenActive ? '<span class="chip-dot"></span>' : ''}Pembuatan Dokumen${dokumenCount ? ` (${dokumenCount})` : ''} ${f.dokumenOpen ? '˄' : '˅'}
+    </button>
+  </div>
+  ${f.dokumenOpen ? `
+  <div class="chip-sub-panel">
+    <div class="filter-flat-label">Jenis Dokumen</div>
+    <div class="area-chip-wrap">
+      ${KONSULTAN_JENIS_LAYANAN_DOKUMEN.map(v => `
+        <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleKonsultanJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
+    </div>
+  </div>` : ''}`;
+}
+
+function renderCariKonsultanFilter(){
+  const f = state.konsultanSearchFilter;
+  return `
+  <div class="sheet-backdrop" onclick="closeKonsultanSearchFilter()"></div>
+  <div class="sheet-panel filter-sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="width:28px;"></div>
+      <div class="sheet-title" style="flex:1;text-align:center;">Filter Konsultan</div>
+      <button class="sheet-close" onclick="closeKonsultanSearchFilter()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+
+      ${renderSelectedFilterChips('konsultan')}
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Area Praktik</div>
+        ${renderKonsultanAreaPraktikBody()}
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Jenis Layanan</div>
+        ${renderKonsultanJenisLayananBody()}
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Wilayah Kerja</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setKonsultanWilayah('semua')">Bisa Seluruh Area</button>
+          <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setKonsultanWilayah('terdekat')">Cari Konsultan Terdekat</button>
+        </div>
+        ${f.wilayah === 'terdekat' ? `
+          <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
+            ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari konsultan terdekat.'}
+            ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
+            ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestKonsultanUserLocation()">Gunakan lokasi saya</button>` : ''}
+          </div>` : ''}
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Pengalaman</div>
+        ${renderPresetChipRow('konsultan', 'pengalamanMin', 'pengalamanMax', PENGALAMAN_PRESETS)}
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.pengalamanMin}" oninput="onKonsultanFilterNumberInput('pengalamanMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks" value="${f.pengalamanMax}" oninput="onKonsultanFilterNumberInput('pengalamanMax', this.value)">
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Jenis Kelamin</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setKonsultanGender('semua')">Semua</button>
+          <button type="button" class="${f.gender==='male'?'active':''}" onclick="setKonsultanGender('male')">Laki-laki</button>
+          <button type="button" class="${f.gender==='female'?'active':''}" onclick="setKonsultanGender('female')">Perempuan</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Biaya Investasi (Rp / sesi chat)</div>
+        ${renderPresetChipRow('konsultan', 'biayaMin', 'biayaMax', LAWYER_FEE_PRESETS)}
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.biayaMin}" oninput="onKonsultanFilterNumberInput('biayaMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks (cth. 1.000.000)" value="${f.biayaMax}" oninput="onKonsultanFilterNumberInput('biayaMax', this.value)">
+        </div>
+      </div>
+
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-outline" onclick="clearAllDraftFilters('konsultan')">Hapus</button>
+      <button class="btn btn-primary" onclick="submitKonsultanSearchFilter()">Lihat Hasil</button>
     </div>
   </div>`;
 }
@@ -3642,7 +3957,7 @@ function renderBottomNav(){
     {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
-  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil'].includes(state.screen) ? 'home' : state.screen;
+  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil'].includes(state.screen) ? 'home' : state.screen;
   return `
   <div class="bottomnav">
     ${items.map(i=>`
@@ -3663,7 +3978,7 @@ function goScreen(s){
   if(s === 'konsultasi') loadMyBookings();
   if(s === 'cakrawala') loadCakrawalaFeed();
 }
-function goHome(){ state.screen = 'home'; state.showAllServices = false; state.showLawyerFilterSheet = false; state.showNotarisFilterSheet = false; render(); }
+function goHome(){ state.screen = 'home'; state.showAllServices = false; state.showLawyerFilterSheet = false; state.showNotarisFilterSheet = false; state.showKonsultanFilterSheet = false; render(); }
 
 /* ============================================================
    Live-ish updates while the tab stays open
