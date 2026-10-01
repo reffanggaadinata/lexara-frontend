@@ -875,6 +875,27 @@ const AREA_PRAKTIK_CATALOG = [
   { name: 'Hukum Zakat, Wakaf, dan Syariah', subs: ['Perbankan dan ekonomi syariah', 'Wakaf dan zakat', 'Sengketa syariah (Pengadilan Agama)'] },
 ];
 
+// Reduced set of Area Praktik categories shown on the "Cari Lawyer/Advokat"
+// SEARCH filter specifically — the client asked to cut the full 28-category
+// list down to just these 9 broad areas (too many to browse while
+// searching). The lawyer PROFILE FORM still offers the full
+// AREA_PRAKTIK_CATALOG above (more precision is fine there — it's filled in
+// once, not scrolled through on every search) and needs no change; only
+// the search filter's own catalog is narrowed, sourced from the same
+// AREA_PRAKTIK_CATALOG entries so their sub-bidang lists stay identical.
+const AREA_PRAKTIK_SEARCH_NAMES = [
+  'Hukum Pidana',
+  'Hukum Perdata',
+  'Hukum Ketenagakerjaan',
+  'Hukum Tata Usaha Negara (TUN)',
+  'Arbitrase dan Penyelesaian Sengketa Alternatif (APS)',
+  'Hukum Korporasi dan Bisnis',
+  'Hukum Kepailitan dan PKPU',
+  'Hukum Perbankan dan Keuangan',
+  'Hukum Zakat, Wakaf, dan Syariah',
+];
+const AREA_PRAKTIK_SEARCH_CATALOG = AREA_PRAKTIK_CATALOG.filter(a => AREA_PRAKTIK_SEARCH_NAMES.includes(a.name));
+
 const TINGKAT_PERKARA_CATALOG = [
   { value: 'konsultasi', label: 'Konsultasi' },
   { value: 'pn', label: 'PN (Tingkat Pertama)' },
@@ -1360,8 +1381,12 @@ async function loadLawyers(){
       // plain category chips — setCategory()/setSort() clear f when the
       // client goes back to simple chip browsing.
       if(f.areaPraktik.length) params.set('specialization', f.areaPraktik.join(','));
-      if(f.tingkatPerkara && f.tingkatPerkara.length) params.set('caseLevel', f.tingkatPerkara.join(','));
-      if(f.jenisLayanan.length) params.set('serviceType', f.jenisLayanan.join(','));
+      // "Tingkat Perkara" no longer exists on the "Cari Lawyer/Advokat"
+      // filter (removed per client request), so caseLevel is never sent
+      // for a lawyer search. "Jenis Layanan" only still exists on the
+      // "Cari Notaris/PPAT" filter, so it's guarded here too — a plain
+      // lawyer activeSearchFilters object no longer has this field at all.
+      if(f.jenisLayanan && f.jenisLayanan.length) params.set('serviceType', f.jenisLayanan.join(','));
       if(f.gender && f.gender !== 'semua') params.set('gender', f.gender);
       if(f.pengalamanMin) params.set('minExperience', f.pengalamanMin);
       if(f.pengalamanMax) params.set('maxExperience', f.pengalamanMax);
@@ -1673,9 +1698,6 @@ function defaultLawyerSearchFilter(){
     areaPraktik: new Set(),
     areaActiveCat: null,          // which Area Praktik chip is tapped — shows its sub-bidang panel
     areaShowAll: false,           // "+N lainnya" chip tapped — show every Area Praktik category
-    tingkatPerkara: new Set(),
-    jenisLayanan: new Set(),
-    dokumenOpen: false,           // "Pembuatan Dokumen Hukum" group expanded?
     wilayah: 'semua',             // 'semua' | 'terdekat'
     userLat: null, userLng: null,
     locating: false, locationError: null,
@@ -1694,9 +1716,6 @@ function openLawyerSearchFilter(){
     areaPraktik: new Set(prev.areaPraktik),
     areaActiveCat: null,
     areaShowAll: false,
-    tingkatPerkara: new Set(prev.tingkatPerkara),
-    jenisLayanan: new Set(prev.jenisLayanan),
-    dokumenOpen: false,
     wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
     locating: false, locationError: null,
     pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
@@ -1731,20 +1750,6 @@ function setAreaActiveCat(name){
 // when the client taps the trailing "+N lainnya" chip.
 function toggleAreaShowAll(){
   state.lawyerSearchFilter.areaShowAll = !state.lawyerSearchFilter.areaShowAll;
-  render();
-}
-function toggleTingkatPerkara(value){
-  const f = state.lawyerSearchFilter;
-  f.tingkatPerkara.has(value) ? f.tingkatPerkara.delete(value) : f.tingkatPerkara.add(value);
-  render();
-}
-function toggleJenisLayanan(value){
-  const f = state.lawyerSearchFilter;
-  f.jenisLayanan.has(value) ? f.jenisLayanan.delete(value) : f.jenisLayanan.add(value);
-  render();
-}
-function toggleDokumenOpen(){
-  state.lawyerSearchFilter.dokumenOpen = !state.lawyerSearchFilter.dokumenOpen;
   render();
 }
 function setWilayah(mode){
@@ -1791,8 +1796,7 @@ function countActiveFilters(f){
   const sizeOf = (x) => (x.size !== undefined ? x.size : x.length);
   let n = 0;
   if(f.areaPraktik && sizeOf(f.areaPraktik)) n++;
-  if(f.tingkatPerkara && sizeOf(f.tingkatPerkara)) n++; // only present for "Cari Lawyer/Advokat"
-  if(f.jenisLayanan && sizeOf(f.jenisLayanan)) n++;
+  if(f.jenisLayanan && sizeOf(f.jenisLayanan)) n++; // only present for "Cari Notaris/PPAT" now
   if(f.wilayah === 'terdekat') n++;
   if(f.pengalamanMin || f.pengalamanMax) n++;
   if(f.gender !== 'semua') n++;
@@ -1810,8 +1814,6 @@ function submitLawyerSearchFilter(){
   state.activeSearchFilters = {
     kind: 'lawyer',
     areaPraktik: Array.from(f.areaPraktik),
-    tingkatPerkara: Array.from(f.tingkatPerkara),
-    jenisLayanan: Array.from(f.jenisLayanan),
     wilayah: f.wilayah,
     userLat: f.userLat, userLng: f.userLng,
     pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
@@ -1866,13 +1868,10 @@ function defaultNotarisSearchFilter(){
     locating: false, locationError: null,
     pengalamanMin: '', pengalamanMax: '',
     gender: 'semua',             // 'semua' | 'male' | 'female'
-    // Two-tier "Biaya Investasi": Konsultasi genuinely filters against the
-    // backend (same hourlyRateChat mechanism as "Cari Lawyer/Advokat").
-    // Dokumen Notaris fees vary far too much by akta type to filter on with
-    // the current single hourlyRateChat field, so that range is collected
-    // for display only and is NOT sent to the backend — see
-    // submitNotarisSearchFilter() and the caveat note in the UI itself.
-    biayaKonsultasiMin: '', biayaKonsultasiMax: '',
+    // "Biaya Konsultasi" (the real, backend-filtered fee range) was removed
+    // per the client's request — only the informational "Biaya Pembuatan
+    // Dokumen Notaris" estimate remains, which was never sent to the
+    // backend anyway (see the caveat note in the UI itself).
     biayaDokumenMin: '', biayaDokumenMax: '',
   };
 }
@@ -1891,7 +1890,6 @@ function openNotarisSearchFilter(){
     locating: false, locationError: null,
     pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
     gender: prev.gender ?? 'semua',
-    biayaKonsultasiMin: prev.biayaMin ?? '', biayaKonsultasiMax: prev.biayaMax ?? '',
     biayaDokumenMin: prev.biayaDokumenMin ?? '', biayaDokumenMax: prev.biayaDokumenMax ?? '',
   } : defaultNotarisSearchFilter();
   state.showNotarisFilterSheet = true;
@@ -1981,10 +1979,9 @@ function submitNotarisSearchFilter(){
     userLat: f.userLat, userLng: f.userLng,
     pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
     gender: f.gender,
-    // Only the "Biaya Konsultasi" tier is real — see the comment on
-    // defaultNotarisSearchFilter(). biayaMin/biayaMax match the same field
-    // names loadLawyers() already sends to the backend for lawyers.
-    biayaMin: f.biayaKonsultasiMin, biayaMax: f.biayaKonsultasiMax,
+    // "Biaya Konsultasi" (biayaMin/biayaMax) was removed from this filter
+    // per the client's request — only the informational-only Dokumen
+    // Notaris estimate remains, and it was never sent to loadLawyers().
     biayaDokumenMin: f.biayaDokumenMin, biayaDokumenMax: f.biayaDokumenMax,
   };
   state.notarisSearchFilter = null;
@@ -2014,12 +2011,6 @@ const LAWYER_FEE_PRESETS = [
   { label: 'Rp100rb–300rb', min: '100000', max: '300000' },
   { label: 'Di atas Rp300rb', min: '300001', max: '' },
 ];
-const NOTARIS_KONSULTASI_FEE_PRESETS = [
-  { label: 'Di bawah Rp200rb', min: '', max: '199999' },
-  { label: 'Rp200rb–500rb', min: '200000', max: '500000' },
-  { label: 'Rp500rb–1jt', min: '500001', max: '1000000' },
-];
-
 function isPresetActive(f, minField, maxField, min, max){
   return String(f[minField] || '') === String(min) && String(f[maxField] || '') === String(max);
 }
@@ -2059,8 +2050,8 @@ const AREA_PRAKTIK_VISIBLE_COUNT = 9;
 function renderAreaPraktikBody(){
   const f = state.lawyerSearchFilter;
   const showAll = f.areaShowAll;
-  const visible = showAll ? AREA_PRAKTIK_CATALOG : AREA_PRAKTIK_CATALOG.slice(0, AREA_PRAKTIK_VISIBLE_COUNT);
-  const remaining = AREA_PRAKTIK_CATALOG.length - AREA_PRAKTIK_VISIBLE_COUNT;
+  const visible = showAll ? AREA_PRAKTIK_SEARCH_CATALOG : AREA_PRAKTIK_SEARCH_CATALOG.slice(0, AREA_PRAKTIK_VISIBLE_COUNT);
+  const remaining = AREA_PRAKTIK_SEARCH_CATALOG.length - AREA_PRAKTIK_VISIBLE_COUNT;
   return `
   <div class="area-chip-wrap">
     ${visible.map(a => {
@@ -2083,7 +2074,7 @@ function renderAreaSubPanel(kind){
   const f = kind === 'notaris' ? state.notarisSearchFilter : state.lawyerSearchFilter;
   const active = f.areaActiveCat;
   if(!active) return '';
-  const catalog = kind === 'notaris' ? NOTARIS_AREA_PRAKTIK_CATALOG : AREA_PRAKTIK_CATALOG;
+  const catalog = kind === 'notaris' ? NOTARIS_AREA_PRAKTIK_CATALOG : AREA_PRAKTIK_SEARCH_CATALOG;
   const keyField = kind === 'notaris' ? 'label' : 'name';
   const cat = catalog.find(a => a[keyField] === active);
   if(!cat || !cat.subs.length) return '';
@@ -2098,32 +2089,6 @@ function renderAreaSubPanel(kind){
       }).join('')}
     </div>
   </div>`;
-}
-
-// Same wrapping pill-chip look as Area Praktik — "Pembuatan Dokumen Hukum"
-// is just another chip in the row that toggles a sub-panel of document
-// types underneath (▼/▲ shown inline in its own label), instead of the old
-// bordered accordion row style.
-function renderJenisLayananBody(){
-  const f = state.lawyerSearchFilter;
-  const dokumenCount = JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length;
-  const dokumenActive = f.dokumenOpen || dokumenCount > 0;
-  return `
-  <div class="area-chip-wrap">
-    ${JENIS_LAYANAN_TOP.map(v => `
-      <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
-    <button type="button" class="area-chip ${dokumenActive ? 'active' : ''}" onclick="toggleDokumenOpen()">
-      ${dokumenActive ? '<span class="chip-dot"></span>' : ''}Pembuatan Dokumen Hukum${dokumenCount ? ` (${dokumenCount})` : ''} ${f.dokumenOpen ? '˄' : '˅'}
-    </button>
-  </div>
-  ${f.dokumenOpen ? `
-  <div class="chip-sub-panel">
-    <div class="filter-flat-label">Jenis Dokumen</div>
-    <div class="area-chip-wrap">
-      ${JENIS_LAYANAN_DOKUMEN.map(v => `
-        <button type="button" class="area-chip ${f.jenisLayanan.has(v)?'active':''}" onclick="toggleJenisLayanan('${v.replace(/'/g, "\\'")}')">${f.jenisLayanan.has(v) ? '<span class="chip-dot"></span>' : ''}${v}</button>`).join('')}
-    </div>
-  </div>` : ''}`;
 }
 
 // Clears one min/max pair on the draft filter (used by the "Filter dipilih"
@@ -2147,11 +2112,10 @@ function clearAllDraftFilters(kind){
     state.notarisSearchFilter.areaShowAll = areaShowAll;
     state.notarisSearchFilter.dokumenOpen = dokumenOpen;
   }else{
-    const { areaActiveCat, areaShowAll, dokumenOpen } = state.lawyerSearchFilter;
+    const { areaActiveCat, areaShowAll } = state.lawyerSearchFilter;
     state.lawyerSearchFilter = defaultLawyerSearchFilter();
     state.lawyerSearchFilter.areaActiveCat = areaActiveCat;
     state.lawyerSearchFilter.areaShowAll = areaShowAll;
-    state.lawyerSearchFilter.dokumenOpen = dokumenOpen;
   }
   render();
 }
@@ -2173,17 +2137,14 @@ function renderSelectedFilterChips(kind){
     chips.push({ text: idx >= 0 ? v.slice(idx + 3) : v, onclick: `${areaFn}('${esc(v)}')` });
   });
 
-  if(kind === 'lawyer'){
-    Array.from(f.tingkatPerkara).forEach(v => {
-      const t = TINGKAT_PERKARA_CATALOG.find(x => x.value === v);
-      chips.push({ text: t ? t.label : v, onclick: `toggleTingkatPerkara('${v}')` });
+  // "Tingkat Perkara" and "Jenis Layanan" only still exist on the "Cari
+  // Notaris/PPAT" filter — removed from "Cari Lawyer/Advokat" per the
+  // client's request, so this only ever runs for kind === 'notaris'.
+  if(kind === 'notaris'){
+    Array.from(f.jenisLayanan).forEach(v => {
+      chips.push({ text: v, onclick: `toggleNotarisJenisLayanan('${esc(v)}')` });
     });
   }
-
-  const jenisFn = kind === 'notaris' ? 'toggleNotarisJenisLayanan' : 'toggleJenisLayanan';
-  Array.from(f.jenisLayanan).forEach(v => {
-    chips.push({ text: v, onclick: `${jenisFn}('${esc(v)}')` });
-  });
 
   if(f.wilayah === 'terdekat'){
     const fn = kind === 'notaris' ? 'setNotarisWilayah' : 'setWilayah';
@@ -2203,12 +2164,6 @@ function renderSelectedFilterChips(kind){
   }
 
   if(kind === 'notaris'){
-    if(f.biayaKonsultasiMin || f.biayaKonsultasiMax){
-      chips.push({
-        text: `Konsultasi Rp${f.biayaKonsultasiMin || '0'}–Rp${f.biayaKonsultasiMax || '∞'}`,
-        onclick: `clearRangeFilter('notaris','biayaKonsultasiMin','biayaKonsultasiMax')`,
-      });
-    }
     if(f.biayaDokumenMin || f.biayaDokumenMax){
       chips.push({
         text: `Dokumen Rp${f.biayaDokumenMin || '0'}–Rp${f.biayaDokumenMax || '∞'}`,
@@ -2265,19 +2220,6 @@ function renderCariLawyerFilter(){
       </div>
 
       ${renderAreaSubPanel('lawyer')}
-
-      <div class="filter-section">
-        <div class="filter-flat-label">Tingkat Perkara</div>
-        <div class="filter-chip-row">
-          ${TINGKAT_PERKARA_CATALOG.map(t => `
-            <button type="button" class="filter-chip ${f.tingkatPerkara.has(t.value) ? 'selected' : ''}" onclick="toggleTingkatPerkara('${t.value}')">${t.label}</button>`).join('')}
-        </div>
-      </div>
-
-      <div class="filter-section">
-        <div class="filter-flat-label">Jenis Layanan</div>
-        ${renderJenisLayananBody()}
-      </div>
 
       <div class="filter-section">
         <div class="filter-flat-label">Wilayah Kerja</div>
@@ -2361,7 +2303,9 @@ function renderNotarisAreaPraktikBody(){
   </div>`;
 }
 
-// Same wrapping pill-chip treatment as renderJenisLayananBody() above.
+// Wrapping pill-chip treatment, same look as the Area Praktik chips —
+// "Cari Notaris/PPAT" is the only filter that still has a "Jenis Layanan"
+// section ("Cari Lawyer/Advokat"'s was removed per the client's request).
 function renderNotarisJenisLayananBody(){
   const f = state.notarisSearchFilter;
   const dokumenCount = NOTARIS_JENIS_LAYANAN_DOKUMEN.filter(v => f.jenisLayanan.has(v)).length;
@@ -2447,15 +2391,7 @@ function renderCariNotarisFilter(){
       </div>
 
       <div class="filter-section">
-        <div class="filter-flat-label">Biaya Investasi</div>
-        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;">Biaya Konsultasi (Rp / sesi chat)</div>
-        ${renderPresetChipRow('notaris', 'biayaKonsultasiMin', 'biayaKonsultasiMax', NOTARIS_KONSULTASI_FEE_PRESETS)}
-        <div class="filter-range-row">
-          <input type="number" min="0" placeholder="Min" value="${f.biayaKonsultasiMin}" oninput="onNotarisFilterNumberInput('biayaKonsultasiMin', this.value)">
-          <span>—</span>
-          <input type="number" min="0" placeholder="Maks (mis. 1.000.000)" value="${f.biayaKonsultasiMax}" oninput="onNotarisFilterNumberInput('biayaKonsultasiMax', this.value)">
-        </div>
-        <div style="font-size:12px;font-weight:600;color:var(--ink);margin:14px 0 6px;">Biaya Pembuatan Dokumen Notaris (Rp)</div>
+        <div class="filter-flat-label">Biaya Pembuatan Dokumen Notaris (Rp)</div>
         <div class="filter-range-row">
           <input type="number" min="0" placeholder="Min" value="${f.biayaDokumenMin}" oninput="onNotarisFilterNumberInput('biayaDokumenMin', this.value)">
           <span>—</span>
