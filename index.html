@@ -566,6 +566,7 @@
     font-family:inherit;font-size:13px;color:var(--ink);background:#fff;
   }
   .filter-range-row span{color:var(--ink-soft);font-size:12px;flex-shrink:0;}
+  .filter-range-row select{width:100%;padding:10px 12px;border:1px solid var(--line, #E5DED0);border-radius:10px;background:#fff;font:inherit;font-size:13px;color:var(--ink, #1a2238);}
   .active-filter-bar{
     display:flex;justify-content:space-between;align-items:center;background:var(--gold-pale);
     border-radius:var(--radius-s);padding:10px 13px;margin-bottom:14px;font-size:12px;font-weight:600;color:var(--navy);
@@ -810,27 +811,11 @@ const SERVICE_CATALOG = [
     items: [],
   },
   {
-    key: 'pendampingan', label: 'Lawyer / Pendampingan', icon: SERVICE_ICONS.users,
-    items: ['Somasi', 'Negosiasi', 'Mediasi', 'Pendampingan Polisi', 'Pendampingan Pengadilan', 'Gugatan Perdata', 'Perkara Pidana', 'Sengketa Bisnis', 'Sengketa Ketenagakerjaan', 'Sengketa Properti'],
-  },
-  {
-    key: 'legalitas-bisnis', label: 'Legalitas Bisnis', icon: SERVICE_ICONS.briefcase, mapCategory: 'Bisnis & Perusahaan',
-    items: ['Pendirian PT', 'Pendirian PT Perorangan', 'Pendirian CV', 'Pendirian Yayasan', 'NIB & OSS', 'Perubahan Data Perusahaan', 'Perubahan Direksi/Komisaris', 'Perubahan Pemegang Saham', 'Perubahan Modal', 'Pembubaran Perusahaan'],
-  },
-  {
     // Like 'konsultasi-hukum', openService() special-cases this key to open
     // its own dedicated multi-filter screen (renderCariNotarisFilter)
     // instead of the generic sub-item picker.
     key: 'notaris-ppat', label: 'Notaris & PPAT', icon: SERVICE_ICONS.signature,
     items: [],
-  },
-  {
-    key: 'ketenagakerjaan', label: 'Ketenagakerjaan', icon: SERVICE_ICONS.id, mapCategory: 'Ketenagakerjaan',
-    items: ['Perjanjian Kerja', 'PKWT', 'PKWTT', 'Peraturan Perusahaan', 'Employee Handbook', 'PHK', 'Perselisihan Karyawan', 'Somasi Karyawan', 'Konsultasi Ketenagakerjaan'],
-  },
-  {
-    key: 'keluarga-waris', label: 'Keluarga & Waris', icon: SERVICE_ICONS.home, mapCategory: 'Keluarga & Waris',
-    items: ['Perceraian', 'Hak Asuh Anak', 'Harta Bersama', 'Perjanjian Pra-Nikah', 'Waris', 'Pembagian Warisan', 'Hibah', 'Wasiat'],
   },
   {
     key: 'legal-compliance', label: 'Legal Compliance', icon: SERVICE_ICONS.shieldCheck,
@@ -997,6 +982,15 @@ const KONSULTAN_JENIS_LAYANAN_DOKUMEN = [
   'Company Profile',
   'Dokumen konsultasi lainnya sesuai kebutuhan klien',
 ];
+
+/* ============================================================
+   Wilayah Kerja — Provinsi → Kota/Kabupaten (38 provinsi). Kota ditulis
+   apa adanya ("Bandung"), kabupaten diberi awalan "Kab." ("Kab. Bandung").
+   Nilai ini dikirim ke backend sebagai filter `city` (cocok persis,
+   tidak peka huruf besar/kecil) dengan kolom `city` di profil pengacara.
+============================================================ */
+const WILAYAH_INDONESIA = {"Aceh": ["Banda Aceh", "Langsa", "Lhokseumawe", "Sabang", "Subulussalam", "Kab. Aceh Barat", "Kab. Aceh Barat Daya", "Kab. Aceh Besar", "Kab. Aceh Jaya", "Kab. Aceh Selatan", "Kab. Aceh Singkil", "Kab. Aceh Tamiang", "Kab. Aceh Tengah", "Kab. Aceh Tenggara", "Kab. Aceh Timur", "Kab. Aceh Utara", "Kab. Bener Meriah", "Kab. Bireuen", "Kab. Gayo Lues", "Kab. Nagan Raya", "Kab. Pidie", "Kab. Pidie Jaya", "Kab. Simeulue"], "Sumatera Utara": ["Binjai", "Gunungsitoli", "Medan", "Padang Sidempuan", "Pematangsiantar", "Sibolga", "Tanjungbalai", "Tebing Tinggi", "Kab. Asahan", "Kab. Batu Bara", "Kab. Dairi", "Kab. Deli Serdang", "Kab. Humbang Hasundutan", "Kab. Karo", "Kab. Labuhanbatu", "Kab. Labuhanbatu Selatan", "Kab. Labuhanbatu Utara", "Kab. Langkat", "Kab. Mandailing Natal", "Kab. Nias", "Kab. Nias Barat", "Kab. Nias Selatan", "Kab. Nias Utara", "Kab. Padang Lawas", "Kab. Padang Lawas Utara", "Kab. Pakpak Bharat", "Kab. Samosir", "Kab. Serdang Bedagai", "Kab. Simalungun", "Kab. Tapanuli Selatan", "Kab. Tapanuli Tengah", "Kab. Tapanuli Utara", "Kab. Toba"], "Sumatera Barat": ["Bukittinggi", "Padang", "Padang Panjang", "Pariaman", "Payakumbuh", "Sawahlunto", "Solok", "Kab. Agam", "Kab. Dharmasraya", "Kab. Kepulauan Mentawai", "Kab. Lima Puluh Kota", "Kab. Padang Pariaman", "Kab. Pasaman", "Kab. Pasaman Barat", "Kab. Pesisir Selatan", "Kab. Sijunjung", "Kab. Solok", "Kab. Solok Selatan", "Kab. Tanah Datar"], "Riau": ["Dumai", "Pekanbaru", "Kab. Bengkalis", "Kab. Indragiri Hilir", "Kab. Indragiri Hulu", "Kab. Kampar", "Kab. Kepulauan Meranti", "Kab. Kuantan Singingi", "Kab. Pelalawan", "Kab. Rokan Hilir", "Kab. Rokan Hulu", "Kab. Siak"], "Kepulauan Riau": ["Batam", "Tanjungpinang", "Kab. Bintan", "Kab. Karimun", "Kab. Kepulauan Anambas", "Kab. Lingga", "Kab. Natuna"], "Jambi": ["Jambi", "Sungai Penuh", "Kab. Batanghari", "Kab. Bungo", "Kab. Kerinci", "Kab. Merangin", "Kab. Muaro Jambi", "Kab. Sarolangun", "Kab. Tanjung Jabung Barat", "Kab. Tanjung Jabung Timur", "Kab. Tebo"], "Sumatera Selatan": ["Lubuklinggau", "Pagar Alam", "Palembang", "Prabumulih", "Kab. Banyuasin", "Kab. Empat Lawang", "Kab. Lahat", "Kab. Muara Enim", "Kab. Musi Banyuasin", "Kab. Musi Rawas", "Kab. Musi Rawas Utara", "Kab. Ogan Ilir", "Kab. Ogan Komering Ilir", "Kab. Ogan Komering Ulu", "Kab. Ogan Komering Ulu Selatan", "Kab. Ogan Komering Ulu Timur", "Kab. Penukal Abab Lematang Ilir"], "Kepulauan Bangka Belitung": ["Pangkalpinang", "Kab. Bangka", "Kab. Bangka Barat", "Kab. Bangka Selatan", "Kab. Bangka Tengah", "Kab. Belitung", "Kab. Belitung Timur"], "Bengkulu": ["Bengkulu", "Kab. Bengkulu Selatan", "Kab. Bengkulu Tengah", "Kab. Bengkulu Utara", "Kab. Kaur", "Kab. Kepahiang", "Kab. Lebong", "Kab. Mukomuko", "Kab. Rejang Lebong", "Kab. Seluma"], "Lampung": ["Bandar Lampung", "Metro", "Kab. Lampung Barat", "Kab. Lampung Selatan", "Kab. Lampung Tengah", "Kab. Lampung Timur", "Kab. Lampung Utara", "Kab. Mesuji", "Kab. Pesawaran", "Kab. Pesisir Barat", "Kab. Pringsewu", "Kab. Tanggamus", "Kab. Tulang Bawang", "Kab. Tulang Bawang Barat", "Kab. Way Kanan"], "DKI Jakarta": ["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur", "Kab. Kepulauan Seribu"], "Banten": ["Cilegon", "Serang", "Tangerang", "Tangerang Selatan", "Kab. Lebak", "Kab. Pandeglang", "Kab. Serang", "Kab. Tangerang"], "Jawa Barat": ["Bandung", "Banjar", "Bekasi", "Bogor", "Cimahi", "Cirebon", "Depok", "Sukabumi", "Tasikmalaya", "Kab. Bandung", "Kab. Bandung Barat", "Kab. Bekasi", "Kab. Bogor", "Kab. Ciamis", "Kab. Cianjur", "Kab. Cirebon", "Kab. Garut", "Kab. Indramayu", "Kab. Karawang", "Kab. Kuningan", "Kab. Majalengka", "Kab. Pangandaran", "Kab. Purwakarta", "Kab. Subang", "Kab. Sukabumi", "Kab. Sumedang", "Kab. Tasikmalaya"], "Jawa Tengah": ["Magelang", "Pekalongan", "Salatiga", "Semarang", "Surakarta", "Tegal", "Kab. Banjarnegara", "Kab. Banyumas", "Kab. Batang", "Kab. Blora", "Kab. Boyolali", "Kab. Brebes", "Kab. Cilacap", "Kab. Demak", "Kab. Grobogan", "Kab. Jepara", "Kab. Karanganyar", "Kab. Kebumen", "Kab. Kendal", "Kab. Klaten", "Kab. Kudus", "Kab. Magelang", "Kab. Pati", "Kab. Pekalongan", "Kab. Pemalang", "Kab. Purbalingga", "Kab. Purworejo", "Kab. Rembang", "Kab. Semarang", "Kab. Sragen", "Kab. Sukoharjo", "Kab. Tegal", "Kab. Temanggung", "Kab. Wonogiri", "Kab. Wonosobo"], "DI Yogyakarta": ["Yogyakarta", "Kab. Bantul", "Kab. Gunungkidul", "Kab. Kulon Progo", "Kab. Sleman"], "Jawa Timur": ["Batu", "Blitar", "Kediri", "Madiun", "Malang", "Mojokerto", "Pasuruan", "Probolinggo", "Surabaya", "Kab. Bangkalan", "Kab. Banyuwangi", "Kab. Blitar", "Kab. Bojonegoro", "Kab. Bondowoso", "Kab. Gresik", "Kab. Jember", "Kab. Jombang", "Kab. Kediri", "Kab. Lamongan", "Kab. Lumajang", "Kab. Madiun", "Kab. Magetan", "Kab. Malang", "Kab. Mojokerto", "Kab. Nganjuk", "Kab. Ngawi", "Kab. Pacitan", "Kab. Pamekasan", "Kab. Pasuruan", "Kab. Ponorogo", "Kab. Probolinggo", "Kab. Sampang", "Kab. Sidoarjo", "Kab. Situbondo", "Kab. Sumenep", "Kab. Trenggalek", "Kab. Tuban", "Kab. Tulungagung"], "Bali": ["Denpasar", "Kab. Badung", "Kab. Bangli", "Kab. Buleleng", "Kab. Gianyar", "Kab. Jembrana", "Kab. Karangasem", "Kab. Klungkung", "Kab. Tabanan"], "Nusa Tenggara Barat": ["Bima", "Mataram", "Kab. Bima", "Kab. Dompu", "Kab. Lombok Barat", "Kab. Lombok Tengah", "Kab. Lombok Timur", "Kab. Lombok Utara", "Kab. Sumbawa", "Kab. Sumbawa Barat"], "Nusa Tenggara Timur": ["Kupang", "Kab. Alor", "Kab. Belu", "Kab. Ende", "Kab. Flores Timur", "Kab. Kupang", "Kab. Lembata", "Kab. Malaka", "Kab. Manggarai", "Kab. Manggarai Barat", "Kab. Manggarai Timur", "Kab. Nagekeo", "Kab. Ngada", "Kab. Rote Ndao", "Kab. Sabu Raijua", "Kab. Sikka", "Kab. Sumba Barat", "Kab. Sumba Barat Daya", "Kab. Sumba Tengah", "Kab. Sumba Timur", "Kab. Timor Tengah Selatan", "Kab. Timor Tengah Utara"], "Kalimantan Barat": ["Pontianak", "Singkawang", "Kab. Bengkayang", "Kab. Kapuas Hulu", "Kab. Kayong Utara", "Kab. Ketapang", "Kab. Kubu Raya", "Kab. Landak", "Kab. Melawi", "Kab. Mempawah", "Kab. Sambas", "Kab. Sanggau", "Kab. Sekadau", "Kab. Sintang"], "Kalimantan Tengah": ["Palangka Raya", "Kab. Barito Selatan", "Kab. Barito Timur", "Kab. Barito Utara", "Kab. Gunung Mas", "Kab. Kapuas", "Kab. Katingan", "Kab. Kotawaringin Barat", "Kab. Kotawaringin Timur", "Kab. Lamandau", "Kab. Murung Raya", "Kab. Pulang Pisau", "Kab. Seruyan", "Kab. Sukamara"], "Kalimantan Selatan": ["Banjarbaru", "Banjarmasin", "Kab. Balangan", "Kab. Banjar", "Kab. Barito Kuala", "Kab. Hulu Sungai Selatan", "Kab. Hulu Sungai Tengah", "Kab. Hulu Sungai Utara", "Kab. Kotabaru", "Kab. Tabalong", "Kab. Tanah Bumbu", "Kab. Tanah Laut", "Kab. Tapin"], "Kalimantan Timur": ["Balikpapan", "Bontang", "Samarinda", "Kab. Berau", "Kab. Kutai Barat", "Kab. Kutai Kartanegara", "Kab. Kutai Timur", "Kab. Mahakam Ulu", "Kab. Paser", "Kab. Penajam Paser Utara"], "Kalimantan Utara": ["Tarakan", "Kab. Bulungan", "Kab. Malinau", "Kab. Nunukan", "Kab. Tana Tidung"], "Sulawesi Utara": ["Bitung", "Kotamobagu", "Manado", "Tomohon", "Kab. Bolaang Mongondow", "Kab. Bolaang Mongondow Selatan", "Kab. Bolaang Mongondow Timur", "Kab. Bolaang Mongondow Utara", "Kab. Kepulauan Sangihe", "Kab. Kepulauan Siau Tagulandang Biaro", "Kab. Kepulauan Talaud", "Kab. Minahasa", "Kab. Minahasa Selatan", "Kab. Minahasa Tenggara", "Kab. Minahasa Utara"], "Gorontalo": ["Gorontalo", "Kab. Boalemo", "Kab. Bone Bolango", "Kab. Gorontalo", "Kab. Gorontalo Utara", "Kab. Pohuwato"], "Sulawesi Tengah": ["Palu", "Kab. Banggai", "Kab. Banggai Kepulauan", "Kab. Banggai Laut", "Kab. Buol", "Kab. Donggala", "Kab. Morowali", "Kab. Morowali Utara", "Kab. Parigi Moutong", "Kab. Poso", "Kab. Sigi", "Kab. Tojo Una-Una", "Kab. Tolitoli"], "Sulawesi Barat": ["Kab. Majene", "Kab. Mamasa", "Kab. Mamuju", "Kab. Mamuju Tengah", "Kab. Pasangkayu", "Kab. Polewali Mandar"], "Sulawesi Selatan": ["Makassar", "Palopo", "Parepare", "Kab. Bantaeng", "Kab. Barru", "Kab. Bone", "Kab. Bulukumba", "Kab. Enrekang", "Kab. Gowa", "Kab. Jeneponto", "Kab. Kepulauan Selayar", "Kab. Luwu", "Kab. Luwu Timur", "Kab. Luwu Utara", "Kab. Maros", "Kab. Pangkajene dan Kepulauan", "Kab. Pinrang", "Kab. Sidenreng Rappang", "Kab. Sinjai", "Kab. Soppeng", "Kab. Takalar", "Kab. Tana Toraja", "Kab. Toraja Utara", "Kab. Wajo"], "Sulawesi Tenggara": ["Baubau", "Kendari", "Kab. Bombana", "Kab. Buton", "Kab. Buton Selatan", "Kab. Buton Tengah", "Kab. Buton Utara", "Kab. Kolaka", "Kab. Kolaka Timur", "Kab. Kolaka Utara", "Kab. Konawe", "Kab. Konawe Kepulauan", "Kab. Konawe Selatan", "Kab. Konawe Utara", "Kab. Muna", "Kab. Muna Barat", "Kab. Wakatobi"], "Maluku": ["Ambon", "Tual", "Kab. Buru", "Kab. Buru Selatan", "Kab. Kepulauan Aru", "Kab. Kepulauan Tanimbar", "Kab. Maluku Barat Daya", "Kab. Maluku Tengah", "Kab. Maluku Tenggara", "Kab. Seram Bagian Barat", "Kab. Seram Bagian Timur"], "Maluku Utara": ["Ternate", "Tidore Kepulauan", "Kab. Halmahera Barat", "Kab. Halmahera Selatan", "Kab. Halmahera Tengah", "Kab. Halmahera Timur", "Kab. Halmahera Utara", "Kab. Kepulauan Sula", "Kab. Pulau Morotai", "Kab. Pulau Taliabu"], "Papua": ["Jayapura", "Kab. Biak Numfor", "Kab. Jayapura", "Kab. Keerom", "Kab. Kepulauan Yapen", "Kab. Mamberamo Raya", "Kab. Sarmi", "Kab. Supiori", "Kab. Waropen"], "Papua Barat": ["Kab. Fakfak", "Kab. Kaimana", "Kab. Manokwari", "Kab. Manokwari Selatan", "Kab. Pegunungan Arfak", "Kab. Teluk Bintuni", "Kab. Teluk Wondama"], "Papua Barat Daya": ["Sorong", "Kab. Maybrat", "Kab. Raja Ampat", "Kab. Sorong", "Kab. Sorong Selatan", "Kab. Tambrauw"], "Papua Selatan": ["Kab. Asmat", "Kab. Boven Digoel", "Kab. Mappi", "Kab. Merauke"], "Papua Tengah": ["Kab. Deiyai", "Kab. Dogiyai", "Kab. Intan Jaya", "Kab. Mimika", "Kab. Nabire", "Kab. Paniai", "Kab. Puncak", "Kab. Puncak Jaya"], "Papua Pegunungan": ["Kab. Jayawijaya", "Kab. Lanny Jaya", "Kab. Mamberamo Tengah", "Kab. Nduga", "Kab. Pegunungan Bintang", "Kab. Tolikara", "Kab. Yahukimo", "Kab. Yalimo"]};
+const WILAYAH_ALL_CITIES = Object.values(WILAYAH_INDONESIA).flat();
 
 // Promo banner — 6 slides that auto-advance; each links to something that
 // actually exists in the app (no made-up features).
@@ -1432,6 +1426,10 @@ async function loadLawyers(){
       if(f.pengalamanMax) params.set('maxExperience', f.pengalamanMax);
       if(f.biayaMin) params.set('minFee', f.biayaMin);
       if(f.biayaMax) params.set('maxFee', f.biayaMax);
+      // Wilayah Kerja by region: a specific city/kabupaten, or — when only a
+      // province is picked — every city/kabupaten inside that province.
+      if(f.kota) params.set('city', f.kota);
+      else if(f.provinsi && WILAYAH_INDONESIA[f.provinsi]) params.set('city', WILAYAH_INDONESIA[f.provinsi].join(','));
       if(f.wilayah === 'terdekat' && f.userLat !== null){
         params.set('lat', f.userLat);
         params.set('lng', f.userLng);
@@ -1485,12 +1483,12 @@ function renderHome(){
           <div class="tc-icon" style="background:${s.bg};">${s.icon}</div>
           <div class="tc-label">${s.label}</div>
         </button>`).join('')}
-      <button class="topic-cell" onclick="openAllServices()">
+      ${SERVICE_CATALOG.length > 7 ? `      <button class="topic-cell" onclick="openAllServices()">
         <div class="tc-icon" style="background:var(--navy);color:#fff;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
         </div>
         <div class="tc-label">Lihat Semua</div>
-      </button>
+      </button>`  : ''}
     </div>
 
     <div class="section-title">Pengacara yang tersedia <span class="see-all" onclick="scrollToAllLawyers()">Lihat lainnya</span></div>
@@ -1744,6 +1742,7 @@ function defaultLawyerSearchFilter(){
     areaShowAll: false,           // "+N lainnya" chip tapped — show every Area Praktik category
     wilayah: 'semua',             // 'semua' | 'terdekat'
     userLat: null, userLng: null,
+    provinsi: '', kota: '',       // Wilayah Kerja: '' = Semua Area
     locating: false, locationError: null,
     pengalamanMin: '', pengalamanMax: '',
     gender: 'semua',              // 'semua' | 'male' | 'female'
@@ -1761,6 +1760,7 @@ function openLawyerSearchFilter(){
     areaActiveCat: null,
     areaShowAll: false,
     wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
+    provinsi: prev.provinsi ?? '', kota: prev.kota ?? '',
     locating: false, locationError: null,
     pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
     gender: prev.gender ?? 'semua',
@@ -1842,6 +1842,7 @@ function countActiveFilters(f){
   if(f.areaPraktik && sizeOf(f.areaPraktik)) n++;
   if(f.jenisLayanan && sizeOf(f.jenisLayanan)) n++; // only present for "Cari Notaris/PPAT" now
   if(f.wilayah === 'terdekat') n++;
+  if(f.provinsi || f.kota) n++;
   if(f.pengalamanMin || f.pengalamanMax) n++;
   if(f.gender !== 'semua') n++;
   if(f.biayaMin || f.biayaMax) n++;
@@ -1859,6 +1860,7 @@ function submitLawyerSearchFilter(){
     kind: 'lawyer',
     areaPraktik: Array.from(f.areaPraktik),
     wilayah: f.wilayah,
+    provinsi: f.provinsi, kota: f.kota,
     userLat: f.userLat, userLng: f.userLng,
     pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
     gender: f.gender,
@@ -1912,6 +1914,7 @@ function defaultNotarisSearchFilter(){
     dokumenOpen: false,          // "Pembuatan Dokumen Notaris" group expanded?
     wilayah: 'semua',            // 'semua' | 'terdekat'
     userLat: null, userLng: null,
+    provinsi: '', kota: '',       // Wilayah Kerja: '' = Semua Area
     locating: false, locationError: null,
     pengalamanMin: '', pengalamanMax: '',
     gender: 'semua',             // 'semua' | 'male' | 'female'
@@ -1934,6 +1937,7 @@ function openNotarisSearchFilter(){
     jenisLayanan: new Set(prev.jenisLayanan),
     dokumenOpen: false,
     wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
+    provinsi: prev.provinsi ?? '', kota: prev.kota ?? '',
     locating: false, locationError: null,
     pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
     gender: prev.gender ?? 'semua',
@@ -2023,6 +2027,7 @@ function submitNotarisSearchFilter(){
     areaPraktik: Array.from(f.areaPraktik),
     jenisLayanan: Array.from(f.jenisLayanan),
     wilayah: f.wilayah,
+    provinsi: f.provinsi, kota: f.kota,
     userLat: f.userLat, userLng: f.userLng,
     pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
     gender: f.gender,
@@ -2056,6 +2061,7 @@ function defaultKonsultanSearchFilter(){
     dokumenOpen: false,         // "Pembuatan Dokumen" group expanded?
     wilayah: 'semua',           // 'semua' | 'terdekat'
     userLat: null, userLng: null,
+    provinsi: '', kota: '',       // Wilayah Kerja: '' = Semua Area
     locating: false, locationError: null,
     pengalamanMin: '', pengalamanMax: '',
     gender: 'semua',            // 'semua' | 'male' | 'female'
@@ -2074,6 +2080,7 @@ function openKonsultanSearchFilter(){
     jenisLayanan: new Set(prev.jenisLayanan),
     dokumenOpen: false,
     wilayah: prev.wilayah, userLat: prev.userLat, userLng: prev.userLng,
+    provinsi: prev.provinsi ?? '', kota: prev.kota ?? '',
     locating: false, locationError: null,
     pengalamanMin: prev.pengalamanMin ?? '', pengalamanMax: prev.pengalamanMax ?? '',
     gender: prev.gender ?? 'semua',
@@ -2154,6 +2161,7 @@ function submitKonsultanSearchFilter(){
     areaPraktik: Array.from(f.areaPraktik),
     jenisLayanan: Array.from(f.jenisLayanan),
     wilayah: f.wilayah,
+    provinsi: f.provinsi, kota: f.kota,
     userLat: f.userLat, userLng: f.userLng,
     pengalamanMin: f.pengalamanMin, pengalamanMax: f.pengalamanMax,
     gender: f.gender,
@@ -2194,6 +2202,34 @@ function isPresetActive(f, minField, maxField, min, max){
 function searchFilterByKind(kind){
   return kind === 'notaris' ? state.notarisSearchFilter : kind === 'konsultan' ? state.konsultanSearchFilter : state.lawyerSearchFilter;
 }
+// Wilayah Kerja region pickers (shared by all three filters): Provinsi, then
+// Kota/Kabupaten inside it. Empty value = "Semua Area" / "Semua Kota".
+function setWilayahProvinsi(kind, v){
+  const f = searchFilterByKind(kind);
+  f.provinsi = v; f.kota = '';
+  render();
+}
+function setWilayahKota(kind, v){
+  searchFilterByKind(kind).kota = v;
+  render();
+}
+function renderWilayahSelects(kind){
+  const f = searchFilterByKind(kind);
+  const cities = f.provinsi ? (WILAYAH_INDONESIA[f.provinsi] || []) : [];
+  return `
+  <div class="filter-range-row" style="margin-top:10px;flex-direction:column;align-items:stretch;gap:8px;">
+    <select onchange="setWilayahProvinsi('${kind}', this.value)">
+      <option value="">Semua Area (semua provinsi)</option>
+      ${Object.keys(WILAYAH_INDONESIA).map(p => `<option value="${p}" ${f.provinsi===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    ${f.provinsi ? `
+    <select onchange="setWilayahKota('${kind}', this.value)">
+      <option value="">Semua Kota/Kabupaten di ${f.provinsi}</option>
+      ${cities.map(c => `<option value="${c}" ${f.kota===c?'selected':''}>${c}</option>`).join('')}
+    </select>` : ''}
+  </div>`;
+}
+
 function setPresetRange(kind, minField, maxField, min, max){
   const f = searchFilterByKind(kind);
   if(isPresetActive(f, minField, maxField, min, max)){
@@ -2336,6 +2372,13 @@ function renderSelectedFilterChips(kind){
     chips.push({ text: label, onclick: `${fn}('semua')` });
   }
 
+  if(f.provinsi || f.kota){
+    chips.push({
+      text: f.kota ? f.kota + ', ' + f.provinsi : f.provinsi,
+      onclick: `setWilayahProvinsi('${kind}','')`,
+    });
+  }
+
   if(f.pengalamanMin || f.pengalamanMax){
     chips.push({
       text: `Pengalaman ${f.pengalamanMin || '0'}–${f.pengalamanMax || '∞'} th`,
@@ -2412,6 +2455,7 @@ function renderCariLawyerFilter(){
           <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setWilayah('semua')">Seluruh Area</button>
           <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setWilayah('terdekat')">Cari Lawyer Terdekat</button>
         </div>
+        ${renderWilayahSelects('lawyer')}
         ${f.wilayah === 'terdekat' ? `
           <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
             ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari lawyer terdekat.'}
@@ -2548,6 +2592,7 @@ function renderCariNotarisFilter(){
           <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setNotarisWilayah('semua')">Seluruh Indonesia</button>
           <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setNotarisWilayah('terdekat')">Cari Notaris Terdekat</button>
         </div>
+        ${renderWilayahSelects('notaris')}
         ${f.wilayah === 'terdekat' ? `
           <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
             ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari notaris terdekat.'}
@@ -2678,6 +2723,7 @@ function renderCariKonsultanFilter(){
           <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setKonsultanWilayah('semua')">Bisa Seluruh Area</button>
           <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setKonsultanWilayah('terdekat')">Cari Konsultan Terdekat</button>
         </div>
+        ${renderWilayahSelects('konsultan')}
         ${f.wilayah === 'terdekat' ? `
           <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
             ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari konsultan terdekat.'}
@@ -3717,7 +3763,7 @@ function renderLawyerProfileForm(){
     <div class="content" style="padding-top:18px;">
       ${state.profileFormError ? `<div class="error-box">${state.profileFormError}</div>` : ''}
       <div class="field"><label>No. Induk Advokat (PERADI)</label><input id="pf-bar" value="${f.barRegistrationNumber}" placeholder="PERADI-xxxxx"></div>
-      <div class="field"><label>Kota</label><input id="pf-city" value="${f.city}" placeholder="Jakarta Selatan"></div>
+      <div class="field"><label>Kota</label><input id="pf-city" list="pf-city-list" value="${f.city}" placeholder="Jakarta Selatan"><datalist id="pf-city-list">${WILAYAH_ALL_CITIES.map(c => `<option value="${c}">`).join('')}</datalist></div>
       <div class="field"><label>Bio singkat</label><textarea id="pf-bio">${f.bio}</textarea></div>
       <div class="field"><label>Lama pengalaman (tahun)</label><input id="pf-exp" type="number" min="0" value="${f.yearsExperience}"></div>
       <div class="field"><label>Tarif chat / sesi (Rp)</label><input id="pf-rate-chat" type="number" min="0" value="${f.hourlyRateChat}"></div>
