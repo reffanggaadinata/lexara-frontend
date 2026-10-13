@@ -791,6 +791,7 @@ const SERVICE_ICONS = {
   id: svgIcon('<path d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.13a1.88 1.88 0 1 1-3.75 0 1.88 1.88 0 0 1 3.75 0Zm1.29 6.34a6.72 6.72 0 0 1-3.17.79 6.72 6.72 0 0 1-3.17-.79 3.38 3.38 0 0 1 6.34 0Z"/>'),
   home: svgIcon('<path d="m2.25 12 8.95-8.96a1.13 1.13 0 0 1 1.59 0L21.75 12M4.5 9.75v10.13c0 .62.5 1.12 1.13 1.12H9.75v-4.88c0-.62.5-1.12 1.13-1.12h2.25c.62 0 1.12.5 1.12 1.12V21h4.13c.62 0 1.12-.5 1.12-1.12V9.75M8.25 21h8.25"/>'),
   shieldCheck: svgIcon('<path d="M9 12.75 11.25 15 15 9.75m-3-7.04a11.96 11.96 0 0 1-8.4 3.54A12 12 0 0 0 3 9.75c0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62 0-1.31-.21-2.57-.6-3.75h-.15c-3.2 0-6.1-1.25-8.25-3.29Z"/>'),
+  pin: svgIcon('<path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.14-7.5 11.25-7.5 11.25S4.5 17.64 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>'),
   chat: svgIcon('<path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/>'),
 };
 
@@ -818,8 +819,10 @@ const SERVICE_CATALOG = [
     items: [],
   },
   {
-    key: 'legal-compliance', label: 'Legal Compliance', icon: SERVICE_ICONS.shieldCheck,
-    items: ['Legal Audit', 'Contract Review', 'Corporate Compliance', 'Perizinan', 'Perlindungan Data', 'Kebijakan Privasi', 'Terms & Conditions', 'Compliance Review'],
+    // Opens its own dedicated screen (renderCariHangoutFilter): find lawyers
+    // near the client's location and invite one to meet in person.
+    key: 'hang-out', label: 'Hang Out', icon: SERVICE_ICONS.pin,
+    items: [],
   },
 ].map((s, i) => ({ ...s, bg: TOPIC_TILE_COLORS[i % TOPIC_TILE_COLORS.length] }));
 
@@ -1075,6 +1078,7 @@ const state = {
   showLawyerFilterSheet: false,  // "Cari Lawyer/Advokat" filter — overlays home, doesn't change `screen`
   showNotarisFilterSheet: false, // "Cari Notaris/PPAT" filter — same idea
   showKonsultanFilterSheet: false, // "Cari Konsultan" filter — same idea
+  showHangoutFilterSheet: false,   // "Hang Out" filter — same idea
   lawyers: [],
   lawyersLoading: false,
   lawyersError: null,
@@ -1248,6 +1252,7 @@ function render(){
   else if(state.screen === 'cari-lawyer-hasil') html = renderSearchResultsScreen('lawyer');
   else if(state.screen === 'cari-notaris-hasil') html = renderSearchResultsScreen('notaris');
   else if(state.screen === 'cari-konsultan-hasil') html = renderSearchResultsScreen('konsultan');
+  else if(state.screen === 'cari-hangout-hasil') html = renderSearchResultsScreen('hangout');
   else html = renderHome();
 
   html += renderBottomNav();
@@ -1260,6 +1265,7 @@ function render(){
   if(state.showLawyerFilterSheet) html += renderCariLawyerFilter();
   if(state.showNotarisFilterSheet) html += renderCariNotarisFilter();
   if(state.showKonsultanFilterSheet) html += renderCariKonsultanFilter();
+  if(state.showHangoutFilterSheet) html += renderCariHangoutFilter();
   setAppHtml(app, html);
   setupHomeScroll();
 }
@@ -1424,8 +1430,13 @@ async function loadLawyers(){
       if(f.gender && f.gender !== 'semua') params.set('gender', f.gender);
       if(f.pengalamanMin) params.set('minExperience', f.pengalamanMin);
       if(f.pengalamanMax) params.set('maxExperience', f.pengalamanMax);
-      if(f.biayaMin) params.set('minFee', f.biayaMin);
-      if(f.biayaMax) params.set('maxFee', f.biayaMax);
+      // "Hang Out" prices an in-person meet-up (the video rate stands in for it),
+      // so its fee range is applied after the fetch below — the backend's
+      // minFee/maxFee compares against the CHAT rate, which would be wrong here.
+      if(f.kind !== 'hangout'){
+        if(f.biayaMin) params.set('minFee', f.biayaMin);
+        if(f.biayaMax) params.set('maxFee', f.biayaMax);
+      }
       // Wilayah Kerja by region: a specific city/kabupaten, or — when only a
       // province is picked — every city/kabupaten inside that province.
       if(f.kota) params.set('city', f.kota);
@@ -1441,6 +1452,11 @@ async function loadLawyers(){
 
     const result = await api('/lawyers?' + params.toString(), { auth:false });
     state.lawyers = result.items;
+    if(f && f.kind === 'hangout'){
+      const min = Number(f.biayaMin) || 0, max = Number(f.biayaMax) || Infinity, rad = Number(f.radiusKm) || Infinity;
+      state.lawyers = state.lawyers.filter(l =>
+        l.distanceKm != null && l.distanceKm <= rad && l.hourlyRateVideo >= min && l.hourlyRateVideo <= max);
+    }
   }catch(e){
     state.lawyersError = e.message;
     state.lawyers = [];
@@ -1562,6 +1578,10 @@ function openService(key){
   }
   if(key === 'cari-konsultan'){
     openKonsultanSearchFilter();
+    return;
+  }
+  if(key === 'hang-out'){
+    openHangoutSearchFilter();
     return;
   }
   state.serviceDetailKey = key;
@@ -1687,10 +1707,10 @@ function renderSearchResultsScreen(kind){
   }else if(filtered.length === 0){
     body = renderEmptySearch();
   }else{
-    body = filtered.map(l => renderLawyerCard(l)).join('');
+    body = filtered.map(l => renderLawyerCard(l, kind === 'hangout' ? 'hangout' : null)).join('');
   }
 
-  const title = kind === 'notaris' ? 'Cari Notaris/PPAT' : kind === 'konsultan' ? 'Cari Konsultan' : 'Cari Lawyer/Advokat';
+  const title = kind === 'notaris' ? 'Cari Notaris/PPAT' : kind === 'konsultan' ? 'Cari Konsultan' : kind === 'hangout' ? 'Hang Out' : 'Cari Lawyer/Advokat';
   const hasFilters = state.activeSearchFilters && state.activeSearchFilters.kind === kind;
 
   return `
@@ -1843,6 +1863,7 @@ function countActiveFilters(f){
   if(f.jenisLayanan && sizeOf(f.jenisLayanan)) n++; // only present for "Cari Notaris/PPAT" now
   if(f.wilayah === 'terdekat') n++;
   if(f.provinsi || f.kota) n++;
+  if(f.radiusKm) n++; // only present for "Hang Out"
   if(f.pengalamanMin || f.pengalamanMax) n++;
   if(f.gender !== 'semua') n++;
   if(f.biayaMin || f.biayaMax) n++;
@@ -1890,6 +1911,8 @@ function openActiveSearchFilterEditor(){
     openNotarisSearchFilter();
   }else if(kind === 'konsultan'){
     openKonsultanSearchFilter();
+  }else if(kind === 'hangout'){
+    openHangoutSearchFilter();
   }else{
     openLawyerSearchFilter();
   }
@@ -2175,6 +2198,103 @@ function submitKonsultanSearchFilter(){
   loadLawyers();
 }
 
+/* ============================================================
+   "Hang Out" — find lawyers near the client's location and invite one to
+   meet in person for a legal discussion. Reuses the same search endpoint
+   (lat/lng distance sort) and the existing "Tatap Muka" booking method.
+   There's no separate in-person rate column yet, so "Biaya Investasi" here
+   is the lawyer's video-call rate per 60-minute meeting (same stand-in the
+   backend already uses to price Tatap Muka bookings).
+============================================================ */
+const HANGOUT_RADIUS_OPTIONS = [
+  { label: '1 km', value: '1' }, { label: '3 km', value: '3' }, { label: '5 km', value: '5' },
+  { label: '10 km', value: '10' }, { label: '25 km', value: '25' }, { label: 'Semua jarak', value: '' },
+];
+const HANGOUT_FEE_PRESETS = [
+  { label: 'Di bawah Rp300rb', min: '', max: '299999' },
+  { label: 'Rp300rb–750rb', min: '300000', max: '750000' },
+  { label: 'Di atas Rp750rb', min: '750001', max: '' },
+];
+function defaultHangoutSearchFilter(){
+  return {
+    userLat: null, userLng: null,
+    locating: false, locationError: null,
+    radiusKm: '',
+    gender: 'semua',
+    biayaMin: '', biayaMax: '',
+  };
+}
+function openHangoutSearchFilter(){
+  const prev = state.activeSearchFilters && state.activeSearchFilters.kind === 'hangout' ? state.activeSearchFilters : null;
+  state.hangoutSearchFilter = prev ? {
+    userLat: prev.userLat, userLng: prev.userLng,
+    locating: false, locationError: null,
+    radiusKm: prev.radiusKm ?? '',
+    gender: prev.gender ?? 'semua',
+    biayaMin: prev.biayaMin ?? '', biayaMax: prev.biayaMax ?? '',
+  } : defaultHangoutSearchFilter();
+  state.showHangoutFilterSheet = true;
+  if(state.hangoutSearchFilter.userLat === null) requestHangoutUserLocation();
+  else render();
+}
+function closeHangoutSearchFilter(){
+  state.hangoutSearchFilter = null;
+  state.showHangoutFilterSheet = false;
+  render();
+}
+function requestHangoutUserLocation(){
+  const f = state.hangoutSearchFilter;
+  if(!navigator.geolocation){
+    f.locationError = 'Perangkat/browser ini tidak mendukung deteksi lokasi.';
+    render();
+    return;
+  }
+  f.locating = true;
+  f.locationError = null;
+  render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      if(state.hangoutSearchFilter !== f) return; // sheet closed while waiting
+      f.userLat = pos.coords.latitude;
+      f.userLng = pos.coords.longitude;
+      f.locating = false;
+      render();
+    },
+    (err) => {
+      if(state.hangoutSearchFilter !== f) return;
+      f.locating = false;
+      f.locationError = err.code === 1
+        ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini lalu coba lagi.'
+        : 'Gagal mendapatkan lokasi. Coba lagi.';
+      render();
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+function setHangoutRadius(v){ state.hangoutSearchFilter.radiusKm = v; render(); }
+function setHangoutGender(g){ state.hangoutSearchFilter.gender = g; render(); }
+function onHangoutFilterNumberInput(field, v){ state.hangoutSearchFilter[field] = v; }
+function submitHangoutSearchFilter(){
+  const f = state.hangoutSearchFilter;
+  if(f.userLat === null){
+    requestHangoutUserLocation();
+    return;
+  }
+  state.activeSearchFilters = {
+    kind: 'hangout',
+    areaPraktik: [],
+    wilayah: 'terdekat',
+    userLat: f.userLat, userLng: f.userLng,
+    radiusKm: f.radiusKm,
+    gender: f.gender,
+    biayaMin: f.biayaMin, biayaMax: f.biayaMax,
+  };
+  state.hangoutSearchFilter = null;
+  state.showHangoutFilterSheet = false;
+  state.screen = 'cari-hangout-hasil';
+  loadLawyers();
+}
+
 // Area Praktik is a two-level drill-down: clicking a category button
 // expands it into its leaf sub-items, and only the LEAF is an actual
 // selectable/searchable value (matching the "Parent – Leaf" specialization
@@ -2200,7 +2320,7 @@ function isPresetActive(f, minField, maxField, min, max){
 // Tapping an already-active preset clears the range (acts as a toggle);
 // tapping a different one replaces min/max and updates the manual inputs too.
 function searchFilterByKind(kind){
-  return kind === 'notaris' ? state.notarisSearchFilter : kind === 'konsultan' ? state.konsultanSearchFilter : state.lawyerSearchFilter;
+  return kind === 'notaris' ? state.notarisSearchFilter : kind === 'konsultan' ? state.konsultanSearchFilter : kind === 'hangout' ? state.hangoutSearchFilter : state.lawyerSearchFilter;
 }
 // Wilayah Kerja region pickers (shared by all three filters): Provinsi, then
 // Kota/Kabupaten inside it. Empty value = "Semua Area" / "Semua Kota".
@@ -2217,7 +2337,7 @@ function renderWilayahSelects(kind){
   const f = searchFilterByKind(kind);
   const cities = f.provinsi ? (WILAYAH_INDONESIA[f.provinsi] || []) : [];
   return `
-  <div class="filter-range-row" style="margin-top:10px;flex-direction:column;align-items:stretch;gap:8px;">
+  <div class="filter-range-row" style="flex-direction:column;align-items:stretch;gap:8px;">
     <select onchange="setWilayahProvinsi('${kind}', this.value)">
       <option value="">Semua Area (semua provinsi)</option>
       ${Object.keys(WILAYAH_INDONESIA).map(p => `<option value="${p}" ${f.provinsi===p?'selected':''}>${p}</option>`).join('')}
@@ -2325,6 +2445,12 @@ function clearAllDraftFilters(kind){
     state.notarisSearchFilter.areaActiveCat = areaActiveCat;
     state.notarisSearchFilter.areaShowAll = areaShowAll;
     state.notarisSearchFilter.dokumenOpen = dokumenOpen;
+  }else if(kind === 'hangout'){
+    const prev = state.hangoutSearchFilter;
+    state.hangoutSearchFilter = defaultHangoutSearchFilter();
+    // keep the detected location — it's not a "selection" to wipe
+    state.hangoutSearchFilter.userLat = prev.userLat;
+    state.hangoutSearchFilter.userLng = prev.userLng;
   }else if(kind === 'konsultan'){
     const { dokumenOpen } = state.konsultanSearchFilter;
     state.konsultanSearchFilter = defaultKonsultanSearchFilter();
@@ -2451,17 +2577,7 @@ function renderCariLawyerFilter(){
 
       <div class="filter-section">
         <div class="filter-flat-label">Wilayah Kerja</div>
-        <div class="role-toggle">
-          <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setWilayah('semua')">Seluruh Area</button>
-          <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setWilayah('terdekat')">Cari Lawyer Terdekat</button>
-        </div>
         ${renderWilayahSelects('lawyer')}
-        ${f.wilayah === 'terdekat' ? `
-          <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
-            ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari lawyer terdekat.'}
-            ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
-            ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestUserLocation()">Gunakan lokasi saya</button>` : ''}
-          </div>` : ''}
       </div>
 
       <div class="filter-section">
@@ -2588,17 +2704,7 @@ function renderCariNotarisFilter(){
 
       <div class="filter-section">
         <div class="filter-flat-label">Wilayah Kerja</div>
-        <div class="role-toggle">
-          <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setNotarisWilayah('semua')">Seluruh Indonesia</button>
-          <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setNotarisWilayah('terdekat')">Cari Notaris Terdekat</button>
-        </div>
         ${renderWilayahSelects('notaris')}
-        ${f.wilayah === 'terdekat' ? `
-          <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
-            ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari notaris terdekat.'}
-            ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
-            ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestNotarisUserLocation()">Gunakan lokasi saya</button>` : ''}
-          </div>` : ''}
       </div>
 
       <div class="filter-section">
@@ -2719,17 +2825,7 @@ function renderCariKonsultanFilter(){
 
       <div class="filter-section">
         <div class="filter-flat-label">Wilayah Kerja</div>
-        <div class="role-toggle">
-          <button type="button" class="${f.wilayah==='semua'?'active':''}" onclick="setKonsultanWilayah('semua')">Bisa Seluruh Area</button>
-          <button type="button" class="${f.wilayah==='terdekat'?'active':''}" onclick="setKonsultanWilayah('terdekat')">Cari Konsultan Terdekat</button>
-        </div>
         ${renderWilayahSelects('konsultan')}
-        ${f.wilayah === 'terdekat' ? `
-          <div style="margin-top:8px;font-size:12px;color:var(--ink-soft);">
-            ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari konsultan terdekat.'}
-            ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
-            ${(!f.locating && f.userLat === null) ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestKonsultanUserLocation()">Gunakan lokasi saya</button>` : ''}
-          </div>` : ''}
       </div>
 
       <div class="filter-section">
@@ -2765,6 +2861,67 @@ function renderCariKonsultanFilter(){
     <div class="cta-bar">
       <button class="btn btn-outline" onclick="clearAllDraftFilters('konsultan')">Hapus</button>
       <button class="btn btn-primary" onclick="submitKonsultanSearchFilter()">Lihat Hasil</button>
+    </div>
+  </div>`;
+}
+
+function renderCariHangoutFilter(){
+  const f = state.hangoutSearchFilter;
+  return `
+  <div class="sheet-backdrop" onclick="closeHangoutSearchFilter()"></div>
+  <div class="sheet-panel filter-sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="width:28px;"></div>
+      <div class="sheet-title" style="flex:1;text-align:center;">Filter Hang Out</div>
+      <button class="sheet-close" onclick="closeHangoutSearchFilter()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+
+      <div class="about-box" style="margin-bottom:14px;">Temukan lawyer di sekitar Anda, lalu ajak bertemu langsung untuk berdiskusi soal hukum.</div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Lokasi Anda</div>
+        <div style="font-size:12px;color:var(--ink-soft);">
+          ${f.locating ? 'Mendeteksi lokasi Anda…' : f.userLat !== null ? '📍 Lokasi Anda sudah terdeteksi.' : 'Butuh izin lokasi untuk mencari lawyer di sekitar Anda.'}
+          ${f.locationError ? `<div class="error-box" style="margin-top:8px;">${f.locationError}</div>` : ''}
+          ${!f.locating ? `<button type="button" class="btn-link" style="display:block;margin-top:6px;" onclick="requestHangoutUserLocation()">${f.userLat !== null ? 'Perbarui lokasi saya' : 'Gunakan lokasi saya'}</button>` : ''}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Jarak Maksimum</div>
+        <div class="area-chip-wrap">
+          ${HANGOUT_RADIUS_OPTIONS.map(o => `
+            <button type="button" class="area-chip ${f.radiusKm===o.value?'active':''}" onclick="setHangoutRadius('${o.value}')">${f.radiusKm===o.value ? '<span class="chip-dot"></span>' : ''}${o.label}</button>`).join('')}
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Jenis Kelamin</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setHangoutGender('semua')">Semua</button>
+          <button type="button" class="${f.gender==='male'?'active':''}" onclick="setHangoutGender('male')">Laki-laki</button>
+          <button type="button" class="${f.gender==='female'?'active':''}" onclick="setHangoutGender('female')">Perempuan</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-flat-label">Biaya Investasi (Rp / pertemuan 60 menit)</div>
+        ${renderPresetChipRow('hangout', 'biayaMin', 'biayaMax', HANGOUT_FEE_PRESETS)}
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.biayaMin}" oninput="onHangoutFilterNumberInput('biayaMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks" value="${f.biayaMax}" oninput="onHangoutFilterNumberInput('biayaMax', this.value)">
+        </div>
+      </div>
+
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-outline" onclick="clearAllDraftFilters('hangout')">Hapus</button>
+      <button class="btn btn-primary" onclick="submitHangoutSearchFilter()">Lihat Hasil</button>
     </div>
   </div>`;
 }
@@ -2826,9 +2983,10 @@ function renderEmptySearch(){
   </div>`;
 }
 
-function renderLawyerCard(l){
+function renderLawyerCard(l, mode){
+  const hangout = mode === 'hangout';
   return `
-  <div class="lawyer-card" onclick="openDetail('${l.id}')">
+  <div class="lawyer-card" onclick="openDetail('${l.id}', ${hangout ? "'hangout'" : 'null'})">
     <div class="avatar">${initials(l.name)}</div>
     <div class="lc-body">
       <div class="lc-name">${l.name}</div>
@@ -2838,7 +2996,9 @@ function renderLawyerCard(l){
         <div>${l.yearsExperience} thn pengalaman</div>
       </div>
       <div class="lc-footer">
-        <div class="lc-price">${formatRupiah(l.hourlyRateChat)} <span>/ sesi chat</span></div>
+        ${hangout
+          ? `<div class="lc-price">${formatRupiah(l.hourlyRateVideo)} <span>/ pertemuan (60 mnt)</span></div>`
+          : `<div class="lc-price">${formatRupiah(l.hourlyRateChat)} <span>/ sesi chat</span></div>`}
         <div class="tag">${l.distanceKm != null ? l.distanceKm + ' km' : l.city}</div>
       </div>
     </div>
@@ -2857,7 +3017,13 @@ function handleSearch(v){ state.searchQuery = v; render(); }
 /* ============================================================
    Lawyer detail
 ============================================================ */
-async function openDetail(id){
+// `ctx` sets what the booking will be tagged as: 'hangout' → an in-person
+// "Hang Out" meet-up (preselects Tatap Muka), null → a plain consultation.
+// Left undefined (e.g. the booking screen's own back link), it keeps whatever
+// was set when the client first opened this lawyer.
+async function openDetail(id, ctx){
+  if(ctx === 'hangout') state.bookingServiceNote = 'Hang Out · Diskusi hukum tatap muka';
+  else if(ctx === null) state.bookingServiceNote = null;
   state.selectedLawyerId = id;
   state.screen = 'detail';
   state.detailLoading = true;
@@ -4003,7 +4169,7 @@ function renderBottomNav(){
     {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
-  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil'].includes(state.screen) ? 'home' : state.screen;
+  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil','cari-hangout-hasil'].includes(state.screen) ? 'home' : state.screen;
   return `
   <div class="bottomnav">
     ${items.map(i=>`
@@ -4024,7 +4190,7 @@ function goScreen(s){
   if(s === 'konsultasi') loadMyBookings();
   if(s === 'cakrawala') loadCakrawalaFeed();
 }
-function goHome(){ state.screen = 'home'; state.showAllServices = false; state.showLawyerFilterSheet = false; state.showNotarisFilterSheet = false; state.showKonsultanFilterSheet = false; render(); }
+function goHome(){ state.screen = 'home'; state.showAllServices = false; state.showLawyerFilterSheet = false; state.showNotarisFilterSheet = false; state.showKonsultanFilterSheet = false; state.showHangoutFilterSheet = false; render(); }
 
 /* ============================================================
    Live-ish updates while the tab stays open
