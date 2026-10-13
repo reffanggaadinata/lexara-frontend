@@ -346,6 +346,18 @@
   }
   .navitem.active{color:var(--navy);}
   .navitem svg{width:21px;height:21px;}
+  /* Raised center "Hang Out" button — a round navy disc that pokes up out of
+     the bar, with its label underneath like the other tabs. */
+  .navitem.fab{margin-top:-28px;}
+  .navitem.fab .fab-circle{
+    width:56px;height:56px;border-radius:50%;
+    background:var(--navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    border:4px solid #fff;
+    box-shadow:0 6px 14px rgba(21,32,64,.32);
+  }
+  .navitem.fab .fab-circle svg{width:26px;height:26px;}
+  .navitem.fab:active .fab-circle{transform:scale(.95);}
 
   /* Detail screen — iOS-style header: thin "Kembali" nav strip on top,
      centered hero (icon/avatar + title + subtitle) below. */
@@ -4165,20 +4177,35 @@ function renderBottomNav(){
   const items = [
     {key:'home', label:'Beranda', icon:`<path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/>`},
     {key:'cakrawala', label:'Cakrawala', icon:`<circle cx="12" cy="14" r="4"/><path d="M3 14h2M19 14h2M12 3v2"/><path d="M4 20h16"/><path d="M7.5 20a4.5 4.5 0 0 1 9 0"/>`},
-    {key:'konsultasi', label:'Konsultasi', icon:`<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>`, badge:konsultasiBadge},
-    {key:'aktivitas', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, soon:true},
+    {key:'hangout', label:'Hang Out', fab:true, icon:`<path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.14-7.5 11.25-7.5 11.25S4.5 17.64 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/>`},
+    // "Aktivitas" now holds what the old "Konsultasi" tab did — the client's
+    // booking list / the lawyer's incoming requests (screen key stays
+    // 'konsultasi' internally) — since the center slot became Hang Out.
+    {key:'konsultasi', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, badge:konsultasiBadge},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
-  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil','cari-hangout-hasil'].includes(state.screen) ? 'home' : state.screen;
+  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil'].includes(state.screen) ? 'home' : state.screen;
   return `
   <div class="bottomnav">
-    ${items.map(i=>`
-      <button class="navitem ${activeKey===i.key?'active':''}" style="position:relative;" onclick="${i.soon ? `comingSoon('${i.label}')` : `goScreen('${i.key}')`}">
+    ${items.map(i => i.fab ? `
+      <button class="navitem fab ${state.showHangoutFilterSheet || state.screen==='cari-hangout-hasil' ? 'active' : ''}" style="position:relative;" onclick="openHangoutFromNav()">
+        <span class="fab-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${i.icon}</svg></span>
+        ${i.label}
+      </button>` : `
+      <button class="navitem ${activeKey===i.key?'active':''}" style="position:relative;" onclick="goScreen('${i.key}')">
         ${navBadge(i.badge || 0)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${i.icon}</svg>
         ${i.label}
       </button>`).join('')}
   </div>`;
+}
+
+// Center "Hang Out" tab: opens the same filter sheet as the Pilih Layanan
+// tile, from whichever screen the client is on.
+function openHangoutFromNav(){
+  state.mode = 'klien';
+  state.showAllServices = false;
+  openHangoutSearchFilter();
 }
 
 function goScreen(s){
