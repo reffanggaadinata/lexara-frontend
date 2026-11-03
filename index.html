@@ -480,6 +480,8 @@
   .bi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
   .status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;}
   .status-pending_approval{background:var(--gold-pale);color:var(--gold);}
+  .status-pending_reschedule{background:var(--gold-pale);color:var(--gold);}
+  .status-expired{background:#ECEAE4;color:var(--ink-soft);}
   .status-pending_payment{background:var(--gold-pale);color:var(--gold);}
   .status-confirmed{background:var(--sage-pale);color:var(--sage);}
   .status-ongoing{background:var(--sage-pale);color:var(--sage);}
@@ -811,6 +813,16 @@
   .pay-opt-t small{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
   .pay-sim{margin-top:16px;font-size:12px;color:var(--ink-soft);background:var(--gold-pale);border-radius:10px;padding:10px 12px;}
   .pay-err{margin-top:10px;font-size:12.5px;color:var(--danger);}
+  .req-alt{background:#fff;border:1.3px solid var(--gold)!important;color:var(--gold);}
+  .request-actions button.req-alt{flex:1.4;}
+  .prop-form{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+  .prop-form label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-soft);margin:0 0 4px;}
+  .prop-form input{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;margin-bottom:10px;background:#fff;}
+  .resched-box{background:var(--gold-pale);border-left:3px solid var(--gold);border-radius:8px;padding:10px 12px;margin:10px 0;}
+  .resched-box .rb-t{font-size:12px;color:var(--ink-soft);}
+  .resched-box .rb-time{font-weight:800;font-size:15px;color:var(--navy);margin:2px 0;}
+  .resched-box .rb-note{font-size:12.5px;font-style:italic;}
+  .resched-box .rb-sub{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
 </style>
 </head>
 <body>
@@ -1097,6 +1109,8 @@ const BANNER_SLIDES = [
 
 const STATUS_LABEL = {
   pending_approval: 'Menunggu persetujuan pengacara',
+  pending_reschedule: 'Jadwal baru diusulkan',
+  expired: 'Kedaluwarsa',
   pending_payment: 'Menunggu pembayaran',
   confirmed: 'Terjadwal',
   ongoing: 'Berlangsung',
@@ -1188,6 +1202,7 @@ const state = {
   lastPaymentRedirect: null,
   payingBookingId: null,
   checkout: null,
+  proposalDraft: null,
   bookingActionId: null,      // booking currently being accepted/rejected by the lawyer
 
   myBookings: [],
@@ -3582,6 +3597,50 @@ async function rejectBookingRequest(bookingId){
   }
 }
 
+/* ---- Usulkan jam lain (pengacara) & jawaban klien ---- */
+function toLocalInputValue(d){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());
+}
+function openProposalForm(bookingId){
+  const b = state.myBookings.find(x => x.id === bookingId);
+  const base = new Date(Math.max(Date.now(), b ? new Date(b.scheduledAt).getTime() : Date.now()) + 3600*1000);
+  base.setMinutes(0,0,0);
+  state.proposalDraft = { bookingId, at: toLocalInputValue(base), note: '', error: null };
+  render();
+}
+function closeProposalForm(){ state.proposalDraft = null; render(); }
+async function submitProposal(){
+  const d = state.proposalDraft;
+  if(!d) return;
+  const when = new Date(d.at);
+  if(!d.at || isNaN(when) || when.getTime() <= Date.now()){
+    d.error = 'Pilih tanggal dan jam di masa depan.'; render(); return;
+  }
+  state.bookingActionId = d.bookingId; d.error = null; render();
+  try{
+    await api('/bookings/' + d.bookingId + '/propose', { method:'PATCH', body:{ proposedAt: when.toISOString(), note: d.note.trim() || undefined } });
+    state.proposalDraft = null;
+    await loadMyBookings();
+  }catch(e){
+    if(state.proposalDraft) state.proposalDraft.error = e.message;
+  }finally{
+    state.bookingActionId = null; render();
+  }
+}
+async function answerProposalClient(bookingId, accept){
+  if(!accept && !confirm('Tolak usulan jadwal ini? Permintaan akan dibatalkan.')) return;
+  state.bookingActionId = bookingId; render();
+  try{
+    await api('/bookings/' + bookingId + '/proposal/' + (accept ? 'accept' : 'decline'), { method:'PATCH' });
+    await loadMyBookings();
+  }catch(e){
+    alert('Gagal mengirim jawaban: ' + e.message);
+  }finally{
+    state.bookingActionId = null; render();
+  }
+}
+
 function methodLabel(m){
   return m==='chat' ? 'chat' : m==='video' ? 'video call' : 'tatap muka';
 }
@@ -3635,8 +3694,8 @@ function renderKonsultasi(){
   // Opening this screen counts as "seeing" whatever's currently loaded, so
   // the bottom-nav badge for it clears (see navBadge() / getSeenBookingSet()).
   if(!state.myBookingsLoading) markBookingsSeen(state.myBookings);
-  const upcoming = state.myBookings.filter(b => ['pending_approval','pending_payment','confirmed','ongoing'].includes(b.status));
-  const history = state.myBookings.filter(b => ['completed','cancelled','rejected'].includes(b.status));
+  const upcoming = state.myBookings.filter(b => ['pending_approval','pending_reschedule','pending_payment','confirmed','ongoing'].includes(b.status));
+  const history = state.myBookings.filter(b => ['completed','cancelled','rejected','expired'].includes(b.status));
 
   let body;
   if(state.myBookingsLoading){
@@ -3682,11 +3741,19 @@ function renderKonsultasi(){
 function bookingTimeline(b, name){
   const ev = [];
   ev.push({ at: b.createdAt, title: 'Permintaan Dikirim', sub: 'Menunggu ' + name + ' menerima' });
-  if(b.respondedAt){
+  if(b.proposedAt){
+    ev.push({ at: b.respondedAt, title: 'Jadwal Baru Diusulkan', sub: formatDateTime(b.proposedAt) + (b.proposalNote ? ' · ' + b.proposalNote : '') });
+    if(b.proposalAnsweredAt){
+      ev.push(b.status === 'cancelled'
+        ? { at: b.proposalAnsweredAt, title: 'Usulan Jadwal Ditolak Klien', sub: '', tone: 'bad' }
+        : { at: b.proposalAnsweredAt, title: 'Jadwal Baru Disetujui', sub: 'Menunggu pembayaran' });
+    }
+  }else if(b.respondedAt){
     ev.push(b.status === 'rejected'
       ? { at: b.respondedAt, title: 'Ditolak Pengacara', sub: name, tone: 'bad' }
       : { at: b.respondedAt, title: 'Disetujui Pengacara', sub: 'Menunggu pembayaran' });
   }
+  if(b.status === 'expired') ev.push({ at: new Date(new Date(b.proposedAt ? b.respondedAt : b.createdAt).getTime() + 24*3600*1000).toISOString(), title: 'Kedaluwarsa', sub: 'Tidak dijawab dalam 24 jam', tone: 'bad' });
   if(b.payment && b.payment.paidAt){
     ev.push({ at: b.payment.paidAt, title: 'Pembayaran Berhasil', sub: formatRupiah(b.price), tone: 'good' });
   }
@@ -3719,6 +3786,20 @@ function renderBookingItem(b){
       <div class="bi-actions"><button class="btn btn-outline" style="flex:1;" onclick="openReviewForm('${b.id}')">Beri Ulasan</button></div>`;
   }else if(isClientView && b.status === 'pending_approval'){
     actions = `<div class="review-text" style="margin-top:8px;color:var(--ink-soft);">Menunggu ${name} menerima permintaan ini.</div>`;
+  }else if(isClientView && b.status === 'pending_reschedule'){
+    actions = `
+      <div class="resched-box">
+        <div class="rb-t">${name} mengusulkan jadwal baru</div>
+        <div class="rb-time">${formatDateTime(b.proposedAt)}</div>
+        ${b.proposalNote ? `<div class="rb-note">“${b.proposalNote}”</div>` : ''}
+        <div class="rb-sub">Jadwal Anda semula: ${formatDateTime(b.scheduledAt)}</div>
+      </div>
+      <div class="bi-actions">
+        <button class="btn btn-outline" style="flex:1;" ${state.bookingActionId===b.id?'disabled':''} onclick="answerProposalClient('${b.id}', false)">Tolak</button>
+        <button class="btn btn-gold" style="flex:1;" ${state.bookingActionId===b.id?'disabled':''} onclick="answerProposalClient('${b.id}', true)">${state.bookingActionId===b.id ? '…' : 'Setuju'}</button>
+      </div>`;
+  }else if(!isClientView && b.status === 'pending_reschedule'){
+    actions = `<div class="review-text" style="margin-top:8px;color:var(--ink-soft);">Menunggu klien menjawab usulan jam ${formatDateTime(b.proposedAt)}.</div>`;
   }else if(isClientView && b.status === 'pending_payment'){
     actions = `<div class="bi-actions"><button class="btn btn-gold" style="flex:1;" ${state.payingBookingId===b.id?'disabled':''} onclick="payForBooking('${b.id}')">
       ${state.payingBookingId===b.id ? 'Memproses…' : 'Bayar Sekarang'}</button></div>`;
@@ -4197,10 +4278,23 @@ function renderLawyerDashboard(){
           </div>
           <div class="request-actions">
             <button class="req-reject" ${state.bookingActionId===b.id?'disabled':''} onclick="rejectBookingRequest('${b.id}')">Tolak</button>
+            <button class="req-alt" ${state.bookingActionId===b.id?'disabled':''} onclick="openProposalForm('${b.id}')">Usulkan Jam Lain</button>
             <button class="req-accept" ${state.bookingActionId===b.id?'disabled':''} onclick="acceptBookingRequest('${b.id}')">
               ${state.bookingActionId===b.id ? '…' : 'Terima'}
             </button>
           </div>
+          ${state.proposalDraft && state.proposalDraft.bookingId === b.id ? `
+          <div class="prop-form">
+            <label>Usulkan tanggal &amp; jam</label>
+            <input type="datetime-local" value="${state.proposalDraft.at}" min="${toLocalInputValue(new Date())}" onchange="state.proposalDraft.at=this.value">
+            <label>Catatan untuk klien (opsional)</label>
+            <input type="text" maxlength="200" placeholder="Mis. jam itu saya sedang sidang" value="${state.proposalDraft.note.replace(/"/g,'&quot;')}" oninput="state.proposalDraft.note=this.value">
+            ${state.proposalDraft.error ? `<div class="pay-err" style="margin:0 0 8px;">${state.proposalDraft.error}</div>` : ''}
+            <div class="request-actions">
+              <button class="req-reject" style="border-color:var(--line)!important;color:var(--ink-soft);" onclick="closeProposalForm()">Batal</button>
+              <button class="req-accept" ${state.bookingActionId===b.id?'disabled':''} onclick="submitProposal()">${state.bookingActionId===b.id ? '…' : 'Kirim Usulan'}</button>
+            </div>
+          </div>` : ''}
         </div>`).join('')}
       ` : ''}
 
@@ -4592,6 +4686,8 @@ async function pollForBookingUpdates(){
         notifyNewActivity('Permintaan konsultasi baru', (b.client ? b.client.fullName : 'Klien') + ' mengajukan konsultasi.');
       }else if(!isLawyer && b.status === 'pending_payment'){
         notifyNewActivity('Permintaan diterima', (b.lawyer ? b.lawyer.user.fullName : 'Pengacara') + ' menerima permintaan Anda — lanjutkan pembayaran.');
+      }else if(!isLawyer && b.status === 'pending_reschedule'){
+        notifyNewActivity('Usulan jadwal baru', (b.lawyer ? b.lawyer.user.fullName : 'Pengacara') + ' mengusulkan jam lain untuk konsultasi Anda.');
       }else if(!isLawyer && b.status === 'rejected'){
         notifyNewActivity('Permintaan ditolak', (b.lawyer ? b.lawyer.user.fullName : 'Pengacara') + ' tidak dapat menerima permintaan Anda.');
       }
