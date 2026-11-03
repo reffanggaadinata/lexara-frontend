@@ -796,6 +796,21 @@
   .legal-step{margin-left:auto;font-size:12px;color:var(--ink-soft);font-weight:600;}
   .consent-bar{position:sticky;bottom:0;z-index:3;background:#fff;box-shadow:0 -2px 12px rgba(21,32,64,.10);padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));margin-top:auto;flex-shrink:0;}
   .consent-bar .consent-check{margin:0 0 10px;}
+  .pay-group{font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin:18px 2px 8px;}
+  .pay-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 14px;}
+  .pay-row{display:flex;justify-content:space-between;gap:16px;padding:10px 0;font-size:13px;border-bottom:1px solid var(--line);}
+  .pay-row:last-child{border-bottom:none;}
+  .pay-row span{color:var(--ink-soft);}
+  .pay-row b{text-align:right;color:var(--navy);font-weight:600;}
+  .pay-row.total{font-size:15px;}
+  .pay-row.total b{font-weight:800;}
+  .pay-opt{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer;}
+  .pay-opt:last-child{border-bottom:none;}
+  .pay-radio{width:20px;height:20px;border-radius:50%;border:2px solid #C5CAD6;flex-shrink:0;box-sizing:border-box;}
+  .pay-opt.on .pay-radio{border:6px solid var(--navy);}
+  .pay-opt-t small{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .pay-sim{margin-top:16px;font-size:12px;color:var(--ink-soft);background:var(--gold-pale);border-radius:10px;padding:10px 12px;}
+  .pay-err{margin-top:10px;font-size:12.5px;color:var(--danger);}
 </style>
 </head>
 <body>
@@ -1172,6 +1187,7 @@ const state = {
   lastBooking: null,
   lastPaymentRedirect: null,
   payingBookingId: null,
+  checkout: null,
   bookingActionId: null,      // booking currently being accepted/rejected by the lawyer
 
   myBookings: [],
@@ -1440,6 +1456,8 @@ function render(){
   // The pengacara dashboard takes over the whole screen except when the
   // lawyer has drilled into the profile-completion form — that form needs
   // its own back button rather than the dashboard's fixed layout.
+  if(state.checkout){ setAppHtml(app, renderCheckout()); return; }
+
   if(state.mode === 'pengacara' && state.screen !== 'lawyer-profile-form'){
     setAppHtml(app, renderLawyerDashboard() + renderBottomNav());
     return;
@@ -3436,21 +3454,103 @@ async function confirmBooking(){
   }
 }
 
-// Called from the client's "Konsultasi Saya" list once a booking has been
-// approved by the lawyer (status === 'pending_payment'). Kicks off the same
-// Midtrans redirect the old instant-booking flow used to trigger right away.
-async function payForBooking(bookingId){
-  state.payingBookingId = bookingId;
-  render();
+// ---- Checkout (pembayaran) --------------------------------------------
+// Dibuka dari tombol "Bayar Sekarang" pada pesanan berstatus pending_payment.
+// MODE SIMULASI: pembayaran dikonfirmasi lewat POST /payments/simulate (aktif
+// selama MIDTRANS_IS_PRODUCTION bukan true). Saat Midtrans asli dipasang,
+// ganti payCheckout() agar memanggil /payments/initiate dan membuka Snap.
+const PAY_METHODS = [
+  { group:'QRIS', items:[ { id:'qris', label:'QRIS', sub:'Scan dari aplikasi bank / e-wallet apa pun' } ] },
+  { group:'Virtual Account', items:[
+    { id:'va_bca', label:'BCA Virtual Account' }, { id:'va_mandiri', label:'Mandiri Virtual Account' },
+    { id:'va_bni', label:'BNI Virtual Account' }, { id:'va_bri', label:'BRI Virtual Account' } ] },
+  { group:'E-Wallet', items:[
+    { id:'gopay', label:'GoPay' }, { id:'ovo', label:'OVO' }, { id:'dana', label:'DANA' }, { id:'shopeepay', label:'ShopeePay' } ] },
+];
+function payMethodLabel(id){
+  for(const g of PAY_METHODS) for(const it of g.items) if(it.id === id) return it.label;
+  return id || '—';
+}
+function payForBooking(bookingId){
+  const b = (state.myBookings || []).find(x => x.id === bookingId);
+  if(!b) return;
+  state.checkout = { bookingId, booking: b, method: 'qris', processing: false, paid: null, error: null };
+  render(); resetScreenScroll();
+}
+function selectPayMethod(id){
+  if(!state.checkout || state.checkout.processing) return;
+  state.checkout.method = id; render();
+}
+function closeCheckout(){
+  state.checkout = null; render(); resetScreenScroll();
+  loadMyBookings();
+}
+async function payCheckout(){
+  const c = state.checkout;
+  if(!c || c.processing) return;
+  c.processing = true; c.error = null; render();
   try{
-    const paymentResult = await api('/payments/initiate', { method:'POST', body:{ bookingId } });
-    if(paymentResult.redirectUrl) window.open(paymentResult.redirectUrl, '_blank');
+    await new Promise(r => setTimeout(r, 900)); // jeda singkat agar terasa seperti memproses
+    const res = await api('/payments/simulate', { method:'POST', body:{ bookingId: c.bookingId, paymentMethod: c.method } });
+    c.paid = { at: (res && res.payment && res.payment.paidAt) || new Date().toISOString(), method: c.method };
   }catch(e){
-    alert('Gagal memulai pembayaran: ' + e.message);
+    c.error = e.message || 'Pembayaran gagal. Coba lagi.';
   }finally{
-    state.payingBookingId = null;
-    render();
+    c.processing = false; render(); resetScreenScroll();
   }
+}
+function renderCheckout(){
+  const c = state.checkout, b = c.booking;
+  const name = b.lawyer ? b.lawyer.user.fullName : '—';
+  const back = `<button class="legal-back" onclick="closeCheckout()" aria-label="Kembali"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>`;
+  if(c.paid){
+    return `
+    <div class="screen active" style="display:flex;flex-direction:column;">
+      <div class="confirm-wrap">
+        <div class="confirm-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4F7358" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div class="confirm-title">Pembayaran Berhasil</div>
+        <div class="confirm-text">Jadwal konsultasi Anda dengan <b>${name}</b> sudah dikonfirmasi.</div>
+        <div class="pay-card" style="width:100%;margin:0 0 18px;">
+          <div class="pay-row"><span>No. Pesanan</span><b>#${String(b.id).slice(0,8).toUpperCase()}</b></div>
+          <div class="pay-row"><span>Metode</span><b>${payMethodLabel(c.paid.method)}</b></div>
+          <div class="pay-row"><span>Waktu bayar</span><b>${formatTrackTime(c.paid.at)}</b></div>
+          <div class="pay-row total"><span>Total dibayar</span><b>${formatRupiah(b.price)}</b></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;flex:none;" onclick="closeCheckout(); goToKonsultasi();">Lihat Aktivitas</button>
+      </div>
+    </div>`;
+  }
+  const groups = PAY_METHODS.map(g => `
+    <div class="pay-group">${g.group}</div>
+    <div class="pay-card">
+      ${g.items.map(it => `
+        <label class="pay-opt ${c.method===it.id?'on':''}" onclick="selectPayMethod('${it.id}')">
+          <span class="pay-radio"></span>
+          <span class="pay-opt-t">${it.label}${it.sub ? `<small>${it.sub}</small>` : ''}</span>
+        </label>`).join('')}
+    </div>`).join('');
+  return `
+  <div class="screen active" style="display:flex;flex-direction:column;">
+    <div class="legal-head">${back}<div class="legal-title">Pembayaran</div></div>
+    <div class="legal-body" style="padding-bottom:20px;">
+      <div class="pay-group" style="margin-top:0;">Rincian Pesanan</div>
+      <div class="pay-card">
+        <div class="pay-row"><span>No. Pesanan</span><b>#${String(b.id).slice(0,8).toUpperCase()}</b></div>
+        <div class="pay-row"><span>Pengacara</span><b>${name}</b></div>
+        <div class="pay-row"><span>Metode</span><b>${methodLabelTitle(b.method)}</b></div>
+        <div class="pay-row"><span>Jadwal</span><b>${formatDateTime(b.scheduledAt)}</b></div>
+        ${b.note ? `<div class="pay-row"><span>Catatan</span><b>${b.note}</b></div>` : ''}
+        <div class="pay-row total"><span>Total</span><b>${formatRupiah(b.price)}</b></div>
+      </div>
+      <div class="pay-group">Pilih Metode Pembayaran</div>
+      ${groups}
+      <div class="pay-sim">Mode simulasi: belum terhubung ke Midtrans, tidak ada uang yang ditarik.</div>
+      ${c.error ? `<div class="pay-err">${c.error}</div>` : ''}
+    </div>
+    <div class="consent-bar">
+      <button class="btn btn-gold" style="width:100%;flex:none;" ${c.processing ? 'disabled' : ''} onclick="payCheckout()">${c.processing ? 'Memproses…' : 'Bayar ' + formatRupiah(b.price)}</button>
+    </div>
+  </div>`;
 }
 
 /* ---- Lawyer side: accept / reject an incoming request ---- */
