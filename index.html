@@ -840,6 +840,45 @@
   .chat-compose textarea{flex:1;resize:none;max-height:110px;border:1px solid var(--line);border-radius:18px;padding:10px 14px;font:inherit;font-size:14px;background:#fff;box-sizing:border-box;}
   .chat-send{width:42px;height:42px;border-radius:50%;border:none;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
   .chat-ended{text-align:center;font-size:13px;color:var(--ink-soft);}
+  /* ---- Alur Layanan ---- */
+  .fl-entry{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1.5px solid var(--gold);border-radius:var(--radius-s);padding:13px 14px;margin-bottom:14px;cursor:pointer;box-shadow:0 2px 8px rgba(22,35,63,.08);}
+  .fl-entry-t{font-weight:700;color:var(--navy);font-size:14px;}.fl-entry-s{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .fl-badge{background:var(--danger);color:#fff;border-radius:11px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;padding:0 6px;}
+  .fl-chev{font-size:22px;color:var(--gold);}
+  .fl-item{background:#fff;border:1px solid var(--line);border-radius:var(--radius-s);padding:11px 13px;margin-bottom:8px;cursor:pointer;}
+  .fl-item-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:13.5px;}
+  .fl-item-sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .fl-pill{font-size:10.5px;font-weight:700;border-radius:10px;padding:3px 8px;background:#ECEAE3;color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+  .fl-pill.on{background:var(--gold-pale);color:var(--navy);}
+  .fl-empty{font-size:13px;color:var(--ink-soft);padding:10px 2px;}
+  .fl-note{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:6px;font-size:13px;}
+  .fl-note.unread{border-color:var(--gold);background:var(--gold-pale);}
+  .fl-note small{display:block;color:var(--ink-soft);font-size:10.5px;margin-top:3px;}
+  .fl-banner{background:#fff;border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:8px;padding:9px 12px;margin-bottom:8px;font-size:12.5px;}
+  .fl-banner.warn{border-left-color:var(--gold);background:var(--gold-pale);}
+  .fl-kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:4px 0;border-bottom:1px dashed var(--line);}
+  .fl-kv span{color:var(--ink-soft);}
+  .fl-btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;align-items:center;}
+  .fl-btns .btn{flex:1 1 auto;padding:10px 14px;font-size:13px;}
+  .fl-offer{background:#fff;border:1px solid var(--line);border-radius:var(--radius-s);padding:11px 13px;margin-bottom:8px;}
+  .fl-offer.pending{border-color:var(--gold);}
+  .fl-form{background:var(--gold-pale);border-radius:var(--radius-s);padding:12px;margin:10px 0;}
+  .fl-termin{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+  .fl-termin input{min-width:0;flex:1;}
+  .fl-termin input[type=number]{flex:0 0 110px;}
+  .fl-sum{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;}
+  .fl-warn{font-size:12px;background:#FFF3E0;color:#8A5300;border-radius:8px;padding:7px 10px;margin:6px 0;}
+  .fl-tiers{display:grid;gap:8px;}
+  .fl-tier{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:var(--radius-s);padding:10px 12px;font-family:inherit;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:2px 8px;}
+  .fl-tier.on{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy);}
+  .fl-tier small{grid-column:1 / -1;color:var(--ink-soft);font-size:11.5px;}
+  .fl-seg{display:flex;gap:8px;}.fl-seg button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:8px;font-family:inherit;font-weight:600;cursor:pointer;}
+  .fl-seg button.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .fl-doc{white-space:pre-wrap;font-family:inherit;font-size:12.5px;background:#FAF8F3;border:1px solid var(--line);border-radius:8px;padding:10px;max-height:260px;overflow:auto;}
+  .fl-ms{background:#fff;border:1px solid var(--line);border-radius:var(--radius-s);padding:11px 13px;margin-bottom:8px;}
+  .fl-ms.accepted{opacity:.8;}
+  .fl-stars{display:flex;gap:4px;margin-bottom:6px;}.fl-stars button{background:none;border:none;font-size:28px;color:#CFCAB9;cursor:pointer;padding:0 2px;}.fl-stars button.on{color:var(--gold);}
+  .fl-msgs{min-height:160px;max-height:320px;background:#FAF8F3;border:1px solid var(--line);border-radius:10px;}
 </style>
 </head>
 <body>
@@ -1496,6 +1535,7 @@ function render(){
     return;
   }
   if(state.checkout){ setAppHtml(app, renderCheckout()); return; }
+  if(state.flow){ setAppHtml(app, renderFlow()); if(state.flow && state.flow.view === 'conv') flowPaintMsgs(false); return; }
 
   if(state.mode === 'pengacara' && state.screen !== 'lawyer-profile-form'){
     setAppHtml(app, renderLawyerDashboard() + renderBottomNav());
@@ -1624,9 +1664,11 @@ function afterLogin(){
   state.screen = 'home';
   render();
   loadLawyers();
+  flowSyncConsent(); flowRefreshBadge();
 }
 
 function logout(){
+  stopFlowPoll(); state.flow = null; state.flowUnread = 0;
   clearSession();
   // Selama masa development: setelah keluar, tampilkan lagi Privasi + S&K.
   // Hapus 3 baris ini kalau persetujuan cukup sekali per perangkat.
@@ -3359,6 +3401,7 @@ function renderDetail(){
     </div>
     <div class="cta-bar">
       <button class="btn btn-outline" onclick="goHome()">Kembali</button>
+      ${(state.bookingServiceNote||'').indexOf('Hang Out') === 0 ? '' : `<button class="btn btn-gold" onclick="startFlowConversation()">Obrolan Berbayar</button>`}
       <button class="btn btn-primary" onclick="startBooking()">Ajukan Konsultasi</button>
     </div>
   </div>`;
@@ -3667,12 +3710,16 @@ function closeChat(){
 async function chatFetch(initial){
   const c = state.chat;
   if(!c) return;
+  // Jangan menumpuk permintaan bila server sedang lambat, dan hemat saat tab tersembunyi.
+  if(c.fetching) return;
+  if(!initial && typeof document !== 'undefined' && document.hidden) return;
+  c.fetching = true;
   try{
     const last = c.messages.length ? c.messages[c.messages.length-1].createdAt : null;
     const url = '/bookings/' + c.bookingId + '/messages' + (!initial && last ? '?after=' + encodeURIComponent(last) : '');
     const res = await api(url);
     if(state.chat !== c) return;
-    c.booking = res.booking;
+    c.booking = Object.assign({}, c.booking || {}, res.booking);
     const known = new Set(c.messages.map(m => m.id));
     const fresh = (res.messages || []).filter(m => !known.has(m.id));
     // buang pesan sementara (optimistic) yang sudah digantikan pesan asli
@@ -3681,6 +3728,7 @@ async function chatFetch(initial){
   }catch(e){
     if(initial){ c.error = e.message; }
   }finally{
+    c.fetching = false;
     if(state.chat === c){ c.loading = false; if(document.getElementById('chat-root')) updateChatDom(); else render(); }
   }
 }
@@ -3938,6 +3986,7 @@ function renderKonsultasi(){
       <div style="font-size:12px;color:#C8D1E3;margin-top:2px;">Pantau status permintaan konsultasi Anda</div>
     </div>
     <div class="content" style="padding-top:18px;">
+      ${flowEntryCard()}
       ${body}
     </div>
   </div>`;
@@ -4467,6 +4516,7 @@ function renderLawyerDashboard(){
     </div>
     ${verifBadge}
     <div class="content" style="padding-top:14px;padding-bottom:40px;">
+      ${flowEntryCard()}
       ${p.verificationStatus !== 'verified' ? `
         <div class="error-box" style="background:var(--gold-pale);color:var(--navy);">
           Profil Anda belum tampil di pencarian klien sampai admin menyetujui verifikasi.
@@ -4910,6 +4960,509 @@ async function pollForBookingUpdates(){
 }
 
 /* ============================================================
+   Alur Layanan (Panduan Developer v0.1) — Lawyer / Notaris / Konsultan
+   Obrolan berbayar -> penawaran -> PKS -> pekerjaan per termin -> umpan balik / sengketa.
+   Alur lama (booking) tetap berjalan berdampingan, mis. untuk Hang Out.
+============================================================ */
+const FLOW_CONV_STATUS = {
+  payment_pending:'Menunggu pembayaran', awaiting_mitra:'Menunggu respons Mitra', active_discussion:'Diskusi aktif',
+  offer_pending:'Negosiasi penawaran', agreement:'PKS menunggu tanda tangan', closed:'Ditutup'
+};
+const FLOW_CLOSED_REASON = {
+  no_response:'Mitra tidak merespons — biaya dikembalikan', declined:'Ditolak Mitra', cancelled:'Dibatalkan', payment_expired:'Pembayaran kedaluwarsa',
+  agreement_expired:'Batas tanda tangan PKS habis', discussion_expired:'Diskusi berakhir', customer_idle:'Ditutup karena tidak ada aktivitas'
+};
+const FLOW_ENG_STATUS = {
+  awaiting_first_payment:'Menunggu pendanaan termin 1', in_progress:'Sedang berjalan', on_hold:'Dijeda', awaiting_addendum:'Menunggu adendum',
+  awaiting_review:'Menunggu tinjauan', feedback:'Jendela umpan balik', completed:'Selesai', closed:'Ditutup', suspended:'Ditangguhkan (izin Mitra)', disputed_closed:'Ditutup (sengketa)'
+};
+const FLOW_MS_STATUS = { pending:'Belum mulai', active:'Dikerjakan', awaiting_review:'Menunggu tinjauan', accepted:'Diterima', disputed:'Disengketakan' };
+const FLOW_TIERS = [
+  { key:'ringan', label:'Ringan', desc:'Pertanyaan singkat, satu topik' },
+  { key:'menengah', label:'Menengah', desc:'Beberapa dokumen / pertanyaan' },
+  { key:'kompleks', label:'Kompleks', desc:'Perkara atau transaksi besar' },
+];
+const FLOW_FEES = { ringan:50000, menengah:100000, kompleks:200000 };
+
+function flEsc(t){ return escChat(t == null ? '' : t); }
+function flDate(iso){ return iso ? formatDateTime(iso) : '—'; }
+async function fl(path, opts){ return api('/flow' + path, opts); }
+function flSet(k, v){ if(state.flow) state.flow.draft[k] = v; }
+function flSetRender(k, v){ if(state.flow){ state.flow.draft[k] = v; render(); } }
+function flDraft(k, d){ const v = state.flow && state.flow.draft[k]; return v === undefined ? (d === undefined ? '' : d) : v; }
+
+/* ---------- navigasi ---------- */
+function flowOpen(view, extra){
+  const prev = state.flow;
+  stopFlowPoll();
+  state.flow = Object.assign({ view, draft:{}, error:null, busy:false, msgs:[], back:null }, extra || {});
+  if(prev && prev.view && view !== 'inbox' && !state.flow.back) state.flow.back = { view: prev.view, id: prev.id };
+  render(); resetScreenScroll();
+}
+function flowClose(){ stopFlowPoll(); state.flow = null; render(); }
+function flowBack(){
+  const f = state.flow; if(!f) return;
+  const b = f.back;
+  if(f.view === 'inbox' || !b){ flowClose(); return; }
+  if(b.view === 'conv') openFlowConv(b.id, true);
+  else if(b.view === 'eng') openFlowEng(b.id, true);
+  else openFlowInbox();
+}
+function stopFlowPoll(){ const f = state.flow; if(f && f.poll){ clearInterval(f.poll); f.poll = null; } }
+
+/* ---------- inbox ---------- */
+async function openFlowInbox(){
+  flowOpen('inbox', { convs:[], engs:[], notifs:null, loading:true });
+  await flowLoadInbox();
+}
+async function flowLoadInbox(){
+  const f = state.flow; if(!f || f.view !== 'inbox') return;
+  try{
+    const [convs, engs, notifs] = await Promise.all([fl('/conversations'), fl('/engagements'), fl('/notifications')]);
+    f.convs = convs; f.engs = engs; f.notifs = notifs; f.error = null;
+    state.flowUnread = notifs.unread;
+  }catch(e){ f.error = e.message; }
+  f.loading = false; render();
+}
+async function flowMarkRead(){ try{ await fl('/notifications/read', { method:'POST' }); state.flowUnread = 0; if(state.flow && state.flow.notifs){ state.flow.notifs.unread = 0; state.flow.notifs.items.forEach(i => i.readAt = i.readAt || new Date().toISOString()); } render(); }catch(e){} }
+async function flowRefreshBadge(){
+  if(!state.token || !state.user) return;
+  if(typeof document !== 'undefined' && document.hidden) return;
+  try{ const n = await fl('/notifications'); const old = state.flowUnread || 0; state.flowUnread = n.unread; if(n.unread > old && n.items[0]) notifyNewActivity(n.items[0].title, n.items[0].body); if(n.unread !== old && !state.flow) render(); }catch(e){}
+}
+function flowEntryCard(){
+  const n = state.flowUnread || 0;
+  return `<div class="fl-entry" onclick="openFlowInbox()">
+    <div><div class="fl-entry-t">Obrolan &amp; Pekerjaan</div><div class="fl-entry-s">Konsultasi berbayar, penawaran, PKS, dan progres pekerjaan</div></div>
+    ${n ? `<span class="fl-badge">${n}</span>` : `<span class="fl-chev">›</span>`}
+  </div>`;
+}
+function flHead(title, sub){
+  return `<div class="legal-head">
+    <button class="legal-back" onclick="flowBack()" aria-label="Kembali"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div style="min-width:0;flex:1;"><div class="legal-title" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${flEsc(title)}</div>${sub ? `<div class="chat-sub">${flEsc(sub)}</div>` : ''}</div>
+  </div>`;
+}
+function flErr(){ const f = state.flow; return f && f.error ? `<div class="error-box" style="white-space:pre-wrap;">${flEsc(f.error)}</div>` : ''; }
+
+function renderFlowInbox(){
+  const f = state.flow;
+  const act = f.convs.filter(c => c.status !== 'closed');
+  const done = f.convs.filter(c => c.status === 'closed');
+  const item = (c) => `<div class="fl-item" onclick="openFlowConv('${c.id}')">
+    <div class="fl-item-top"><b>${flEsc(c.title)}</b><span class="fl-pill ${c.status==='closed'?'':'on'}">${FLOW_CONV_STATUS[c.status]||c.status}</span></div>
+    <div class="fl-item-sub">${c.myRole==='client' ? flEsc(c.mitraName) : flEsc(c.clientName)} · ${flEsc(c.practiceArea)} · ${formatRupiah(c.feeAmount)}${c.status==='closed' && c.closedReason ? ' · ' + flEsc(FLOW_CLOSED_REASON[c.closedReason]||c.closedReason) : ''}</div>
+  </div>`;
+  const eitem = (e) => `<div class="fl-item" onclick="openFlowEng('${e.id}')">
+    <div class="fl-item-top"><b>${flEsc(e.title)}</b><span class="fl-pill on">${FLOW_ENG_STATUS[e.status]||e.status}</span></div>
+    <div class="fl-item-sub">${e.myRole==='client' ? flEsc(e.mitraName) : flEsc(e.clientName)}</div>
+  </div>`;
+  const notifs = f.notifs ? f.notifs.items.slice(0, 8) : [];
+  return `<div class="screen active" style="display:flex;flex-direction:column;">
+    ${flHead('Obrolan & Pekerjaan')}
+    <div class="content" style="padding-top:14px;">
+      ${flErr()}
+      ${f.loading ? '<div class="loading-state">Memuat…</div>' : `
+      ${f.engs.length ? `<div class="section-title">Pekerjaan</div>${f.engs.map(eitem).join('')}` : ''}
+      <div class="section-title" style="margin-top:${f.engs.length?18:0}px;">Obrolan berjalan</div>
+      ${act.length ? act.map(item).join('') : '<div class="fl-empty">Belum ada obrolan. Buka profil Mitra lalu pilih “Obrolan Berbayar”.</div>'}
+      ${done.length ? `<div class="section-title" style="margin-top:18px;">Riwayat</div>${done.map(item).join('')}` : ''}
+      ${notifs.length ? `<div class="section-title" style="margin-top:18px;display:flex;justify-content:space-between;align-items:center;">Notifikasi ${f.notifs.unread ? `<button class="btn-link" onclick="flowMarkRead()">Tandai dibaca</button>` : ''}</div>
+        ${notifs.map(n => `<div class="fl-note ${n.readAt?'':'unread'}" ${n.refKind?`onclick="flowOpenRef('${n.refKind}','${n.refId}')"`:''}><b>${flEsc(n.title)}</b><div>${flEsc(n.body)}</div><small>${flDate(n.createdAt)}</small></div>`).join('')}` : ''}
+      `}
+    </div>
+  </div>`;
+}
+function flowOpenRef(kind, id){ if(kind === 'conversation') openFlowConv(id); else if(kind === 'engagement') openFlowEng(id); }
+
+/* ---------- buat obrolan baru ---------- */
+function startFlowConversation(){
+  const l = state.selectedLawyerDetail; if(!l) return;
+  const area = (l.specializations && l.specializations[0]) || 'Umum';
+  flowOpen('new', { mitra:{ id:l.id, name:l.name, areas:l.specializations || [] }, back:{ view:'detail' },
+    draft:{ tier:'menengah', service: state.lawyerKind || 'lawyer', practiceArea: area, urgent:false, safety:'tidak' } });
+}
+function renderFlowNew(){
+  const f = state.flow, m = f.mitra, fee = FLOW_FEES[flDraft('tier','menengah')];
+  return `<div class="screen active" style="display:flex;flex-direction:column;">
+    <div class="legal-head"><button class="legal-back" onclick="flowCancelNew()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="legal-title">Obrolan Berbayar</div></div>
+    <div class="content" style="padding-top:14px;padding-bottom:30px;">
+      ${flErr()}
+      <div class="about-box" style="margin-bottom:14px;"><b>${flEsc(m.name)}</b><div style="font-size:12px;color:var(--ink-soft);margin-top:3px;">Anda membayar <b>Biaya Platform</b> untuk membuka obrolan. Honor Mitra dibicarakan terpisah di dalam obrolan.</div></div>
+      <div class="field"><label>Jenis layanan</label>
+        <select onchange="flSet('service', this.value)">${[['lawyer','Lawyer'],['notaris','Notaris'],['konsultan','Konsultan']].map(([k,v]) => `<option value="${k}" ${flDraft('service')===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div class="field"><label>Bidang</label>
+        <select onchange="flSet('practiceArea', this.value)">${(m.areas.length?m.areas:['Umum']).map(a => `<option ${flDraft('practiceArea')===a?'selected':''}>${flEsc(a)}</option>`).join('')}</select></div>
+      <div class="field"><label>Tingkat kompleksitas</label>
+        <div class="fl-tiers">${FLOW_TIERS.map(t => `<button class="fl-tier ${flDraft('tier')===t.key?'on':''}" onclick="flSetRender('tier','${t.key}')"><b>${t.label}</b><span>${formatRupiah(FLOW_FEES[t.key])}</span><small>${t.desc}</small></button>`).join('')}</div></div>
+      <div class="field"><label>Judul singkat</label><input value="${flEsc(flDraft('title'))}" maxlength="150" placeholder="mis. Sengketa sewa ruko" oninput="flSet('title', this.value)"></div>
+      <div class="field"><label>Ceritakan kebutuhan Anda</label><textarea rows="5" maxlength="5000" placeholder="Jelaskan kronologi atau dokumen yang Anda miliki (min. 10 karakter)" oninput="flSet('brief', this.value)">${flEsc(flDraft('brief')).replace(/<br>/g,'\n')}</textarea></div>
+      <div class="field"><label>Pihak lawan (opsional)</label><input value="${flEsc(flDraft('opposing'))}" placeholder="Nama orang / perusahaan — untuk cek benturan kepentingan" oninput="flSet('opposing', this.value)">
+        <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">Disamarkan bagi Mitra sampai ia menekan “Cek konflik”.</div></div>
+      <div class="field"><label style="display:flex;gap:8px;align-items:center;font-weight:600;"><input type="checkbox" style="width:auto;" ${flDraft('urgent')?'checked':''} onchange="flSetRender('urgent', this.checked)"> Mendesak (Mitra diminta membalas dalam 2 jam aktif)</label></div>
+      <div class="field"><label>Apakah ada ancaman terhadap keselamatan Anda atau keluarga?</label>
+        <div class="fl-seg"><button class="${flDraft('safety')==='tidak'?'on':''}" onclick="flSetRender('safety','tidak')">Tidak</button><button class="${flDraft('safety')==='ya'?'on':''}" onclick="flSetRender('safety','ya')">Ya</button></div>
+        ${flDraft('safety')==='ya' ? '<div class="fl-warn">Jika dalam bahaya, hubungi 112 / 110 lebih dulu. Mitra akan melihat penanda perkara sensitif.</div>' : ''}</div>
+      <div class="fl-sum"><span>Biaya Platform</span><b>${formatRupiah(fee)}</b></div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin:6px 0 14px;">Dikembalikan otomatis bila Mitra tidak merespons dalam batas waktu, menolak sebelum pembahasan inti, atau Anda membatalkan sebelum ada balasan.</div>
+      <button class="btn btn-primary" style="width:100%;" ${f.busy?'disabled':''} onclick="submitFlowNew()">${f.busy?'Memproses…':'Lanjut ke Pembayaran'}</button>
+    </div></div>`;
+}
+function flowCancelNew(){ state.flow = null; render(); }
+async function submitFlowNew(){
+  const f = state.flow, d = f.draft;
+  if(!d.title || d.title.trim().length < 3){ f.error = 'Isi judul singkat (min. 3 karakter).'; render(); return; }
+  if(!d.brief || d.brief.trim().length < 10){ f.error = 'Ceritakan kebutuhan Anda (min. 10 karakter).'; render(); return; }
+  f.busy = true; f.error = null; render();
+  try{
+    const c = await fl('/conversations', { method:'POST', body:{
+      mitraId:f.mitra.id, service:d.service, practiceArea:d.practiceArea, tier:d.tier, title:d.title.trim(), brief:d.brief.trim(),
+      opposingParty:(d.opposing||'').trim() || undefined, urgent:!!d.urgent, safetyAnswer:d.safety } });
+    flowOpen('conv', { id:c.id, conv:c, back:{ view:'inbox' } }); flowStartConvPoll(); flowLoadMsgs(true);
+  }catch(e){ f.busy = false; f.error = e.message; render(); }
+}
+
+/* ---------- detail obrolan ---------- */
+async function openFlowConv(id, keepBack){
+  const back = keepBack ? null : undefined;
+  flowOpen('conv', { id, conv:null, loading:true, back: state.flow && state.flow.view === 'inbox' ? { view:'inbox' } : (state.flow && state.flow.back) || { view:'inbox' } });
+  await flowLoadConv();
+  flowStartConvPoll();
+  flowLoadMsgs(true);
+}
+async function flowLoadConv(){
+  const f = state.flow; if(!f || f.view !== 'conv') return;
+  try{ f.conv = await fl('/conversations/' + f.id); f.error = null; }catch(e){ f.error = e.message; }
+  f.loading = false;
+  if(!flowTyping()) render();
+}
+function flowTyping(){ const a = document.activeElement; return !!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.closest('#app')); }
+function flowStartConvPoll(){
+  const f = state.flow; if(!f) return;
+  f.poll = setInterval(async () => {
+    if(document.hidden || f.pollBusy) return; f.pollBusy = true;
+    try{ await flowLoadMsgs(false); const sig = JSON.stringify(f.conv && [f.conv.status, f.conv.actions, f.conv.offers && f.conv.offers.length, f.conv.agreement && [f.conv.agreement.clientSignedAt, f.conv.agreement.mitraSignedAt], f.conv.engagementId]);
+      const c = await fl('/conversations/' + f.id); const s2 = JSON.stringify([c.status, c.actions, c.offers.length, c.agreement && [c.agreement.clientSignedAt, c.agreement.mitraSignedAt], c.engagementId]);
+      f.conv = c; if(s2 !== sig && !flowTyping()) render(); }catch(e){} finally{ f.pollBusy = false; }
+  }, 4000);
+}
+async function flowLoadMsgs(scroll){
+  const f = state.flow; if(!f || f.view !== 'conv') return;
+  try{
+    const last = f.msgs.length ? f.msgs[f.msgs.length-1].createdAt : null;
+    const rows = await fl('/conversations/' + f.id + '/messages' + (last ? '?after=' + encodeURIComponent(last) : ''));
+    const have = new Set(f.msgs.map(m => m.id));
+    const fresh = rows.filter(r => !have.has(r.id));
+    if(fresh.length || scroll){ f.msgs = f.msgs.concat(fresh); flowPaintMsgs(scroll === true || fresh.length > 0); }
+  }catch(e){}
+}
+function flowMsgsHtml(f){
+  if(!f.msgs.length) return '<div class="chat-empty">Belum ada pesan.</div>';
+  return f.msgs.map(m => {
+    const me = m.senderId === state.user.id;
+    return `<div class="chat-row ${me?'me':'them'}"><div class="chat-bubble">${flEsc(m.body)}<span class="chat-time">${new Date(m.createdAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</span></div></div>`;
+  }).join('');
+}
+function flowPaintMsgs(scroll){
+  const el = document.getElementById('fl-msgs'); if(!el) return;
+  const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  el.innerHTML = flowMsgsHtml(state.flow);
+  if(scroll && near || !el.dataset.init){ el.scrollTop = el.scrollHeight; el.dataset.init = '1'; }
+}
+function flHas(c, a){ return c.actions && c.actions.indexOf(a) >= 0; }
+async function flAct(fn, after){
+  const f = state.flow; if(!f || f.busy) return; f.busy = true; f.error = null; render();
+  try{ const r = await fn(); if(after) after(r); if(f.needReload){ f.needReload = false; f.conv = await fl('/conversations/' + f.id); } }catch(e){ f.error = e.message; }
+  f.busy = false; render();
+}
+function flConvCall(path, body){ return () => fl('/conversations/' + state.flow.id + path, { method:'POST', body: body || {} }); }
+function flSetConv(r){ if(r && r.id && r.actions) state.flow.conv = r; else if(r && r.conversation) state.flow.conv = r.conversation; else state.flow.needReload = true; }
+function flDoConv(path, body, confirmText){
+  if(confirmText && !confirm(confirmText)) return;
+  flAct(flConvCall(path, body), flSetConv);
+}
+function flowPayFee(){ flAct(() => fl('/conversations/' + state.flow.id + '/pay/simulate', { method:'POST', body:{ method:'simulasi' } }), flSetConv); }
+function flowSend(){
+  const f = state.flow, body = (f.draft.msg || '').trim(); if(!body || f.sending) return;
+  f.sending = true; f.draft.msg = ''; const ta = document.getElementById('fl-msg'); if(ta) ta.value = '';
+  fl('/conversations/' + f.id + '/messages', { method:'POST', body:{ body } })
+    .then(() => flowLoadMsgs(true).then(() => flowLoadConv()))
+    .catch(e => { f.draft.msg = body; f.error = e.message; render(); })
+    .finally(() => { f.sending = false; });
+}
+function flowDeadlineText(iso){ return iso ? 'Batas: ' + flDate(iso) : ''; }
+
+function renderFlowConv(){
+  const f = state.flow, c = f.conv;
+  if(f.loading || !c) return `<div class="screen active" style="display:flex;flex-direction:column;">${flHead('Memuat…')}<div class="content">${flErr()}<div class="loading-state">Memuat obrolan…</div></div></div>`;
+  const other = c.myRole === 'client' ? c.mitraName : c.clientName;
+  const st = c.engagementId ? 'Pekerjaan berjalan' : (FLOW_CONV_STATUS[c.status] || c.status);
+  let banner = '';
+  if(c.status === 'payment_pending') banner = `<div class="fl-banner warn"><b>Bayar Biaya Platform ${formatRupiah(c.fee.amount)}</b><div>Obrolan baru dikirim ke Mitra setelah pembayaran. ${flowDeadlineText(c.fee.expiresAt)}</div></div>`;
+  else if(c.status === 'awaiting_mitra') banner = `<div class="fl-banner"><b>${c.myRole==='mitra' ? 'Pelanggan menunggu balasan Anda' : 'Menunggu Mitra merespons'}</b><div>${flowDeadlineText(c.deadlineAt)} (jam aktif 08.00–20.00 waktu Mitra). Biaya dikembalikan otomatis bila tidak ada respons.</div></div>`;
+  else if(c.status === 'closed') banner = `<div class="fl-banner"><b>Obrolan ditutup</b><div>${flEsc(FLOW_CLOSED_REASON[c.closedReason]||c.closedReason||'')}${c.fee.status==='refunded' ? ' · Biaya Platform dikembalikan.' : ''}</div></div>`;
+  else if(c.deadlineAt && (c.status==='active_discussion' || c.status==='offer_pending')) banner = `<div class="fl-banner"><div>Diskusi berakhir: ${flDate(c.deadlineAt)}${c.extended?' (sudah diperpanjang)':''}</div></div>`;
+  if(c.safetyFlag) banner += `<div class="fl-banner warn"><b>Perkara sensitif</b><div>Pelanggan menandai ada ancaman keselamatan. Utamakan keselamatan; hubungi 112/110 bila darurat.</div></div>`;
+
+  const showChat = c.status !== 'payment_pending' && !(c.status === 'closed' && !f.msgs.length);
+  const canSend = flHas(c, 'send');
+  const btns = [];
+  if(flHas(c,'pay')) btns.push(`<button class="btn btn-primary" onclick="flowPayFee()">Bayar ${formatRupiah(c.fee.amount)} (simulasi)</button>`);
+  if(flHas(c,'accept')) btns.push(`<button class="btn btn-primary" onclick="flDoConv('/accept')">Terima obrolan</button>`);
+  if(flHas(c,'decline')) btns.push(`<button class="btn btn-outline" onclick="flDoConv('/decline',null,'Tolak obrolan ini? Bila belum ada pembahasan inti, biaya Pelanggan dikembalikan.')">Tolak</button>`);
+  if(flHas(c,'conflict_check') && !c.conflictChecked) btns.push(`<button class="btn btn-outline" onclick="flDoConv('/conflict-check')">Cek konflik</button>`);
+  if(flHas(c,'extend')) btns.push(`<button class="btn btn-outline" onclick="flDoConv('/extend')">${c.extendRequestedBy ? 'Setujui perpanjangan' : 'Perpanjang diskusi'}</button>`);
+  if(flHas(c,'offer')) btns.push(`<button class="btn btn-gold" onclick="flowOpenOfferForm()">Ajukan penawaran</button>`);
+  if(flHas(c,'cancel')) btns.push(`<button class="btn btn-outline" onclick="flDoConv('/cancel',null,'Batalkan obrolan ini?')">Batalkan</button>`);
+  if(flHas(c,'complaint')) btns.push(`<button class="btn btn-outline" onclick="flowComplaint()">Balasan tidak bermakna</button>`);
+  if(flHas(c,'report_offplatform')) btns.push(`<button class="btn-link" onclick="flowReportOff()">Laporkan ajakan transaksi di luar platform</button>`);
+
+  return `<div class="screen active" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+    ${flHead(c.title, other + ' · ' + st)}
+    <div class="content" style="flex:1;min-height:0;overflow-y:auto;padding:12px 14px 10px;">
+      ${flErr()}${banner}
+      ${c.opposingParty ? `<div class="fl-kv"><span>Pihak lawan</span><b>${flEsc(c.opposingParty)}</b></div>` : ''}
+      <div class="fl-kv"><span>Biaya Platform</span><b>${formatRupiah(c.fee.amount)} · ${c.fee.status==='paid'?'Dibayar':c.fee.status==='refunded'?'Dikembalikan':c.fee.status==='pending'?'Belum dibayar':c.fee.status}</b></div>
+      ${c.myRole==='mitra' ? `<div class="about-box" style="margin:8px 0;"><small style="color:var(--ink-soft);">Ringkasan dari Pelanggan</small><div>${flEsc(c.brief)}</div></div>` : ''}
+      ${renderFlowOffers(c)}
+      ${renderFlowAgreement(c)}
+      ${btns.length ? `<div class="fl-btns">${btns.join('')}</div>` : ''}
+      ${showChat ? `<div class="section-title" style="margin-top:14px;">Percakapan</div>
+        <div class="chat-notice" style="border-radius:8px;margin-bottom:6px;">Bagikan identitas lengkap, nomor kontak, atau ajakan transaksi di luar platform dilarang sampai PKS aktif.</div>
+        <div class="fl-msgs chat-msgs" id="fl-msgs">${flowMsgsHtml(f)}</div>` : ''}
+    </div>
+    ${showChat && canSend ? `<div class="chat-foot"><div class="chat-compose"><textarea id="fl-msg" rows="1" placeholder="Tulis pesan…" oninput="flSet('msg', this.value)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();flowSend();}">${flEsc(flDraft('msg')).replace(/<br>/g,'\n')}</textarea>
+      <button class="chat-send" onclick="flowSend()" aria-label="Kirim"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button></div></div>` : ''}
+  </div>`;
+}
+function flowComplaint(){ const n = prompt('Jelaskan mengapa balasan Mitra tidak bermakna (maks. 24 jam setelah balasan pertama):'); if(n && n.trim().length >= 3) flDoConv('/complaint', { note:n.trim() }); }
+function flowReportOff(){ const n = prompt('Ceritakan singkat ajakan transaksi di luar platform (opsional):') ; if(n !== null) flDoConv('/report-offplatform', { note:(n||'').trim() }); }
+
+/* ---------- penawaran ---------- */
+function renderFlowOffers(c){
+  if(!c.offers || !c.offers.length) return f2offerFormHtml();
+  const list = c.offers.slice().reverse().map(o => `<div class="fl-offer ${o.status==='pending'?'pending':''}">
+    <div class="fl-item-top"><b>Tawaran v${o.version} · ${formatRupiah(o.amount)}</b><span class="fl-pill ${o.status==='pending'?'on':''}">${o.status==='pending'?'Menunggu jawaban':o.status==='confirmed'?'Disepakati':'Digantikan'}</span></div>
+    <div class="fl-item-sub">${o.mine?'Dari Anda':'Dari pihak lawan'} · ${o.durationDays} hari${o.thirdPartyCost?` · biaya pihak ketiga ${formatRupiah(o.thirdPartyCost)}`:''}</div>
+    <div style="font-size:13px;margin:4px 0;">${flEsc(o.scope)}</div>
+    <ol style="margin:4px 0 0 18px;padding:0;font-size:12.5px;">${(o.termins||[]).map(t => `<li>${flEsc(t.description)} — ${formatRupiah(t.amount)}</li>`).join('')}</ol>
+    ${o.outOfRange ? `<div class="fl-warn">Di luar rentang indikatif Mitra${o.reason?': '+flEsc(o.reason):''}</div>` : ''}
+    ${o.status==='pending' ? `<small style="color:var(--ink-soft);">Berlaku sampai ${flDate(o.expiresAt)}</small>` : ''}
+    ${o.status==='pending' && !o.mine ? `<div class="fl-btns"><button class="btn btn-primary" onclick="flDoConv('/offers/confirm',null,'Setujui tawaran ${formatRupiah(o.amount)}? PKS akan dibuat dari tawaran ini.')">Setujui</button><button class="btn btn-outline" onclick="flowOpenOfferForm(true)">Tawar balik</button></div>` : ''}
+  </div>`).join('');
+  return `<div class="section-title" style="margin-top:12px;">Penawaran <small style="font-weight:500;color:var(--ink-soft);">(maks. ${c.config.maxOfferRounds} putaran)</small></div>${list}${f2offerFormHtml()}`;
+}
+function f2offerFormHtml(){
+  const f = state.flow, d = f.offerForm; if(!d) return '';
+  const sum = d.termins.reduce((s,t) => s + (parseInt(t.amount,10)||0), 0);
+  const total = parseInt(d.amount,10) || 0;
+  const mitra = f.conv.myRole === 'mitra';
+  return `<div class="fl-form"><div class="section-title" style="margin-top:0;">${d.counter?'Tawar balik':'Penawaran baru'}</div>
+    <div class="field"><label>Total honor (Rp)</label><input type="number" inputmode="numeric" value="${d.amount}" oninput="flowOfferSet('amount', this.value)"></div>
+    <div class="field"><label>Lingkup pekerjaan</label><textarea rows="3" oninput="flowOfferSet('scope', this.value)">${flEsc(d.scope).replace(/<br>/g,'\n')}</textarea></div>
+    <div class="field"><label>Jangka waktu (hari)</label><input type="number" inputmode="numeric" value="${d.durationDays}" oninput="flowOfferSet('durationDays', this.value)"></div>
+    <div class="field"><label>Termin pembayaran</label>
+      ${d.termins.map((t,i) => `<div class="fl-termin"><input placeholder="Deskripsi termin ${i+1}" value="${flEsc(t.description)}" oninput="flowTerminSet(${i},'description',this.value)"><input type="number" inputmode="numeric" placeholder="Rp" value="${t.amount}" oninput="flowTerminSet(${i},'amount',this.value)">${d.termins.length>1?`<button class="btn-link" onclick="flowTerminDel(${i})">✕</button>`:''}</div>`).join('')}
+      <button class="btn-link" onclick="flowTerminAdd()">+ Tambah termin</button>
+      <div class="fl-sum" id="fl-termin-sum" style="margin-top:6px;"><span>Jumlah termin</span><b style="color:${sum===total?'inherit':'var(--danger)'}">${formatRupiah(sum)}${sum===total?' ✓':' (harus = total)'}</b></div></div>
+    <div class="field"><label>Biaya pihak ketiga (opsional, dana titipan)</label><input type="number" inputmode="numeric" value="${d.thirdPartyCost}" oninput="flowOfferSet('thirdPartyCost', this.value)"></div>
+    ${mitra ? `<div class="field"><label>Alasan (wajib bila di luar rentang indikatif Anda)</label><input value="${flEsc(d.reason)}" oninput="flowOfferSet('reason', this.value)"></div>` : ''}
+    <div class="fl-btns"><button class="btn btn-primary" ${f.busy?'disabled':''} onclick="flowSubmitOffer()">Kirim</button><button class="btn btn-outline" onclick="flowCloseOfferForm()">Batal</button></div></div>`;
+}
+function flowOpenOfferForm(counter){
+  const f = state.flow, p = f.conv.pendingOffer;
+  f.offerForm = p && counter ? { counter:true, amount:p.amount, scope:p.scope, durationDays:p.durationDays, termins:p.termins.map(t => ({ description:t.description, amount:t.amount })), thirdPartyCost:p.thirdPartyCost||0, reason:'' }
+                              : { counter:false, amount:'', scope:'', durationDays:30, termins:[{ description:'', amount:'' }], thirdPartyCost:0, reason:'' };
+  render();
+}
+function flowCloseOfferForm(){ state.flow.offerForm = null; render(); }
+function flowOfferSet(k, v){ state.flow.offerForm[k] = v; if(k === 'amount') flowSumRefresh(); }
+function flowTerminSet(i, k, v){ state.flow.offerForm.termins[i][k] = v; flowSumRefresh(); }
+function flowSumRefresh(){
+  const d = state.flow.offerForm, el = document.getElementById('fl-termin-sum'); if(!el) return;
+  const sum = d.termins.reduce((s,t) => s + (parseInt(t.amount,10)||0), 0), total = parseInt(d.amount,10)||0;
+  el.innerHTML = `<span>Jumlah termin</span><b style="color:${sum===total?'inherit':'var(--danger)'}">${formatRupiah(sum)}${sum===total?' ✓':' (harus = total)'}</b>`;
+}
+function flowTerminAdd(){ if(state.flow.offerForm.termins.length < 12){ state.flow.offerForm.termins.push({ description:'', amount:'' }); render(); } }
+function flowTerminDel(i){ state.flow.offerForm.termins.splice(i,1); render(); }
+function flowSubmitOffer(){
+  const d = state.flow.offerForm;
+  const body = { amount:parseInt(d.amount,10), scope:d.scope.trim(), durationDays:parseInt(d.durationDays,10),
+    termins:d.termins.map(t => ({ description:t.description.trim(), amount:parseInt(t.amount,10) })), thirdPartyCost:parseInt(d.thirdPartyCost,10)||0, reason:(d.reason||'').trim() || undefined };
+  if(!Number.isInteger(body.amount) || body.termins.some(t => !Number.isInteger(t.amount)) || !Number.isInteger(body.durationDays)){ state.flow.error = 'Isi semua nominal dan jangka waktu dengan angka.'; render(); return; }
+  flAct(() => fl('/conversations/' + state.flow.id + '/offers', { method:'POST', body }), r => { flSetConv(r); state.flow.offerForm = null; });
+}
+
+/* ---------- PKS ---------- */
+function renderFlowAgreement(c){
+  const a = c.agreement; if(!a) return '';
+  const f = state.flow, mine = c.myRole === 'client' ? a.clientSignedAt : a.mitraSignedAt, other = c.myRole === 'client' ? a.mitraSignedAt : a.clientSignedAt;
+  let body = '';
+  if(a.status === 'awaiting_signatures'){
+    body = `<div style="font-size:12.5px;margin:4px 0;">Anda: <b>${mine?'sudah tanda tangan':'belum'}</b> · Pihak lawan: <b>${other?'sudah':'belum'}</b> · batas ${flDate(a.expiresAt)}</div>
+      <button class="btn-link" onclick="flowToggleDoc()">${f.showDoc?'Sembunyikan':'Baca'} isi PKS</button>
+      ${f.showDoc ? `<pre class="fl-doc" id="fl-doc">Memuat…</pre><div style="font-size:11px;color:var(--ink-soft);">Sidik digital (SHA-256): ${a.docHash}</div>` : ''}
+      ${!mine ? `<div class="fl-sign">
+        ${c.myRole==='client' ? `<label style="display:flex;gap:8px;font-size:12.5px;margin:8px 0;"><input type="checkbox" style="width:auto;margin-top:2px;" ${flDraft('c02')?'checked':''} onchange="flSet('c02', this.checked)"> Saya setuju identitas lengkap dan dokumen saya dibuka kepada Mitra setelah PKS aktif.</label>` : ''}
+        <div class="fl-btns"><button class="btn btn-outline" onclick="flowRequestOtp()">Kirim kode OTP</button></div>
+        ${f.otpInfo ? `<div style="font-size:12px;margin:6px 0;">Kode dikirim (berlaku ${f.otpInfo.expiresInMinutes} menit).${f.otpInfo.devCode ? ` <b>Mode pengembangan — kode: ${f.otpInfo.devCode}</b>` : ''}</div>
+        <div class="fl-termin"><input inputmode="numeric" maxlength="8" placeholder="Masukkan kode OTP" value="${flEsc(flDraft('otp'))}" oninput="flSet('otp', this.value)"><button class="btn btn-primary" style="flex:none;padding:10px 16px;" onclick="flowSign()">Tanda tangani</button></div>` : ''}
+      </div>` : ''}`;
+  } else if(a.status === 'active' || c.engagementId){
+    body = `<div style="font-size:12.5px;">PKS aktif — kedua pihak sudah menandatangani.</div>`;
+  } else body = `<div style="font-size:12.5px;">Status: ${flEsc(a.status)}</div>`;
+  return `<div class="fl-offer pending" style="margin-top:12px;"><div class="fl-item-top"><b>Perjanjian Kerja Sama (PKS)</b></div>${body}
+    ${c.engagementId ? `<div class="fl-btns"><button class="btn btn-gold" onclick="openFlowEng('${c.engagementId}')">Buka pekerjaan</button></div>` : ''}</div>`;
+}
+async function flowToggleDoc(){
+  const f = state.flow; f.showDoc = !f.showDoc; render();
+  if(f.showDoc){ try{ const a = await fl('/conversations/' + f.id + '/agreement'); const el = document.getElementById('fl-doc'); if(el) el.textContent = a.docText; }catch(e){ f.error = e.message; render(); } }
+}
+function flowRequestOtp(){ flAct(() => fl('/conversations/' + state.flow.id + '/agreement/otp', { method:'POST' }), r => { state.flow.otpInfo = r; }); }
+function flowSign(){
+  const f = state.flow;
+  flAct(() => fl('/conversations/' + f.id + '/agreement/sign', { method:'POST', body:{ otp:(f.draft.otp||'').trim(), consentIdentity:!!f.draft.c02 } }), r => { flSetConv(r); f.otpInfo = null; f.draft.otp = ''; });
+}
+
+/* ---------- pekerjaan (engagement) ---------- */
+async function openFlowEng(id, keepBack){
+  const prev = state.flow;
+  flowOpen('eng', { id, eng:null, loading:true, back: prev && prev.view === 'conv' ? { view:'conv', id: prev.id } : { view:'inbox' } });
+  await flowLoadEng();
+  state.flow && state.flow.view === 'eng' && (state.flow.poll = setInterval(async () => { if(document.hidden || flowTyping()) return; await flowLoadEng(true); }, 8000));
+}
+async function flowLoadEng(quiet){
+  const f = state.flow; if(!f || f.view !== 'eng') return;
+  try{ const e = await fl('/engagements/' + f.id); const changed = JSON.stringify(e) !== JSON.stringify(f.eng); f.eng = e; if(!quiet) f.error = null; f.loading = false; if(changed && !flowTyping()) render(); else if(!quiet) render(); }
+  catch(err){ if(!quiet){ f.error = err.message; f.loading = false; render(); } }
+}
+function flEngCall(path, body){ return () => fl('/engagements/' + state.flow.id + path, { method:'POST', body: body || {} }); }
+function flSetEng(r){ if(r && r.id && r.milestones) state.flow.eng = r; }
+function flDoEng(path, body, confirmText){ if(confirmText && !confirm(confirmText)) return; flAct(flEngCall(path, body), flSetEng); }
+function flowEngRef(){ return state.flow && state.flow.eng; }
+
+function renderFlowEng(){
+  const f = state.flow, e = f.eng;
+  if(f.loading || !e) return `<div class="screen active" style="display:flex;flex-direction:column;">${flHead('Memuat…')}<div class="content">${flErr()}<div class="loading-state">Memuat pekerjaan…</div></div></div>`;
+  const A = a => e.actions.indexOf(a) >= 0;
+  const other = e.myRole === 'client' ? e.mitraName : e.clientName;
+  const unfunded = e.milestones.find(m => m.fundStatus === 'unpaid');
+  let banner = '';
+  if(e.status === 'awaiting_first_payment') banner = `<div class="fl-banner warn"><b>${e.myRole==='client'?'Danai termin 1 untuk memulai':'Menunggu Pelanggan mendanai termin 1'}</b><div>${flowDeadlineText(e.deadlineAt)}. Jika terlewat, PKS gugur.</div></div>`;
+  if(e.status === 'on_hold') banner = `<div class="fl-banner"><b>Pekerjaan dijeda</b><div>Maks. 14 hari sejak ${flDate(e.holdSince)}, setelah itu dilanjutkan otomatis.</div></div>`;
+  if(e.status === 'suspended') banner = `<div class="fl-banner warn"><b>Ditangguhkan</b><div>Izin praktik Mitra kedaluwarsa. Dana tetap aman di penampungan.</div></div>`;
+  if(e.status === 'awaiting_addendum') banner = `<div class="fl-banner"><b>Menunggu adendum</b></div>`;
+  const ms = e.milestones.map(m => {
+    const b = [];
+    if(e.myRole==='client' && m.fundStatus==='unpaid' && unfunded && unfunded.id===m.id && A('fund')) b.push(`<button class="btn btn-primary" onclick="flDoEng('/milestones/${m.seq}/fund',null,'Danai termin ${m.seq} sebesar ${formatRupiah(m.amount)}? (simulasi)')">Danai ${formatRupiah(m.amount)}</button>`);
+    if(e.myRole==='mitra' && m.status==='active' && A('complete_milestone')) b.push(`<button class="btn btn-gold" onclick="flDoEng('/milestones/${m.seq}/complete',null,'Tandai termin ${m.seq} selesai? Pelanggan punya 72 jam untuk meninjau.')">Tandai selesai</button>`);
+    if(e.myRole==='client' && m.status==='awaiting_review') b.push(`<button class="btn btn-primary" onclick="flDoEng('/milestones/${m.seq}/accept',null,'Terima hasil termin ${m.seq}? Dana ${formatRupiah(m.amount)} akan dilepas ke Mitra.')">Terima hasil</button><button class="btn btn-outline" onclick="flowOpenDispute(${m.seq})">Ajukan sengketa</button>`);
+    return `<div class="fl-ms ${m.status}"><div class="fl-item-top"><b>Termin ${m.seq}: ${flEsc(m.description)}</b><span class="fl-pill ${m.status==='accepted'?'':'on'}">${FLOW_MS_STATUS[m.status]||m.status}</span></div>
+      <div class="fl-item-sub">${formatRupiah(m.amount)} · ${m.fundStatus==='unpaid'?'belum didanai':m.fundStatus==='funded'?'dana ditahan':m.fundStatus==='released'?'dana dilepas':m.fundStatus==='refunded'?'dikembalikan':m.fundStatus}${m.status==='awaiting_review'?` · tinjau sampai ${flDate(m.reviewDeadline)} (otomatis diterima)`:''}${m.autoAccepted?' · diterima otomatis':''}</div>
+      ${b.length?`<div class="fl-btns">${b.join('')}</div>`:''}</div>`;
+  }).join('');
+  const prog = e.progress.length ? e.progress.map(p => `<div class="fl-note"><div>${flEsc(p.body)}</div><small>${flDate(p.createdAt)}</small></div>`).join('') : '<div class="fl-empty">Belum ada pembaruan.</div>';
+  const eb = [];
+  if(A('hold')) eb.push(`<button class="btn btn-outline" onclick="flDoEng('/hold',null,'Jeda pekerjaan (maks. 14 hari)?')">Jeda</button>`);
+  if(A('resume')) eb.push(`<button class="btn btn-primary" onclick="flDoEng('/resume')">Lanjutkan</button>`);
+  if(A('addendum')) eb.push(`<button class="btn btn-outline" onclick="flowAddendum()">Usul adendum</button>`);
+  if(A('dispute')) eb.push(`<button class="btn btn-outline" onclick="flowOpenDispute()">Sengketa</button>`);
+  return `<div class="screen active" style="display:flex;flex-direction:column;">
+    ${flHead(e.title, other + ' · ' + (FLOW_ENG_STATUS[e.status]||e.status))}
+    <div class="content" style="padding:12px 14px 40px;">
+      ${flErr()}${banner}
+      <div class="section-title" style="margin-top:4px;">Termin &amp; dana</div>${ms}
+      ${eb.length ? `<div class="fl-btns">${eb.join('')}</div>` : ''}
+      ${renderFlowAddendum(e)}${renderFlowDispute(e)}
+      <div class="section-title" style="margin-top:16px;">Progres</div>
+      ${A('progress') ? `<div class="field"><textarea rows="2" placeholder="Tulis pembaruan untuk Pelanggan…" oninput="flSet('prog', this.value)">${flEsc(flDraft('prog')).replace(/<br>/g,'\n')}</textarea>
+        <button class="btn btn-primary" style="margin-top:6px;" onclick="flowPostProgress()">Kirim pembaruan</button></div>` : ''}
+      ${prog}
+      ${e.myRole==='mitra' ? `<div class="section-title" style="margin-top:16px;">Catatan privat <small style="font-weight:500;color:var(--ink-soft);">(hanya Anda)</small></div>
+        <div class="field"><textarea rows="2" placeholder="Catatan internal…" oninput="flSet('note', this.value)">${flEsc(flDraft('note')).replace(/<br>/g,'\n')}</textarea><button class="btn btn-outline" style="margin-top:6px;" onclick="flowPostNote()">Simpan catatan</button></div>
+        ${(e.privateNotes||[]).map(n => `<div class="fl-note"><div>${flEsc(n.body)}</div><small>${flDate(n.createdAt)}</small></div>`).join('')}` : ''}
+      ${A('feedback') ? renderFlowFeedback(e) : ''}
+      <div class="section-title" style="margin-top:16px;">Perjanjian</div>
+      <button class="btn-link" onclick="flowToggleEngDoc()">${f.showDoc?'Sembunyikan':'Baca'} isi PKS</button>
+      ${f.showDoc ? `<pre class="fl-doc">${flEsc(e.agreement.docText)}</pre><div style="font-size:11px;color:var(--ink-soft);">SHA-256: ${e.agreement.docHash}</div>` : ''}
+    </div></div>`;
+}
+function flowToggleEngDoc(){ state.flow.showDoc = !state.flow.showDoc; render(); }
+function flowPostProgress(){ const b = (state.flow.draft.prog||'').trim(); if(!b) return; flAct(flEngCall('/progress', { body:b }), r => { flSetEng(r); state.flow.draft.prog = ''; }); }
+function flowPostNote(){ const b = (state.flow.draft.note||'').trim(); if(!b) return; flAct(flEngCall('/notes', { body:b }), r => { flSetEng(r); state.flow.draft.note = ''; }); }
+
+/* adendum */
+function renderFlowAddendum(e){
+  const a = e.addendum; if(!a || a.status !== 'pending') return '';
+  const f = state.flow, mine = e.myRole === 'client' ? a.clientSignedAt : a.mitraSignedAt;
+  return `<div class="fl-offer pending" style="margin-top:12px;"><b>Adendum diusulkan</b><div style="font-size:13px;margin:4px 0;">${flEsc(a.summary)}</div>
+    <small style="color:var(--ink-soft);">Batas tanda tangan ${flDate(a.expiresAt)} · Klien ${a.clientSignedAt?'✓':'belum'} · Mitra ${a.mitraSignedAt?'✓':'belum'}</small>
+    ${!mine ? `<div class="fl-btns"><button class="btn btn-outline" onclick="flowAddOtp()">Kirim OTP</button></div>
+      ${f.otpInfo ? `<div style="font-size:12px;">${f.otpInfo.devCode?`<b>Kode (dev): ${f.otpInfo.devCode}</b>`:'Kode terkirim.'}</div><div class="fl-termin"><input inputmode="numeric" placeholder="Kode OTP" value="${flEsc(flDraft('otp'))}" oninput="flSet('otp', this.value)"><button class="btn btn-primary" style="flex:none;padding:10px 16px;" onclick="flowAddSign()">Tanda tangani</button></div>` : ''}` : ''}</div>`;
+}
+function flowAddendum(){ const s = prompt('Jelaskan perubahan lingkup / biaya yang diusulkan:'); if(s && s.trim().length >= 5) flDoEng('/addendum', { summary:s.trim() }); }
+function flowAddOtp(){ flAct(flEngCall('/addendum/otp'), r => { state.flow.otpInfo = r; }); }
+function flowAddSign(){ const f = state.flow; flAct(flEngCall('/addendum/sign', { otp:(f.draft.otp||'').trim() }), r => { flSetEng(r); f.otpInfo = null; f.draft.otp = ''; }); }
+
+/* sengketa */
+function flowOpenDispute(seq){
+  const r = prompt('Jelaskan alasan sengketa (min. 10 karakter). Hanya termin terkait yang dibekukan; Lexara menyimpan cuplikan PKS dan progres saat ini.');
+  if(r && r.trim().length >= 10) flDoEng('/dispute', { reason:r.trim(), milestoneSeq: seq || undefined });
+}
+function renderFlowDispute(e){
+  const d = e.dispute; if(!d) return '';
+  const label = { open:'Level 1 — penyelesaian bersama (48 jam)', escalated:'Level 2 — mediasi Lexara', decided:'Diputuskan', appealed:'Banding ditinjau', resolved:'Selesai' }[d.status] || d.status;
+  const outcome = { release_to_mitra:'Dana dilepas ke Mitra', refund_to_client:'Dana dikembalikan ke Pelanggan', split:'Dana dibagi sebagian' }[d.outcome] || '';
+  return `<div class="fl-offer pending" style="margin-top:12px;"><b>Sengketa — ${label}</b>
+    <div style="font-size:13px;margin:4px 0;">${flEsc(d.reason)}</div>
+    ${d.status==='open' ? `<small>Batas Level 1: ${flDate(d.level1Deadline)}</small><div class="fl-btns"><button class="btn btn-outline" onclick="flDoEng('/dispute/escalate',null,'Naikkan ke mediasi Lexara (Level 2)?')">Naikkan ke Level 2</button></div>` : ''}
+    ${d.status==='escalated' ? `<small>Target putusan: ${flDate(d.targetDecisionAt)} (10 hari kerja)</small>` : ''}
+    ${(d.status==='decided'||d.status==='appealed'||d.status==='resolved') ? `<div class="fl-warn" style="background:var(--gold-pale);color:inherit;"><b>${outcome}</b><div>${flEsc(d.decision||'')}</div></div>` : ''}
+    ${d.status==='decided' ? `<small>Banding dapat diajukan sampai ${flDate(d.appealDeadline)}</small><div class="fl-btns"><button class="btn btn-outline" onclick="flowAppeal()">Ajukan banding</button></div>` : ''}</div>`;
+}
+function flowAppeal(){ const r = prompt('Alasan banding:'); if(r && r.trim().length >= 3) flDoEng('/dispute/appeal', { reason:r.trim() }); }
+
+/* umpan balik buta-ganda */
+function renderFlowFeedback(e){
+  const fb = e.feedback, f = state.flow;
+  const sealedNote = fb.sealed ? `<div class="fl-banner"><div>Ulasan bersifat <b>tersegel</b>: baru terbuka setelah kedua pihak mengisi atau pada hari ke-7 (${flDate(e.feedbackDeadline)}). ${fb.otherSubmitted ? 'Pihak lawan sudah mengisi.' : ''}</div></div>` : '';
+  const rating = flDraft('rating', fb.mine ? fb.mine.rating : 0);
+  const canForm = !fb.mine || fb.canEdit;
+  const mineBox = fb.mine ? `<div class="fl-note"><b>Ulasan Anda</b> · ${stars(fb.mine.rating)}<div>${flEsc(fb.mine.review||'')}</div></div>` : '';
+  const otherBox = !fb.sealed && fb.other ? `<div class="fl-note"><b>Ulasan pihak lawan</b> · ${stars(fb.other.rating)}<div>${flEsc(fb.other.review||'')}</div>${fb.other.reply?`<div style="margin-top:4px;"><i>Balasan: ${flEsc(fb.other.reply)}</i></div>`:''}</div>` : '';
+  const replyBtn = !fb.sealed && e.myRole==='mitra' && fb.other && fb.other.authorRole==='client' && !fb.other.reply ? `<button class="btn btn-outline" onclick="flowReply()">Balas ulasan (satu kali)</button>` : '';
+  const reportBtn = !fb.sealed && fb.other ? `<button class="btn-link" onclick="flowReportFb()">Laporkan ulasan</button>` : '';
+  return `<div class="section-title" style="margin-top:16px;">Umpan balik</div>${sealedNote}${mineBox}${otherBox}
+    ${canForm ? `<div class="field"><label>Beri nilai</label><div class="fl-stars">${[1,2,3,4,5].map(n => `<button class="${n<=rating?'on':''}" onclick="flSetRender('rating',${n})">★</button>`).join('')}</div>
+      <textarea rows="3" placeholder="Ulasan (opsional)" oninput="flSet('review', this.value)">${flEsc(flDraft('review', fb.mine?fb.mine.review||'':'')).replace(/<br>/g,'\n')}</textarea>
+      <button class="btn btn-primary" style="margin-top:6px;" onclick="flowSubmitFb()">${fb.mine?'Ubah (maks. 24 jam)':'Kirim umpan balik'}</button></div>` : ''}
+    <div class="fl-btns">${replyBtn}${reportBtn}</div>`;
+}
+function flowSubmitFb(){ const f = state.flow, r = flDraft('rating', f.eng.feedback.mine ? f.eng.feedback.mine.rating : 0); if(!r){ f.error = 'Pilih rating 1–5.'; render(); return; }
+  flAct(flEngCall('/feedback', { rating:r, review:flDraft('review', f.eng.feedback.mine ? f.eng.feedback.mine.review||'' : '') || undefined }), flSetEng); }
+function flowReply(){ const r = prompt('Balasan Anda (hanya satu kali):'); if(r && r.trim()) flDoEng('/feedback/reply', { reply:r.trim() }); }
+function flowReportFb(){ const n = prompt('Alasan melaporkan ulasan ini:'); if(n !== null) flAct(flEngCall('/feedback/report', { note:(n||'').trim() }), () => { alert('Laporan diterima dan akan ditinjau.'); }); }
+
+/* ---------- pemasangan ke render() ---------- */
+function renderFlow(){
+  const f = state.flow;
+  if(f.view === 'inbox') return renderFlowInbox();
+  if(f.view === 'new') return renderFlowNew();
+  if(f.view === 'conv') return renderFlowConv();
+  if(f.view === 'eng') return renderFlowEng();
+  return '';
+}
+
+async function flowSyncConsent(){
+  try{
+    if(!state.token) return;
+    const c = readLegalConsent(); if(!c.version || !c.privacyAt || !c.termsAt) return;
+    await fl('/consents', { method:'POST', body:{ docs:[ { documentKey:'privacy', version:c.version, acceptedAt:c.privacyAt }, { documentKey:'terms', version:c.version, acceptedAt:c.termsAt } ] } });
+  }catch(e){}
+}
+
+/* ============================================================
    Boot
 ============================================================ */
 loadSession();
@@ -4923,6 +5476,8 @@ if(state.token){
   // showing "terjadi kesalahan pada server" more often than before this
   // polling existed. Widen further (or drop it) if errors keep happening.
   setInterval(pollForBookingUpdates, 60000);
+  flowSyncConsent(); flowRefreshBadge();
+  setInterval(flowRefreshBadge, 60000);
 }
 startBannerAutoplay();
 </script>
