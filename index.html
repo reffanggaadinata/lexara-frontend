@@ -334,11 +334,17 @@
 
   /* Bottom nav */
   .bottomnav{
-    position:absolute;bottom:0;left:0;right:0;
-    background:#fff;border-top:1px solid var(--line);
-    display:flex;justify-content:space-around;padding:10px 0 14px;
+    position:absolute;bottom:12px;left:14px;right:14px;z-index:20;
+    background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(235,241,252,.42));
+    -webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+    border:1px solid rgba(255,255,255,.75);border-radius:28px;
+    box-shadow:0 10px 30px rgba(20,34,68,.22), 0 2px 6px rgba(20,34,68,.10), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(255,255,255,.35);
+    display:flex;justify-content:space-around;padding:9px 4px 10px;
     flex-shrink:0;
+    transition:transform .35s cubic-bezier(.22,.9,.3,1), opacity .25s ease;
+    will-change:transform;
   }
+  .bottomnav.nav-hidden{transform:translateY(calc(100% + 40px));opacity:0;pointer-events:none;}
   .navitem{
     display:flex;flex-direction:column;align-items:center;gap:3px;
     color:#A7A296;font-size:10.5px;font-weight:600;cursor:pointer;
@@ -1569,6 +1575,30 @@ function formatDateTime(iso){
 // picking a filter chip). This captures the current scroll position(s)
 // before the rebuild and restores them on the freshly-created elements
 // right after, so scrolling only happens when the client actually scrolls.
+/* Navigasi bawah melayang: sembunyi saat scroll ke bawah, muncul saat scroll ke atas. */
+(function(){
+  const last = new WeakMap();
+  function setHidden(h){
+    if(!!state.navHidden === h) return;
+    state.navHidden = h;
+    const app = document.getElementById('app'); if(!app) return;
+    const nav = app.querySelector('.bottomnav');
+    if(nav) nav.classList.toggle('nav-hidden', h);
+    app.classList.toggle('has-nav', !!nav && !h);
+  }
+  document.addEventListener('scroll', (e) => {
+    const t = e.target;
+    if(!t || !t.classList || !t.classList.contains('screen')) return;
+    const y = t.scrollTop;
+    if(!last.has(t)){ last.set(t, y); return; }
+    const d = y - last.get(t);
+    if(y < 24) setHidden(false);
+    else if(d > 8) setHidden(true);
+    else if(d < -8) setHidden(false);
+    if(Math.abs(d) > 8 || y < 24) last.set(t, y);
+  }, true);
+})();
+
 function setAppHtml(app, html){
   const screenScroll = app.querySelector('.screen.active')?.scrollTop || 0;
   const sheetScroll = app.querySelector('.sheet-body')?.scrollTop || 0;
@@ -1584,8 +1614,8 @@ function setAppHtml(app, html){
   {
     // Bilah tombol bawah (cta-bar) harus berhenti di atas navigasi bawah, bukan tertimpa.
     const nav = app.querySelector('.bottomnav');
-    app.classList.toggle('has-nav', !!nav);
-    if(nav) app.style.setProperty('--navh', (nav.offsetHeight + 18) + 'px');
+    app.classList.toggle('has-nav', !!nav && !state.navHidden);
+    if(nav){ app.style.setProperty('--navh', (nav.offsetHeight + 12 + 18) + 'px'); nav.classList.toggle('nav-hidden', !!state.navHidden); }
   }
   if(screenScroll){
     const el = app.querySelector('.screen.active');
@@ -1603,8 +1633,10 @@ function setAppHtml(app, html){
   }
 }
 
+let __lastScreenKey = null;
 function render(){
   const app = document.getElementById('app');
+  { const k = state.screen + '|' + (state.legalDoc||''); if(k !== __lastScreenKey){ __lastScreenKey = k; state.navHidden = false; } }
 
   // The full-text reader works both signed-out (from the consent screen) and
   // signed-in (from Akun), so it takes over before anything else.
