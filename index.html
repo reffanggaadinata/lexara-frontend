@@ -845,6 +845,39 @@
   .chat-send{width:42px;height:42px;border-radius:50%;border:none;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
   .chat-ended{text-align:center;font-size:13px;color:var(--ink-soft);}
   /* ---- Alur Layanan ---- */
+  .pf-hero{display:flex;gap:14px;align-items:center;padding:6px 20px 12px;}
+  .pf-av{width:64px;height:64px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font:700 22px 'Source Serif 4',Georgia,serif;flex:none;}
+  .pf-nm{font:700 19px 'Source Serif 4',Georgia,serif;color:#1F2430;}
+  .pf-sb{font-size:12.5px;color:#5B6070;margin-top:2px;}
+  .pf-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid #E0DACA;text-align:center;padding:0 6px;}
+  .pf-tab{padding:12px 0;font-size:13px;color:#7A7F8E;background:none;border:0;border-bottom:3px solid transparent;cursor:pointer;font-family:inherit;}
+  .pf-tab.on{font-weight:700;color:var(--navy);border-bottom-color:var(--gold);}
+  .pf-tl{position:relative;padding:18px 0 0;}
+  .pf-tl:before{content:"";position:absolute;left:9px;top:26px;bottom:8px;width:2px;background:#DDD6C3;}
+  .pf-row{display:flex;gap:14px;position:relative;margin-bottom:18px;}
+  .pf-dot{width:20px;height:20px;border-radius:50%;background:var(--navy);border:4px solid #F5F2EA;box-sizing:content-box;flex:none;margin-top:2px;margin-left:-4px;}
+  .pf-dot.cur{background:var(--gold);}
+  .pf-card{background:#fff;border-radius:12px;padding:12px 14px;flex:1;min-width:0;}
+  .pf-per{font-size:11.5px;font-weight:700;color:#5B6070;text-transform:uppercase;}
+  .pf-per.cur{color:var(--gold);}
+  .pf-ttl{font:700 15px 'Source Serif 4',Georgia,serif;margin-top:2px;overflow-wrap:anywhere;}
+  .pf-org{font-size:12.5px;color:#3A4052;overflow-wrap:anywhere;}
+  .pf-desc{font-size:12.5px;line-height:1.55;margin-top:6px;color:#2B3040;white-space:pre-wrap;overflow-wrap:anywhere;}
+  .pf-acts{display:flex;gap:14px;margin-top:8px;font-size:12px;font-weight:600;}
+  .pf-acts a{color:var(--navy);cursor:pointer;} .pf-acts a.del{color:#B3261E;}
+  .pf-add{display:block;width:100%;text-align:center;border:1.5px dashed var(--navy);color:var(--navy);font-weight:700;font-size:14px;padding:13px;border-radius:12px;background:none;cursor:pointer;font-family:inherit;margin-top:6px;}
+  .pf-empty{background:#fff;border-radius:12px;padding:16px;font-size:13px;color:#5B6070;margin-top:18px;}
+  .pf-bd{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:10px;}
+  .pf-bd.ok{background:#E4EEE7;color:#1E5C3D;} .pf-bd.wait{background:#FFF3E0;color:#8A5300;} .pf-bd.no{background:#FBE4E2;color:#B3261E;}
+  .pf-warn{background:#FFF3E0;color:#8A5300;border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.5;margin-top:4px;}
+  .pf-f label{display:block;font-size:12px;font-weight:600;color:#3A4052;margin-top:12px;}
+  .pf-f input[type=text],.pf-f input[type=month],.pf-f input[type=number],.pf-f input[type=date],.pf-f textarea{width:100%;box-sizing:border-box;margin-top:5px;border:1.5px solid #CFC8B5;border-radius:10px;padding:12px;font:500 14px 'Inter',sans-serif;background:#fff;}
+  .pf-f textarea{resize:none;font-weight:400;line-height:1.5;}
+  .pf-g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .pf-chk{display:flex;gap:10px;align-items:center;font-size:13px;margin-top:12px;}
+  .pf-hint{background:#EEF1F8;border-radius:10px;padding:10px 12px;font-size:12px;color:#2B3A63;line-height:1.5;margin-top:12px;}
+  .pf-foot{display:flex;gap:10px;margin-top:16px;}
+  .pf-foot button{padding:13px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
   .fl-entry{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1.5px solid var(--gold);border-radius:var(--radius-s);padding:13px 14px;margin-bottom:14px;cursor:pointer;box-shadow:0 2px 8px rgba(22,35,63,.08);}
   .fl-entry-t{font-weight:700;color:var(--navy);font-size:14px;}.fl-entry-s{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
   .fl-badge{background:var(--danger);color:#fff;border-radius:11px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;padding:0 6px;}
@@ -956,6 +989,50 @@ const SERVICE_ICONS = {
   chat: svgIcon('<path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/>'),
 };
 
+/* ============================================================
+   4 layanan baru (Alur Layanan v0.2, Bagian D): Wartawan/Media,
+   Auditor/Akuntan, Ahli Hukum, Psikolog. Sama seperti Konsultan —
+   memakai ulang LawyerProfile & endpoint /lawyers, hanya katalog
+   Specialization baru (lihat migrasi-layanan-baru.sql). Satu mesin
+   generik (svc*) melayani keempatnya.
+============================================================ */
+const SVC = {
+  wartawan: {
+    key:'cari-wartawan', screen:'cari-wartawan-hasil', label:'Cari Wartawan/Sosial Media', sheet:'Filter Wartawan/Media', near:'Wartawan Terdekat', icon:'chat', flow:'wartawan',
+    areaLabel:'Area Layanan (Paket)', groupLabel:'Paket & Deliverable', groupItemsLabel:'Jenis Paket',
+    areas:['Press Release & Copywriting','Foto Dokumentasi','Produksi & Editing Video','Manajemen Media Sosial','Paket "No Viral No Justice" (All-in-One)','Press Conference','Distribusi ke Banyak Media'],
+    top:['Konsultasi','Jasa Produksi/Kehumasan','Distribusi','Advertorial (berlabel)'],
+    group:['Penulisan press release','Foto dokumentasi','Video & editing','Konten media sosial','Paket distribusi media'],
+    note:'Pemuatan adalah keputusan redaksi; tidak ada jaminan tayang atau viral. Konten berbayar diberi label.',
+  },
+  auditor: {
+    key:'cari-auditor', screen:'cari-auditor-hasil', label:'Cari Auditor/Akuntan', sheet:'Filter Auditor/Akuntan', near:'Auditor/Akuntan Terdekat', icon:'briefcase', flow:'akuntan',
+    areaLabel:'Area', groupLabel:'Jenis Pekerjaan', groupItemsLabel:'Pilih Pekerjaan',
+    areas:['Akuntansi Korporat','Perpajakan','Akuntansi UMKM','Akuntan Publik','Keuangan Pribadi','Audit Keuangan','Audit Hukum','Audit Kepatuhan','Audit ISO/Sistem Manajemen Mutu','Audit Investigatif/Forensik','Audit Pajak'],
+    top:['Konsultasi','Pra-Audit'],
+    group:['Laporan Keuangan','Pajak','Pembukuan','Payroll','Audit Internal','Perencanaan Keuangan','Surveillance','Sertifikasi','Audit Investigatif','Audit Kepatuhan'],
+    note:'Opini atas laporan keuangan hanya oleh KAP berizin; sertifikat ISO hanya oleh lembaga sertifikasi terakreditasi.',
+  },
+  ahli: {
+    key:'cari-ahli-hukum', screen:'cari-ahli-hasil', label:'Cari Ahli Hukum', sheet:'Filter Ahli Hukum', near:'Ahli Terdekat', icon:'scale', flow:'ahli_hukum',
+    areaLabel:'Area Keahlian', groupLabel:'Bentuk Penugasan', groupItemsLabel:'Pilih Bentuk',
+    areas:['Ahli Hukum Pidana','Ahli Hukum Perdata','Ahli Hukum Tata Negara','Ahli Hukum Administrasi Negara','Ahli Hukum Bisnis & Korporasi','Ahli Hukum Ketenagakerjaan','Ahli Hukum Pertanahan','Ahli Hukum Pajak','Ahli Hukum Lingkungan','Ahli Hukum Siber & ITE','Ahli Hukum Internasional'],
+    top:['Konsultasi','Pembuktian Persidangan'],
+    group:['Telaah dokumen','Pendapat hukum tertulis','Keterangan ahli di persidangan'],
+    note:'Honor tetap dan tidak bergantung pada isi pendapat. Keterangan ahli tidak mengikat hakim.',
+  },
+  psikolog: {
+    key:'cari-psikolog', screen:'cari-psikolog-hasil', label:'Cari Psikolog', sheet:'Filter Psikolog', near:'Psikolog Terdekat', icon:'users', flow:'psikolog',
+    areaLabel:'Bidang Kompetensi', groupLabel:'Jenis Pendampingan', groupItemsLabel:'Pilih Pendampingan',
+    areas:['Psikologi Klinis Dewasa','Psikologi Anak & Remaja','Trauma & Korban Kekerasan','Psikologi Forensik','Psikologi Keluarga & Pernikahan','Psikologi Pendidikan','Psikologi Industri & Organisasi'],
+    top:['Konsultasi','Pendampingan Harian'],
+    group:['Pendampingan Persidangan','Pendampingan Lapas/Penahanan'],
+    note:'Layanan ini bukan layanan krisis 24 jam. Dalam keadaan darurat hubungi 112 atau 110.',
+  },
+};
+const SVC_KINDS = Object.keys(SVC);
+function isSvc(kind){ return !!SVC[kind]; }
+
 const SERVICE_CATALOG = [
   {
     // Tapping this tile skips the usual sub-item picker (renderLayananDetail)
@@ -979,6 +1056,7 @@ const SERVICE_CATALOG = [
     key: 'notaris-ppat', label: 'Notaris & PPAT', icon: SERVICE_ICONS.signature,
     items: [],
   },
+  ...SVC_KINDS.map(k => ({ key: SVC[k].key, label: SVC[k].label, icon: SERVICE_ICONS[SVC[k].icon], items: [], svc: k })),
   {
     // Opens its own dedicated screen (renderCariHangoutFilter): find lawyers
     // near the client's location and invite one to meet in person.
@@ -1147,6 +1225,7 @@ const KONSULTAN_JENIS_LAYANAN_DOKUMEN = [
   'Dokumen konsultasi lainnya sesuai kebutuhan klien',
 ];
 
+
 /* ============================================================
    Wilayah Kerja — Provinsi → Kota/Kabupaten (38 provinsi). Kota ditulis
    apa adanya ("Bandung"), kabupaten diberi awalan "Kab." ("Kab. Bandung").
@@ -1243,6 +1322,8 @@ const state = {
   showLawyerFilterSheet: false,  // "Cari Lawyer/Advokat" filter — overlays home, doesn't change `screen`
   showNotarisFilterSheet: false, // "Cari Notaris/PPAT" filter — same idea
   showKonsultanFilterSheet: false, // "Cari Konsultan" filter — same idea
+  showSvcFilterSheet: false,     // 4 layanan baru (Wartawan/Auditor/Ahli/Psikolog)
+  svcKind: null, svcFilter: null,
   showHangoutFilterSheet: false,   // "Hang Out" filter — same idea
   lawyers: [],
   lawyersLoading: false,
@@ -1557,6 +1638,7 @@ function render(){
   else if(state.screen === 'cari-lawyer-hasil') html = renderSearchResultsScreen('lawyer');
   else if(state.screen === 'cari-notaris-hasil') html = renderSearchResultsScreen('notaris');
   else if(state.screen === 'cari-konsultan-hasil') html = renderSearchResultsScreen('konsultan');
+  else if(SVC_KINDS.some(k => SVC[k].screen === state.screen)) html = renderSearchResultsScreen(SVC_KINDS.find(k => SVC[k].screen === state.screen));
   else if(state.screen === 'cari-hangout-hasil') html = renderSearchResultsScreen('hangout');
   else html = renderHome();
 
@@ -1570,6 +1652,7 @@ function render(){
   if(state.showLawyerFilterSheet) html += renderCariLawyerFilter();
   if(state.showNotarisFilterSheet) html += renderCariNotarisFilter();
   if(state.showKonsultanFilterSheet) html += renderCariKonsultanFilter();
+  if(state.showSvcFilterSheet) html += renderCariSvcFilter();
   if(state.showHangoutFilterSheet) html += renderCariHangoutFilter();
   setAppHtml(app, html);
   setupHomeScroll();
@@ -1827,7 +1910,7 @@ function renderHome(){
     <div id="all-lawyers" class="section-title" style="margin-top:6px;">Semua Pengacara</div>
     ${state.activeSearchFilters ? `
     <div class="active-filter-bar">
-      <span>🔎 Filter ${state.activeSearchFilters.kind === 'notaris' ? 'Notaris/PPAT' : 'Lawyer/Advokat'} aktif (${countActiveFilters(state.activeSearchFilters)} kriteria)</span>
+      <span>🔎 Filter ${isSvc(state.activeSearchFilters.kind) ? SVC[state.activeSearchFilters.kind].label.replace('Cari ','') : state.activeSearchFilters.kind === 'konsultan' ? 'Konsultan' : state.activeSearchFilters.kind === 'notaris' ? 'Notaris/PPAT' : 'Lawyer/Advokat'} aktif (${countActiveFilters(state.activeSearchFilters)} kriteria)</span>
       <span class="active-filter-actions">
         <button type="button" class="btn-link" onclick="openActiveSearchFilterEditor()">Ubah</button>
         <button type="button" class="btn-link" onclick="clearLawyerSearchFilters()">Hapus</button>
@@ -1891,6 +1974,7 @@ function openService(key){
     openKonsultanSearchFilter();
     return;
   }
+  { const sk = SVC_KINDS.find(k => SVC[k].key === key); if(sk){ openSvcSearchFilter(sk); return; } }
   if(key === 'hang-out'){
     openHangoutSearchFilter();
     return;
@@ -2021,7 +2105,7 @@ function renderSearchResultsScreen(kind){
     body = filtered.map(l => renderLawyerCard(l, kind === 'hangout' ? 'hangout' : null)).join('');
   }
 
-  const title = kind === 'notaris' ? 'Cari Notaris/PPAT' : kind === 'konsultan' ? 'Cari Konsultan' : kind === 'hangout' ? 'Hang Out' : 'Cari Lawyer/Advokat';
+  const title = isSvc(kind) ? SVC[kind].label : kind === 'notaris' ? 'Cari Notaris/PPAT' : kind === 'konsultan' ? 'Cari Konsultan' : kind === 'hangout' ? 'Hang Out' : 'Cari Lawyer/Advokat';
   const hasFilters = state.activeSearchFilters && state.activeSearchFilters.kind === kind;
 
   return `
@@ -2222,6 +2306,8 @@ function openActiveSearchFilterEditor(){
     openNotarisSearchFilter();
   }else if(kind === 'konsultan'){
     openKonsultanSearchFilter();
+  }else if(isSvc(kind)){
+    openSvcSearchFilter(kind);
   }else if(kind === 'hangout'){
     openHangoutSearchFilter();
   }else{
@@ -2631,6 +2717,8 @@ function isPresetActive(f, minField, maxField, min, max){
 // Tapping an already-active preset clears the range (acts as a toggle);
 // tapping a different one replaces min/max and updates the manual inputs too.
 function searchFilterByKind(kind){
+  if(isSvc(kind)) return state.svcFilter;
+  if(isSvc(kind)) return state.svcFilter;
   return kind === 'notaris' ? state.notarisSearchFilter : kind === 'konsultan' ? state.konsultanSearchFilter : kind === 'hangout' ? state.hangoutSearchFilter : state.lawyerSearchFilter;
 }
 // Wilayah Kerja region pickers (shared by all three filters): Provinsi, then
@@ -2762,6 +2850,9 @@ function clearAllDraftFilters(kind){
     // keep the detected location — it's not a "selection" to wipe
     state.hangoutSearchFilter.userLat = prev.userLat;
     state.hangoutSearchFilter.userLng = prev.userLng;
+  }else if(isSvc(kind)){
+    const { dokumenOpen } = state.svcFilter;
+    state.svcFilter = defaultSvcFilter(); state.svcFilter.dokumenOpen = dokumenOpen;
   }else if(kind === 'konsultan'){
     const { dokumenOpen } = state.konsultanSearchFilter;
     state.konsultanSearchFilter = defaultKonsultanSearchFilter();
@@ -2788,7 +2879,7 @@ function renderSelectedFilterChips(kind){
   // lawyer/notaris; show just the sub-bidang part so chips stay short and
   // readable. Konsultan categories are all leaf-only to begin with, so
   // there's no " – " to strip there.
-  const areaFn = kind === 'notaris' ? 'toggleNotarisAreaPraktik' : kind === 'konsultan' ? 'toggleKonsultanAreaPraktik' : 'toggleAreaPraktik';
+  const areaFn = isSvc(kind) ? 'toggleSvcArea' : kind === 'notaris' ? 'toggleNotarisAreaPraktik' : kind === 'konsultan' ? 'toggleKonsultanAreaPraktik' : 'toggleAreaPraktik';
   Array.from(f.areaPraktik).forEach(v => {
     const idx = v.lastIndexOf(' – ');
     chips.push({ text: idx >= 0 ? v.slice(idx + 3) : v, onclick: `${areaFn}('${esc(v)}')` });
@@ -2796,16 +2887,16 @@ function renderSelectedFilterChips(kind){
 
   // "Jenis Layanan" exists on "Cari Notaris/PPAT" and "Cari Konsultan" —
   // removed from "Cari Lawyer/Advokat" per the client's request.
-  if(kind === 'notaris' || kind === 'konsultan'){
-    const jenisFn = kind === 'notaris' ? 'toggleNotarisJenisLayanan' : 'toggleKonsultanJenisLayanan';
+  if(kind === 'notaris' || kind === 'konsultan' || isSvc(kind)){
+    const jenisFn = isSvc(kind) ? 'toggleSvcJenis' : kind === 'notaris' ? 'toggleNotarisJenisLayanan' : 'toggleKonsultanJenisLayanan';
     Array.from(f.jenisLayanan).forEach(v => {
       chips.push({ text: v, onclick: `${jenisFn}('${esc(v)}')` });
     });
   }
 
   if(f.wilayah === 'terdekat'){
-    const fn = kind === 'notaris' ? 'setNotarisWilayah' : kind === 'konsultan' ? 'setKonsultanWilayah' : 'setWilayah';
-    const label = kind === 'notaris' ? 'Notaris Terdekat' : kind === 'konsultan' ? 'Konsultan Terdekat' : 'Lawyer Terdekat';
+    const fn = isSvc(kind) ? 'setSvcWilayah' : kind === 'notaris' ? 'setNotarisWilayah' : kind === 'konsultan' ? 'setKonsultanWilayah' : 'setWilayah';
+    const label = isSvc(kind) ? SVC[kind].near : kind === 'notaris' ? 'Notaris Terdekat' : kind === 'konsultan' ? 'Konsultan Terdekat' : 'Lawyer Terdekat';
     chips.push({ text: label, onclick: `${fn}('semua')` });
   }
 
@@ -2824,7 +2915,7 @@ function renderSelectedFilterChips(kind){
   }
 
   if(f.gender !== 'semua'){
-    const fn = kind === 'notaris' ? 'setNotarisGender' : kind === 'konsultan' ? 'setKonsultanGender' : 'setGender';
+    const fn = isSvc(kind) ? 'setSvcGender' : kind === 'notaris' ? 'setNotarisGender' : kind === 'konsultan' ? 'setKonsultanGender' : 'setGender';
     chips.push({ text: f.gender === 'male' ? 'Laki-laki' : 'Perempuan', onclick: `${fn}('semua')` });
   }
 
@@ -3176,6 +3267,126 @@ function renderCariKonsultanFilter(){
   </div>`;
 }
 
+/* ============================================================
+   Mesin filter generik untuk 4 layanan baru (state.svcFilter)
+============================================================ */
+function flowServiceForSearch(){
+  const k = state.activeSearchFilters && state.activeSearchFilters.kind;
+  if(isSvc(k)) return SVC[k].flow;
+  return (k === 'notaris' || k === 'konsultan') ? k : 'lawyer';
+}
+function defaultSvcFilter(){
+  return { areaPraktik:new Set(), areaActiveCat:null, areaShowAll:false, jenisLayanan:new Set(), dokumenOpen:false,
+    wilayah:'semua', userLat:null, userLng:null, provinsi:'', kota:'', locating:false, locationError:null,
+    pengalamanMin:'', pengalamanMax:'', gender:'semua', biayaMin:'', biayaMax:'' };
+}
+function openSvcSearchFilter(kind){
+  const prev = state.activeSearchFilters && state.activeSearchFilters.kind === kind ? state.activeSearchFilters : null;
+  state.svcKind = kind;
+  state.svcFilter = prev ? Object.assign(defaultSvcFilter(), {
+    areaPraktik:new Set(prev.areaPraktik), jenisLayanan:new Set(prev.jenisLayanan),
+    wilayah:prev.wilayah, userLat:prev.userLat, userLng:prev.userLng, provinsi:prev.provinsi ?? '', kota:prev.kota ?? '',
+    pengalamanMin:prev.pengalamanMin ?? '', pengalamanMax:prev.pengalamanMax ?? '', gender:prev.gender ?? 'semua',
+    biayaMin:prev.biayaMin ?? '', biayaMax:prev.biayaMax ?? '' }) : defaultSvcFilter();
+  state.showSvcFilterSheet = true;
+  render();
+}
+function closeSvcSearchFilter(){ state.svcFilter = null; state.showSvcFilterSheet = false; render(); }
+function toggleSvcArea(name){ const f = state.svcFilter; f.areaPraktik.has(name) ? f.areaPraktik.delete(name) : f.areaPraktik.add(name); render(); }
+function toggleSvcJenis(v){ const f = state.svcFilter; f.jenisLayanan.has(v) ? f.jenisLayanan.delete(v) : f.jenisLayanan.add(v); render(); }
+function toggleSvcDokumenOpen(){ state.svcFilter.dokumenOpen = !state.svcFilter.dokumenOpen; render(); }
+function setSvcWilayah(mode){
+  const f = state.svcFilter; f.wilayah = mode; f.locationError = null;
+  if(mode === 'terdekat' && f.userLat === null) requestSvcUserLocation(); else render();
+}
+function requestSvcUserLocation(){
+  const f = state.svcFilter;
+  if(!navigator.geolocation){ f.locationError = 'Perangkat/browser ini tidak mendukung deteksi lokasi.'; render(); return; }
+  f.locating = true; f.locationError = null; render();
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { f.userLat = pos.coords.latitude; f.userLng = pos.coords.longitude; f.locating = false; render(); },
+    (err) => { f.locating = false; f.locationError = err.code === 1 ? 'Izin lokasi ditolak. Aktifkan izin lokasi untuk browser ini lalu coba lagi.' : 'Gagal mendapatkan lokasi. Coba lagi.'; render(); },
+    { enableHighAccuracy:true, timeout:10000 });
+}
+function setSvcGender(g){ state.svcFilter.gender = g; render(); }
+function onSvcFilterNumberInput(field, v){ state.svcFilter[field] = v; }
+function submitSvcSearchFilter(){
+  const f = state.svcFilter, kind = state.svcKind;
+  if(f.wilayah === 'terdekat' && f.userLat === null){ requestSvcUserLocation(); return; }
+  state.activeSearchFilters = { kind, areaPraktik:Array.from(f.areaPraktik), jenisLayanan:Array.from(f.jenisLayanan),
+    wilayah:f.wilayah, provinsi:f.provinsi, kota:f.kota, userLat:f.userLat, userLng:f.userLng,
+    pengalamanMin:f.pengalamanMin, pengalamanMax:f.pengalamanMax, gender:f.gender, biayaMin:f.biayaMin, biayaMax:f.biayaMax };
+  state.svcFilter = null; state.showSvcFilterSheet = false;
+  state.screen = SVC[kind].screen;
+  loadLawyers();
+}
+function renderCariSvcFilter(){
+  const f = state.svcFilter, kind = state.svcKind, c = SVC[kind];
+  const q = (v) => v.replace(/'/g, "\\'");
+  const chip = (on, fn, v) => `<button type="button" class="area-chip ${on?'active':''}" onclick="${fn}('${q(v)}')">${on ? '<span class="chip-dot"></span>' : ''}${v}</button>`;
+  const grpCount = c.group.filter(v => f.jenisLayanan.has(v)).length;
+  const grpActive = f.dokumenOpen || grpCount > 0;
+  const emergency = kind === 'psikolog' ? `<div class="error-box" style="background:var(--danger-pale);">Jika ada ancaman keselamatan sekarang, hubungi <b>112</b> (darurat) atau <b>110</b> (polisi). Layanan ini bukan layanan krisis 24 jam.</div>` : '';
+  return `
+  <div class="sheet-backdrop" onclick="closeSvcSearchFilter()"></div>
+  <div class="sheet-panel filter-sheet-panel">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div style="width:28px;"></div>
+      <div class="sheet-title" style="flex:1;text-align:center;">${c.sheet}</div>
+      <button class="sheet-close" onclick="closeSvcSearchFilter()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="sheet-body">
+      ${emergency}
+      ${renderSelectedFilterChips(kind)}
+      <div class="filter-section">
+        <div class="filter-flat-label">${c.areaLabel}</div>
+        <div class="area-chip-wrap">${c.areas.map(a => chip(f.areaPraktik.has(a), 'toggleSvcArea', a)).join('')}</div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-flat-label">Jenis Layanan</div>
+        <div class="area-chip-wrap">
+          ${c.top.map(v => chip(f.jenisLayanan.has(v), 'toggleSvcJenis', v)).join('')}
+          <button type="button" class="area-chip ${grpActive?'active':''}" onclick="toggleSvcDokumenOpen()">${grpActive ? '<span class="chip-dot"></span>' : ''}${c.groupLabel}${grpCount ? ` (${grpCount})` : ''} ${f.dokumenOpen ? '˄' : '˅'}</button>
+        </div>
+        ${f.dokumenOpen ? `<div class="chip-sub-panel"><div class="filter-flat-label">${c.groupItemsLabel}</div><div class="area-chip-wrap">${c.group.map(v => chip(f.jenisLayanan.has(v), 'toggleSvcJenis', v)).join('')}</div></div>` : ''}
+      </div>
+      <div class="filter-section"><div class="filter-flat-label">Wilayah Kerja</div>${renderWilayahSelects(kind)}</div>
+      <div class="filter-section">
+        <div class="filter-flat-label">Pengalaman</div>
+        ${renderPresetChipRow(kind, 'pengalamanMin', 'pengalamanMax', PENGALAMAN_PRESETS)}
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.pengalamanMin}" oninput="onSvcFilterNumberInput('pengalamanMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks" value="${f.pengalamanMax}" oninput="onSvcFilterNumberInput('pengalamanMax', this.value)">
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-flat-label">Jenis Kelamin</div>
+        <div class="role-toggle">
+          <button type="button" class="${f.gender==='semua'?'active':''}" onclick="setSvcGender('semua')">Semua</button>
+          <button type="button" class="${f.gender==='male'?'active':''}" onclick="setSvcGender('male')">Laki-laki</button>
+          <button type="button" class="${f.gender==='female'?'active':''}" onclick="setSvcGender('female')">Perempuan</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="filter-flat-label">Biaya Investasi (Rp / sesi chat)</div>
+        ${renderPresetChipRow(kind, 'biayaMin', 'biayaMax', LAWYER_FEE_PRESETS)}
+        <div class="filter-range-row">
+          <input type="number" min="0" placeholder="Min" value="${f.biayaMin}" oninput="onSvcFilterNumberInput('biayaMin', this.value)">
+          <span>—</span>
+          <input type="number" min="0" placeholder="Maks (cth. 1.000.000)" value="${f.biayaMax}" oninput="onSvcFilterNumberInput('biayaMax', this.value)">
+        </div>
+      </div>
+      <div class="pf-hint" style="margin-bottom:14px;">${c.note}</div>
+    </div>
+    <div class="cta-bar">
+      <button class="btn btn-outline" onclick="clearAllDraftFilters('${kind}')">Hapus</button>
+      <button class="btn btn-primary" onclick="submitSvcSearchFilter()">Lihat Hasil</button>
+    </div>
+  </div>`;
+}
+
 function renderCariHangoutFilter(){
   const f = state.hangoutSearchFilter;
   return `
@@ -3388,6 +3599,7 @@ function renderDetail(){
 
       <div class="section-title">Tentang</div>
       <div class="about-box">${l.bio || 'Belum ada deskripsi.'}</div>
+      <button class="pf-add" style="margin:10px 0 0;" onclick="openProfileView('${l.id}')">Lihat pengalaman, pendidikan &amp; sertifikat</button>
 
       <div class="section-title">Ulasan klien</div>
       <div class="about-box" style="padding:4px 14px;">
@@ -4520,6 +4732,7 @@ function renderLawyerDashboard(){
     ${verifBadge}
     <div class="content" style="padding-top:14px;padding-bottom:40px;">
       ${flowEntryCard()}
+      <div class="fl-entry" onclick="openProfileView()"><div><div class="fl-entry-t">Profil Saya</div><div class="fl-entry-s">Tentang, pengalaman, pendidikan &amp; sertifikat</div></div><span class="fl-chev">›</span></div>
       ${p.verificationStatus !== 'verified' ? `
         <div class="error-box" style="background:var(--gold-pale);color:var(--navy);">
           Profil Anda belum tampil di pencarian klien sampai admin menyetujui verifikasi.
@@ -4626,6 +4839,27 @@ function openLawyerProfileForm(){
   render();
 }
 
+// Katalog layanan non-hukum untuk formulir profil Mitra: Konsultan + 4 layanan baru.
+function profileOtherGroups(){
+  return [
+    { title:'Konsultan', areas: KONSULTAN_AREA_PRAKTIK_CATALOG.map(a => a.label), types: KONSULTAN_JENIS_LAYANAN_TOP.concat(KONSULTAN_JENIS_LAYANAN_DOKUMEN) },
+    ...SVC_KINDS.map(k => ({ title: SVC[k].label.replace('Cari ', ''), areas: SVC[k].areas, types: SVC[k].top.concat(SVC[k].group) })),
+  ];
+}
+function renderProfileOtherAreas(){
+  const f = state.profileForm, catalog = state.specializationsCatalog;
+  return profileOtherGroups().map(g => {
+    const chips = g.areas.map(n => { const spec = catalog.find(c => c.name === n); if(!spec) return ''; return `<button type="button" class="filter-chip ${f.specializationIds.has(spec.id)?'selected':''}" onclick="toggleSpec('${spec.id}')">${n}</button>`; }).join('');
+    return chips ? `<div style="font-size:12px;font-weight:700;color:var(--navy);margin:14px 0 8px;">Bidang ${g.title}</div><div class="area-cat-leaf-row" style="padding:0;">${chips}</div>` : '';
+  }).join('');
+}
+function renderProfileOtherTypes(){
+  const f = state.profileForm;
+  return `<div class="field"><label>Jenis Layanan (Konsultan, Wartawan/Media, Auditor/Akuntan, Ahli Hukum, Psikolog)</label>
+    ${profileOtherGroups().map(g => `<div style="font-size:12px;font-weight:700;color:var(--navy);margin:10px 0 6px;">${g.title}</div><div class="filter-checklist">${g.types.map(v => `<label class="filter-check-row"><input type="checkbox" ${f.serviceTypes.has(v)?'checked':''} onchange="toggleProfileServiceType('${v.replace(/'/g, "\\'")}')"><span>${v}</span></label>`).join('')}</div>`).join('')}
+  </div>`;
+}
+
 function renderLawyerProfileForm(){
   const f = state.profileForm;
   const catalog = state.specializationsCatalog;
@@ -4706,6 +4940,7 @@ function renderLawyerProfileForm(){
             </div>`;
           }).join('')}
         </div>
+        ${renderProfileOtherAreas()}
       </div>
 
       <div class="field">
@@ -4744,6 +4979,8 @@ function renderLawyerProfileForm(){
           <div style="font-size:11px;color:var(--ink-soft);margin-top:6px;">Pengacara maupun notaris/PPAT bisa memilih dari kedua daftar di atas sesuai layanan yang benar-benar ditawarkan.</div>
         </div>
       </div>
+
+      ${renderProfileOtherTypes()}
 
       <div class="field">
         <label>Lokasi (untuk pencarian "lawyer/notaris terdekat")</label>
@@ -4888,7 +5125,7 @@ function renderBottomNav(){
     {key:'konsultasi', label:'Aktivitas', icon:`<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>`, badge:konsultasiBadge},
     {key:'profil', label:'Akun', icon:`<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>`},
   ];
-  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil'].includes(state.screen) ? 'home' : state.screen;
+  const activeKey = ['home','detail','booking','confirm','layanan-detail','cari-lawyer-hasil','cari-notaris-hasil','cari-konsultan-hasil'].concat(SVC_KINDS.map(k => SVC[k].screen)).includes(state.screen) ? 'home' : state.screen;
   return `
   <div class="bottomnav">
     ${items.map(i => i.fab ? `
@@ -4921,7 +5158,7 @@ function goScreen(s){
   if(s === 'konsultasi') loadMyBookings();
   if(s === 'cakrawala') loadCakrawalaFeed();
 }
-function goHome(){ state.screen = 'home'; state.showAllServices = false; state.showLawyerFilterSheet = false; state.showNotarisFilterSheet = false; state.showKonsultanFilterSheet = false; state.showHangoutFilterSheet = false; render(); }
+function goHome(){ state.screen = 'home'; state.showAllServices = false; state.showLawyerFilterSheet = false; state.showNotarisFilterSheet = false; state.showKonsultanFilterSheet = false; state.showSvcFilterSheet = false; state.showHangoutFilterSheet = false; render(); }
 
 /* ============================================================
    Live-ish updates while the tab stays open
@@ -5006,7 +5243,7 @@ function flowClose(){ stopFlowPoll(); state.flow = null; render(); }
 function flowBack(){
   const f = state.flow; if(!f) return;
   const b = f.back;
-  if(f.view === 'inbox' || !b){ flowClose(); return; }
+  if(f.view === 'inbox' || !b || b.view === 'detail'){ flowClose(); return; }
   if(b.view === 'conv') openFlowConv(b.id, true);
   else if(b.view === 'eng') openFlowEng(b.id, true);
   else openFlowInbox();
@@ -5032,6 +5269,142 @@ async function flowRefreshBadge(){
   if(!state.token || !state.user) return;
   if(typeof document !== 'undefined' && document.hidden) return;
   try{ const n = await fl('/notifications'); const old = state.flowUnread || 0; state.flowUnread = n.unread; if(n.unread > old && n.items[0]) notifyNewActivity(n.items[0].title, n.items[0].body); if(n.unread !== old && !state.flow) render(); }catch(e){}
+}
+/* ---------- profil lengkap (Tentang | Pengalaman | Pendidikan | Sertifikat) ---------- */
+const PF_TABS=[['about','Tentang'],['exp','Pengalaman'],['edu','Pendidikan'],['cert','Sertifikat']];
+const PF_KIND={exp:'experiences',edu:'educations',cert:'certificates'};
+const PF_MON=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function pfDate(s){ const a=String(s).slice(0,10).split('-'); return a.length===3 ? (+a[2])+' '+PF_MON[+a[1]-1]+' '+a[0] : String(s); }
+function pfYm(s){ if(!s) return ''; const a=String(s).split('-'); return (PF_MON[+a[1]-1]||'')+' '+a[0]; }
+async function openProfileView(lawyerId){
+  const own = !lawyerId;
+  const l = own ? state.myLawyerProfile : state.selectedLawyerDetail;
+  if(!l) return;
+  const head = { name:l.name, spec:(l.specializations||[]).join(', ') || 'Advokat', rating:l.rating, reviews:l.reviewCount };
+  flowOpen('profile', { pf:{ own, head, tab:'exp', data:null, form:null, err:null, loading:true, aboutDraft:null }, back: own ? null : { view:'detail' } });
+  const f = state.flow;
+  try{
+    const d = own ? await fl('/profile/me') : await api('/flow/profile/lawyer/'+lawyerId, { auth:false });
+    f.pf.data = d; f.pf.aboutDraft = d.about || '';
+  }catch(e){ f.pf.err = e.message; }
+  f.pf.loading = false; if(state.flow === f) render();
+}
+function pfTab(t){ const pf=state.flow.pf; pf.tab=t; pf.form=null; pf.err=null; render(); }
+function pfNew(){
+  const pf=state.flow.pf, k=pf.tab;
+  pf.err=null;
+  pf.form = { kind:k, id:null, v: k==='exp' ? { title:'', org:'', startYm:'', endYm:'', current:false, description:'' }
+    : k==='edu' ? { school:'', degree:'', field:'', startYear:'', endYear:'' }
+    : { name:'', issuer:'', number:'', issuedYear:'', expiresAt:'' } };
+  render(); resetScreenScroll();
+}
+function pfEdit(id){
+  const pf=state.flow.pf, k=pf.tab, it=(pf.data[PF_KIND[k]]||[]).find(x=>x.id===id); if(!it) return;
+  pf.err=null;
+  const v = k==='exp' ? { title:it.title, org:it.org, startYm:it.startYm||'', endYm:it.endYm||'', current:!it.endYm, description:it.description||'' }
+    : k==='edu' ? { school:it.school, degree:it.degree, field:it.field||'', startYear:it.startYear||'', endYear:it.endYear||'' }
+    : { name:it.name, issuer:it.issuer||'', number:it.number||'', issuedYear:it.issuedYear||'', expiresAt: it.expiresAt ? String(it.expiresAt).slice(0,10) : '' };
+  pf.form = { kind:k, id, v }; render(); resetScreenScroll();
+}
+function pfSet(k, v){ const fm=state.flow.pf.form; if(fm) fm.v[k]=v; }
+function pfCount(el, n){ const c=document.getElementById('pf-cnt'); if(c) c.textContent=el.value.length+' / '+n; }
+function pfCancel(){ const pf=state.flow.pf; pf.form=null; pf.err=null; render(); }
+async function pfSave(){
+  const pf=state.flow.pf, fm=pf.form; if(!fm || pf.busy) return;
+  pf.busy=true; pf.err=null; render();
+  try{
+    const kind=PF_KIND[fm.kind], body=Object.assign({}, fm.v);
+    if(fm.kind==='exp'){ if(body.current) body.endYm=null; }
+    pf.data = await fl('/profile/'+kind+(fm.id?'/'+fm.id:''), { method: fm.id?'PUT':'POST', body });
+    pf.form=null;
+  }catch(e){ pf.err=e.message; }
+  pf.busy=false; render();
+}
+async function pfDel(id){
+  if(!confirm('Hapus data ini?')) return;
+  const pf=state.flow.pf;
+  try{ pf.data = await fl('/profile/'+PF_KIND[pf.tab]+'/'+id, { method:'DELETE' }); pf.err=null; }catch(e){ pf.err=e.message; }
+  render();
+}
+async function pfSaveAbout(){
+  const pf=state.flow.pf; if(pf.busy) return;
+  pf.busy=true; pf.err=null; render();
+  try{ pf.data = await fl('/profile/about', { method:'PUT', body:{ about: pf.aboutDraft||'' } }); pf.aboutSaved=true;
+    if(state.myLawyerProfile) state.myLawyerProfile.bio = pf.data.about; }catch(e){ pf.err=e.message; }
+  pf.busy=false; render();
+}
+function pfFormHtml(){
+  const pf=state.flow.pf, fm=pf.form, v=fm.v, E=flEsc;
+  const inp=(label,key,type,extra)=>`<div><label>${label}</label><input type="${type||'text'}" value="${E(v[key])}" ${extra||''} oninput="pfSet('${key}',this.value)"></div>`;
+  let body='', title='';
+  if(fm.kind==='exp'){
+    title = fm.id ? 'Ubah Pengalaman' : 'Tambah Pengalaman';
+    body = inp('Jabatan','title','text','maxlength="120"') + inp('Kantor / instansi','org','text','maxlength="160"')
+      + `<div class="pf-g2">${inp('Mulai','startYm','month')}${v.current ? '<div></div>' : inp('Selesai','endYm','month')}</div>`
+      + `<label class="pf-chk"><input type="checkbox" ${v.current?'checked':''} onchange="pfSet('current',this.checked);render()" style="width:18px;height:18px;"> Saya masih bekerja di sini</label>`
+      + `<div><label>Deskripsi singkat</label><textarea rows="4" maxlength="500" oninput="pfSet('description',this.value);pfCount(this,500)">${E(v.description)}</textarea><div id="pf-cnt" style="font-size:11px;color:#5B6070;text-align:right;margin-top:3px;">${(v.description||'').length} / 500</div></div>`
+      + `<div class="pf-hint">Jangan menulis nama klien atau detail perkara yang bersifat rahasia.</div>`;
+  }else if(fm.kind==='edu'){
+    title = fm.id ? 'Ubah Pendidikan' : 'Tambah Pendidikan';
+    body = inp('Institusi','school','text','maxlength="160"') + inp('Gelar (mis. S.H., M.H.)','degree','text','maxlength="60"') + inp('Bidang studi','field','text','maxlength="120"')
+      + `<div class="pf-g2">${inp('Tahun mulai','startYear','number','inputmode="numeric"')}${inp('Tahun selesai','endYear','number','inputmode="numeric"')}</div>`;
+  }else{
+    title = fm.id ? 'Ubah Sertifikat' : 'Tambah Sertifikat';
+    body = inp('Nama sertifikat / lisensi','name','text','maxlength="160"') + inp('Penerbit','issuer','text','maxlength="160"') + inp('Nomor','number','text','maxlength="80"')
+      + `<div class="pf-g2">${inp('Tahun terbit','issuedYear','number','inputmode="numeric"')}${inp('Berlaku sampai','expiresAt','date')}</div>`
+      + `<div class="pf-hint">Sertifikat baru atau yang diubah akan ditinjau admin Lexara sebelum bertanda “Terverifikasi”.</div>`;
+  }
+  return `${flHead(title)}
+  <div class="content pf-f" style="padding-top:4px;">
+    ${pf.err ? `<div class="error-box">${E(pf.err)}</div>` : ''}
+    ${body}
+    <div class="pf-foot">
+      <button style="flex:1;border:1.5px solid var(--navy);background:#fff;color:var(--navy);" onclick="pfCancel()">Batal</button>
+      <button style="flex:2;border:0;background:var(--navy);color:#fff;" ${pf.busy?'disabled':''} onclick="pfSave()">${pf.busy?'Menyimpan…':'Simpan'}</button>
+    </div>
+  </div>`;
+}
+function renderProfileView(){
+  const f=state.flow, pf=f.pf, E=flEsc;
+  if(pf.form) return `<div class="screen active" style="display:flex;flex-direction:column;">${pfFormHtml()}</div>`;
+  const h=pf.head, d=pf.data, own=pf.own;
+  const sub = h.spec + (h.rating ? ' · ★ '+Number(h.rating).toFixed(1).replace('.',',') : '') + (h.reviews ? ' · '+h.reviews+' ulasan' : '');
+  let main='';
+  if(pf.loading) main = '<div class="loading-state">Memuat profil…</div>';
+  else if(!d) main = `<div class="error-box">${E(pf.err||'Profil tidak dapat dimuat.')}</div>`;
+  else {
+    const err = pf.err ? `<div class="error-box">${E(pf.err)}</div>` : '';
+    const acts = (id)=> own ? `<div class="pf-acts"><a onclick="pfEdit('${id}')">Ubah</a><a class="del" onclick="pfDel('${id}')">Hapus</a></div>` : '';
+    const addBtn = (t)=> own ? `<button class="pf-add" onclick="pfNew()">+ ${t}</button>` : '';
+    if(pf.tab==='about'){
+      main = err + (own
+        ? `<div class="pf-f"><label>Tentang Anda</label><textarea rows="8" maxlength="2000" oninput="state.flow.pf.aboutDraft=this.value;state.flow.pf.aboutSaved=false;pfCount(this,2000)">${E(pf.aboutDraft)}</textarea>
+           <div id="pf-cnt" style="font-size:11px;color:#5B6070;text-align:right;margin-top:3px;">${(pf.aboutDraft||'').length} / 2000</div>
+           <div class="pf-foot"><button style="flex:1;border:0;background:var(--navy);color:#fff;" ${pf.busy?'disabled':''} onclick="pfSaveAbout()">${pf.busy?'Menyimpan…':(pf.aboutSaved?'Tersimpan ✓':'Simpan')}</button></div></div>`
+        : `<div class="about-box" style="margin-top:18px;white-space:pre-wrap;">${d.about ? E(d.about) : 'Belum ada deskripsi.'}</div>`);
+    }else if(pf.tab==='exp'){
+      const list=d.experiences;
+      main = err + (list.length ? `<div class="pf-tl">${list.map(x=>{ const cur=!x.endYm; return `<div class="pf-row"><span class="pf-dot ${cur?'cur':''}"></span><div class="pf-card"><div class="pf-per ${cur?'cur':''}">${E(pfYm(x.startYm))} – ${cur?'Sekarang':E(pfYm(x.endYm))}</div><div class="pf-ttl">${E(x.title)}</div><div class="pf-org">${E(x.org)}</div>${x.description?`<div class="pf-desc">${E(x.description)}</div>`:''}${acts(x.id)}</div></div>`; }).join('')}</div>`
+        : `<div class="pf-empty">${own?'Belum ada pengalaman. Tambahkan agar klien lebih percaya.':'Belum ada pengalaman yang ditampilkan.'}</div>`) + addBtn('Tambah pengalaman');
+    }else if(pf.tab==='edu'){
+      const list=d.educations;
+      main = err + (list.length ? `<div class="pf-tl">${list.map(x=>`<div class="pf-row"><span class="pf-dot"></span><div class="pf-card"><div class="pf-per">${x.startYear||''}${x.startYear&&x.endYear?' – ':''}${x.endYear||''}</div><div class="pf-ttl">${E(x.degree)}${x.field?' · '+E(x.field):''}</div><div class="pf-org">${E(x.school)}</div>${acts(x.id)}</div></div>`).join('')}</div>`
+        : `<div class="pf-empty">${own?'Belum ada riwayat pendidikan.':'Belum ada pendidikan yang ditampilkan.'}</div>`) + addBtn('Tambah pendidikan');
+    }else{
+      const list=d.certificates, today=Date.now();
+      const soon=list.filter(c=>c.expiresAt && c.status!=='rejected').map(c=>({c,days:Math.ceil((new Date(String(c.expiresAt).slice(0,10)).getTime()-today)/86400000)})).filter(x=>x.days<=90).sort((a,b)=>a.days-b.days)[0];
+      const bd=(s)=> s==='verified'?'<span class="pf-bd ok">Terverifikasi</span>' : s==='rejected'?'<span class="pf-bd no">Ditolak</span>' : '<span class="pf-bd wait">Menunggu tinjauan</span>';
+      main = err + (list.length ? `<div class="pf-tl">${list.map(x=>`<div class="pf-row"><span class="pf-dot ${x.status==='verified'?'cur':''}"></span><div class="pf-card"><div class="pf-per ${x.status==='verified'?'cur':''}">${x.expiresAt?'s.d. '+E(pfDate(x.expiresAt)):(x.issuedYear||'')}</div><div class="pf-ttl">${E(x.name)}</div><div class="pf-org">${E([x.issuer,x.number].filter(Boolean).join(' · '))}</div>${bd(x.status)}${acts(x.id)}</div></div>`).join('')}</div>`
+        : `<div class="pf-empty">${own?'Belum ada sertifikat.':'Belum ada sertifikat yang ditampilkan.'}</div>`)
+        + (own && soon ? `<div class="pf-warn" style="margin-top:12px;"><b>${soon.days<0?`“${E(soon.c.name)}” sudah berakhir.`:`“${E(soon.c.name)}” berakhir ${soon.days} hari lagi.`}</b> Perbarui agar tetap tampil di pencarian.</div>` : '') + addBtn('Tambah sertifikat');
+    }
+  }
+  return `<div class="screen active" style="display:flex;flex-direction:column;">
+    ${flHead(own?'Profil Saya':'Profil Lengkap')}
+    <div class="pf-hero"><div class="pf-av">${initials(h.name)}</div><div style="min-width:0;"><div class="pf-nm">${E(h.name)}</div><div class="pf-sb">${E(sub)}</div></div></div>
+    <div class="pf-tabs">${PF_TABS.map(t=>`<button class="pf-tab ${pf.tab===t[0]?'on':''}" onclick="pfTab('${t[0]}')">${t[1]}</button>`).join('')}</div>
+    <div class="content" style="padding-top:0;padding-bottom:40px;">${main}</div>
+  </div>`;
 }
 function flowEntryCard(){
   const n = state.flowUnread || 0;
@@ -5083,7 +5456,7 @@ function startFlowConversation(){
   const l = state.selectedLawyerDetail; if(!l) return;
   const area = (l.specializations && l.specializations[0]) || 'Umum';
   flowOpen('new', { mitra:{ id:l.id, name:l.name, areas:l.specializations || [] }, back:{ view:'detail' },
-    draft:{ tier:'menengah', service: state.lawyerKind || 'lawyer', practiceArea: area, urgent:false, safety:'tidak' } });
+    draft:{ tier:'menengah', service: flowServiceForSearch(), practiceArea: area, urgent:false, safety:'tidak' } });
 }
 function renderFlowNew(){
   const f = state.flow, m = f.mitra, fee = FLOW_FEES[flDraft('tier','menengah')];
@@ -5094,7 +5467,7 @@ function renderFlowNew(){
       ${flErr()}
       <div class="about-box" style="margin-bottom:14px;"><b>${flEsc(m.name)}</b><div style="font-size:12px;color:var(--ink-soft);margin-top:3px;">Anda membayar <b>Biaya Platform</b> untuk membuka obrolan. Honor Mitra dibicarakan terpisah di dalam obrolan.</div></div>
       <div class="field"><label>Jenis layanan</label>
-        <select onchange="flSet('service', this.value)">${[['lawyer','Lawyer'],['notaris','Notaris'],['konsultan','Konsultan']].map(([k,v]) => `<option value="${k}" ${flDraft('service')===k?'selected':''}>${v}</option>`).join('')}</select></div>
+        <select onchange="flSet('service', this.value)">${[['lawyer','Lawyer'],['notaris','Notaris'],['konsultan','Konsultan'],['akuntan','Akuntan'],['auditor','Auditor'],['psikolog','Psikolog'],['wartawan','Wartawan/Media'],['ahli_hukum','Ahli Hukum']].map(([k,v]) => `<option value="${k}" ${flDraft('service')===k?'selected':''}>${v}</option>`).join('')}</select></div>
       <div class="field"><label>Bidang</label>
         <select onchange="flSet('practiceArea', this.value)">${(m.areas.length?m.areas:['Umum']).map(a => `<option ${flDraft('practiceArea')===a?'selected':''}>${flEsc(a)}</option>`).join('')}</select></div>
       <div class="field"><label>Tingkat kompleksitas</label>
@@ -5454,6 +5827,7 @@ function renderFlow(){
   if(f.view === 'new') return renderFlowNew();
   if(f.view === 'conv') return renderFlowConv();
   if(f.view === 'eng') return renderFlowEng();
+  if(f.view === 'profile') return renderProfileView();
   return '';
 }
 
