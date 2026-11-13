@@ -845,6 +845,13 @@
   .chat-send{width:42px;height:42px;border-radius:50%;border:none;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
   .chat-ended{text-align:center;font-size:13px;color:var(--ink-soft);}
   /* ---- Alur Layanan ---- */
+  .pf-cta{display:flex;align-items:center;gap:12px;width:100%;max-width:340px;margin:16px auto 2px;padding:11px 14px 11px 12px;border-radius:16px;border:1px solid rgba(232,200,130,.55);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.06));color:#fff;cursor:pointer;font-family:inherit;text-align:left;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 6px 18px rgba(8,16,36,.28), inset 0 1px 0 rgba(255,255,255,.18);transition:transform .15s ease, background .15s ease;}
+  .pf-cta:active{transform:scale(.98);background:rgba(255,255,255,.2);}
+  .pf-cta-ic{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#D9AE5F,#B8893B);color:#1B2A4A;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 3px 8px rgba(0,0,0,.25);}
+  .pf-cta-tx{display:flex;flex-direction:column;min-width:0;flex:1;}
+  .pf-cta-tx b{font:700 14.5px 'Source Serif 4',Georgia,serif;letter-spacing:.01em;}
+  .pf-cta-tx small{font-size:11.5px;color:#D9DEE9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pf-cta-ch{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;flex:none;color:#F0D9A6;}
   .pf-hero{display:flex;gap:14px;align-items:center;padding:6px 20px 12px;}
   .pf-av{width:64px;height:64px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font:700 22px 'Source Serif 4',Georgia,serif;flex:none;}
   .pf-nm{font:700 19px 'Source Serif 4',Georgia,serif;color:#1F2430;}
@@ -3589,6 +3596,11 @@ function renderDetail(){
           <div><b>★ ${l.rating.toFixed(1)}</b> (${l.reviewCount})</div>
           <div><b>${l.yearsExperience}</b> thn pengalaman</div>
         </div>
+        <button class="pf-cta" onclick="openProfileView('${l.id}')" aria-label="Lihat pengalaman, pendidikan dan sertifikat">
+          <span class="pf-cta-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14v6M5.5 11.5v4.2c0 .9 3 2.3 6.5 2.3s6.5-1.4 6.5-2.3v-4.2"/></svg></span>
+          <span class="pf-cta-tx"><b>Profil lengkap</b><small>Pengalaman · Pendidikan · Sertifikat</small></span>
+          <span class="pf-cta-ch"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </button>
       </div>
     </div>
     <div class="content" style="padding-top:18px;">
@@ -3599,7 +3611,6 @@ function renderDetail(){
 
       <div class="section-title">Tentang</div>
       <div class="about-box">${l.bio || 'Belum ada deskripsi.'}</div>
-      <button class="pf-add" style="margin:10px 0 0;" onclick="openProfileView('${l.id}')">Lihat pengalaman, pendidikan &amp; sertifikat</button>
 
       <div class="section-title">Ulasan klien</div>
       <div class="about-box" style="padding:4px 14px;">
