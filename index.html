@@ -401,6 +401,7 @@
   .review-text{font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
   .stars{color:var(--gold);font-size:12px;letter-spacing:1px;}
 
+  #app.has-nav .screen > .cta-bar{bottom:var(--navh,89px);margin-bottom:var(--navh,89px);}
   .cta-bar{
     position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);
     padding:12px 18px 16px;display:flex;gap:10px;flex-shrink:0;
@@ -1579,6 +1580,12 @@ function setAppHtml(app, html){
   // open before this rebuild so we can skip the animation on the new nodes.
   const sheetWasOpen = !!app.querySelector('.sheet-panel');
   app.innerHTML = html;
+  {
+    // Bilah tombol bawah (cta-bar) harus berhenti di atas navigasi bawah, bukan tertimpa.
+    const nav = app.querySelector('.bottomnav');
+    app.classList.toggle('has-nav', !!nav);
+    if(nav) app.style.setProperty('--navh', (nav.offsetHeight + 18) + 'px');
+  }
   if(screenScroll){
     const el = app.querySelector('.screen.active');
     if(el) el.scrollTop = screenScroll;
