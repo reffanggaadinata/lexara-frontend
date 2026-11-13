@@ -402,6 +402,7 @@
   .stars{color:var(--gold);font-size:12px;letter-spacing:1px;}
 
   #app.has-nav .screen > .cta-bar{bottom:var(--navh,89px);margin-bottom:var(--navh,89px);}
+  .screen > .cta-bar{margin-top:auto;}
   .cta-bar{
     position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);
     padding:12px 18px 16px;display:flex;gap:10px;flex-shrink:0;
@@ -1656,7 +1657,7 @@ function render(){
   else if(state.screen === 'cari-hangout-hasil') html = renderSearchResultsScreen('hangout');
   else html = renderHome();
 
-  html += renderBottomNav();
+  if(state.screen !== 'detail') html += renderBottomNav(); // halaman profil pengacara: tanpa navigasi bawah, tombol aksi di dasar layar
   if(state.showAllServices) html += renderAllServicesSheet();
   // These two overlay whichever screen is behind them — normally 'home',
   // but also 'cari-lawyer-hasil'/'cari-notaris-hasil' when the client taps
@@ -3632,7 +3633,6 @@ function renderDetail(){
       </div>
     </div>
     <div class="cta-bar">
-      <button class="btn btn-outline" onclick="goHome()">Kembali</button>
       ${(state.bookingServiceNote||'').indexOf('Hang Out') === 0 ? '' : `<button class="btn btn-gold" onclick="startFlowConversation()">Obrolan Berbayar</button>`}
       <button class="btn btn-primary" onclick="startBooking()">Ajukan Konsultasi</button>
     </div>
