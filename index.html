@@ -705,6 +705,7 @@
   .empty-state .e-title{font-weight:700;color:var(--ink);margin-bottom:5px;font-size:14px;}
   .empty-state .e-sub{font-size:12.5px;line-height:1.5;}
   .loading-state{text-align:center;padding:50px 30px;color:var(--ink-soft);font-size:13px;}
+  .ok-box{background:#ecf7ef;border:1px solid #b9dfc4;color:#1f6b3a;border-radius:var(--radius-s);padding:10px 12px;font-size:13px;margin-bottom:12px;}
   .error-box{
     background:var(--danger-pale);color:var(--danger);border-radius:var(--radius-s);
     padding:11px 13px;font-size:12.5px;margin-bottom:14px;line-height:1.5;
@@ -1319,7 +1320,9 @@ function notifyNewActivity(title, body){
 const state = {
   token: null,
   user: null,           // {id, email, fullName, role}
-  authScreen: 'login',   // login | register
+  authScreen: 'login',   // login | register | forgot | reset
+  authInfo: null,
+  resetToken: null,
   legalDoc: null,        // 'ketentuan' | 'privasi' while the full-text reader is open
   consentChecked: false, consentStep: null, // the (unticked-by-default) T&C checkbox on the consent screen
   authError: null,
@@ -1557,7 +1560,7 @@ async function api(path, opts = {}){
   return data;
 }
 
-function initials(name){ return (name||'').split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function initials(name){ return hx((name||'').split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase()); }
 function formatRupiah(n){ return 'Rp' + Number(n||0).toLocaleString('id-ID'); }
 function stars(rating){ const full = Math.round(rating||0); return '★'.repeat(full) + '☆'.repeat(5-full); }
 function formatDateTime(iso){
@@ -1652,7 +1655,8 @@ function render(){
       setAppHtml(app, renderConsentGate());
       return;
     }
-    setAppHtml(app, state.authScreen === 'login' ? renderLogin() : renderRegister());
+    const as = state.authScreen;
+    setAppHtml(app, as === 'login' ? renderLogin() : as === 'forgot' ? renderForgot() : as === 'reset' ? renderReset() : renderRegister());
     return;
   }
 
@@ -1717,13 +1721,77 @@ function renderLogin(){
       </div>
       <div class="form-title">Masuk</div>
       <div class="form-sub">Konsultasi hukum dengan pengacara terverifikasi.</div>
-      ${state.authError ? `<div class="error-box">${state.authError}</div>` : ''}
+      ${state.authInfo ? `<div class="ok-box">${hx(state.authInfo)}</div>` : ''}
+      ${state.authError ? `<div class="error-box">${hx(state.authError)}</div>` : ''}
       <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="nama@email.com"></div>
       <div class="field"><label>Kata sandi</label><input type="password" id="login-password" placeholder="••••••••"></div>
       <button class="btn btn-primary" style="width:100%;flex:none;margin-bottom:10px;" onclick="submitLogin()">Masuk</button>
+      <div class="form-footer" style="margin-bottom:6px;"><button class="btn-link" onclick="switchAuthScreen('forgot')">Lupa kata sandi?</button></div>
       <div class="form-footer">Belum punya akun? <button class="btn-link" onclick="switchAuthScreen('register')">Daftar</button></div>
     </div>
   </div>`;
+}
+
+function renderForgot(){
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="form-wrap">
+      <div class="logo" style="font-family:'Source Serif 4',serif;font-weight:600;font-size:22px;color:var(--navy);">
+        <span style="color:var(--gold);">Lexa</span><span style="color:#000;">ra</span>
+      </div>
+      <div class="form-title">Lupa kata sandi</div>
+      <div class="form-sub">Masukkan email akun Anda. Jika terdaftar, kami kirim tautan untuk membuat kata sandi baru (berlaku 30 menit).</div>
+      ${state.authInfo ? `<div class="ok-box">${hx(state.authInfo)}</div>` : ''}
+      ${state.authError ? `<div class="error-box">${hx(state.authError)}</div>` : ''}
+      <div class="field"><label>Email</label><input type="email" id="forgot-email" placeholder="nama@email.com"></div>
+      <button class="btn btn-primary" style="width:100%;flex:none;margin-bottom:10px;" onclick="submitForgot()">Kirim tautan</button>
+      <div class="form-footer"><button class="btn-link" onclick="switchAuthScreen('login')">Kembali masuk</button></div>
+    </div>
+  </div>`;
+}
+
+function renderReset(){
+  return `
+  <div class="screen active" style="display:flex;">
+    <div class="form-wrap">
+      <div class="logo" style="font-family:'Source Serif 4',serif;font-weight:600;font-size:22px;color:var(--navy);">
+        <span style="color:var(--gold);">Lexa</span><span style="color:#000;">ra</span>
+      </div>
+      <div class="form-title">Kata sandi baru</div>
+      <div class="form-sub">Buat kata sandi baru untuk akun Anda (8–72 karakter).</div>
+      ${state.authError ? `<div class="error-box">${hx(state.authError)}</div>` : ''}
+      <div class="field"><label>Kata sandi baru</label><input type="password" id="reset-password" placeholder="Minimal 8 karakter" autocomplete="new-password"></div>
+      <div class="field"><label>Ulangi kata sandi</label><input type="password" id="reset-password2" placeholder="Ketik ulang" autocomplete="new-password"></div>
+      <button class="btn btn-primary" style="width:100%;flex:none;margin-bottom:10px;" onclick="submitReset()">Simpan kata sandi</button>
+      <div class="form-footer"><button class="btn-link" onclick="switchAuthScreen('login')">Kembali masuk</button></div>
+    </div>
+  </div>`;
+}
+
+async function submitForgot(){
+  const email = document.getElementById('forgot-email').value.trim();
+  state.authError = null; state.authInfo = null;
+  if(!email){ state.authError = 'Isi email Anda.'; render(); return; }
+  try{
+    await api('/auth/forgot', { method:'POST', auth:false, body:{ email } });
+    state.authInfo = 'Jika email terdaftar, tautan pengaturan ulang sudah dikirim. Cek kotak masuk dan folder spam.';
+  }catch(e){ state.authError = e.message; }
+  render();
+}
+
+async function submitReset(){
+  const p1 = document.getElementById('reset-password').value;
+  const p2 = document.getElementById('reset-password2').value;
+  state.authError = null;
+  if(p1.length < 8){ state.authError = 'Kata sandi minimal 8 karakter.'; render(); return; }
+  if(p1 !== p2){ state.authError = 'Kedua kata sandi tidak sama.'; render(); return; }
+  try{
+    await api('/auth/reset', { method:'POST', auth:false, body:{ token: state.resetToken, password: p1 } });
+    state.resetToken = null;
+    state.authScreen = 'login';
+    state.authInfo = 'Kata sandi berhasil diubah. Silakan masuk dengan kata sandi baru.';
+  }catch(e){ state.authError = e.message; }
+  render();
 }
 
 function renderRegister(){
@@ -1736,7 +1804,7 @@ function renderRegister(){
       </div>
       <div class="form-title">Buat Akun</div>
       <div class="form-sub">Daftar sebagai klien untuk mencari pengacara, atau sebagai pengacara untuk menerima konsultasi.</div>
-      ${state.authError ? `<div class="error-box">${state.authError}</div>` : ''}
+      ${state.authError ? `<div class="error-box">${hx(state.authError)}</div>` : ''}
       <div class="role-toggle">
         <button class="${role==='client'?'active':''}" onclick="setAuthRole('client')">Klien</button>
         <button class="${role==='lawyer'?'active':''}" onclick="setAuthRole('lawyer')">Pengacara</button>
@@ -1751,7 +1819,7 @@ function renderRegister(){
   </div>`;
 }
 
-function switchAuthScreen(s){ state.authScreen = s; state.authError = null; render(); }
+function switchAuthScreen(s){ state.authScreen = s; state.authError = null; state.authInfo = null; render(); }
 function setAuthRole(r){ state.authRole = r; render(); }
 
 async function submitLogin(){
@@ -1985,8 +2053,8 @@ function renderLawyerTile(l){
   return `
   <div class="lawyer-tile" onclick="openDetail('${l.id}')">
     <div class="avatar">${initials(l.name)}</div>
-    <div class="lt-name">${l.name}</div>
-    <div class="lt-spec">${l.specializations[0] || '—'}</div>
+    <div class="lt-name">${hx(l.name)}</div>
+    <div class="lt-spec">${hx(l.specializations[0]) || '—'}</div>
     <div class="lt-rating">★ ${l.rating.toFixed(1)}${l.distanceKm != null ? ' · ' + l.distanceKm + ' km' : ''}</div>
   </div>`;
 }
@@ -2989,7 +3057,7 @@ function renderSelectedFilterChips(kind){
       <button type="button" class="btn-link" onclick="clearAllDraftFilters('${kind}')">Hapus semua</button>
     </div>
     <div class="sfs-chips">
-      ${chips.map(c => `<span class="sfs-chip">${c.text}<button type="button" onclick="${c.onclick}">✕</button></span>`).join('')}
+      ${chips.map(c => `<span class="sfs-chip">${hx(c.text)}<button type="button" onclick="${c.onclick}">✕</button></span>`).join('')}
     </div>
   </div>`;
 }
@@ -3558,8 +3626,8 @@ function renderLawyerCard(l, mode){
   <div class="lawyer-card" onclick="openDetail('${l.id}', ${hangout ? "'hangout'" : 'null'})">
     <div class="avatar">${initials(l.name)}</div>
     <div class="lc-body">
-      <div class="lc-name">${l.name}</div>
-      <div class="lc-spec">${l.specializations.join(', ') || '—'}</div>
+      <div class="lc-name">${hx(l.name)}</div>
+      <div class="lc-spec">${hx(l.specializations.join(', ')) || '—'}</div>
       <div class="lc-meta">
         <div class="rating">★ ${l.rating.toFixed(1)} <span style="color:var(--ink-soft);font-weight:400;">(${l.reviewCount})</span></div>
         <div>${l.yearsExperience} thn pengalaman</div>
@@ -3568,7 +3636,7 @@ function renderLawyerCard(l, mode){
         ${hangout
           ? `<div class="lc-price">${formatRupiah(l.hourlyRateVideo)} <span>/ pertemuan (60 mnt)</span></div>`
           : `<div class="lc-price">${formatRupiah(l.hourlyRateChat)} <span>/ sesi chat</span></div>`}
-        <div class="tag">${l.distanceKm != null ? l.distanceKm + ' km' : l.city}</div>
+        <div class="tag">${l.distanceKm != null ? hx(l.distanceKm) + ' km' : hx(l.city)}</div>
       </div>
     </div>
   </div>`;
@@ -3630,8 +3698,8 @@ function renderDetail(){
       </div>
       <div class="detail-hero">
         <div class="avatar">${initials(l.name)}</div>
-        <div class="profile-name">${l.name}</div>
-        <div class="profile-spec">${l.specializations.join(', ')}</div>
+        <div class="profile-name">${hx(l.name)}</div>
+        <div class="profile-spec">${hx(l.specializations.join(', '))}</div>
         <div class="profile-stats">
           <div><b>★ ${l.rating.toFixed(1)}</b> (${l.reviewCount})</div>
           <div><b>${l.yearsExperience}</b> thn pengalaman</div>
@@ -3645,22 +3713,22 @@ function renderDetail(){
     </div>
     <div class="content" style="padding-top:18px;">
       <div class="info-grid">
-        <div class="info-box"><div class="label">Lokasi</div><div class="value">${l.city}</div></div>
+        <div class="info-box"><div class="label">Lokasi</div><div class="value">${hx(l.city)}</div></div>
         <div class="info-box"><div class="label">Chat / Video</div><div class="value">${formatRupiah(l.hourlyRateChat)} / ${formatRupiah(l.hourlyRateVideo)}</div></div>
       </div>
 
       <div class="section-title">Tentang</div>
-      <div class="about-box">${l.bio || 'Belum ada deskripsi.'}</div>
+      <div class="about-box">${hx(l.bio) || 'Belum ada deskripsi.'}</div>
 
       <div class="section-title">Ulasan klien</div>
       <div class="about-box" style="padding:4px 14px;">
         ${l.reviews.length === 0 ? '<div class="review-text" style="padding:10px 0;">Belum ada ulasan.</div>' : l.reviews.map(r=>`
           <div class="review">
             <div class="review-top">
-              <div class="review-name">${r.clientName}</div>
+              <div class="review-name">${hx(r.clientName)}</div>
               <div class="stars">${stars(r.rating)}</div>
             </div>
-            <div class="review-text">${r.comment || ''}</div>
+            <div class="review-text">${hx(r.comment)}</div>
           </div>`).join('')}
       </div>
     </div>
@@ -3700,7 +3768,7 @@ function renderBooking(){
       </div>
       <div class="detail-hero" style="padding-bottom:20px;">
         <div class="hero-title">Atur Konsultasi</div>
-        <div class="hero-sub">dengan ${l.name}</div>
+        <div class="hero-sub">dengan ${hx(l.name)}</div>
       </div>
     </div>
     <div class="content" style="padding-top:18px;">
@@ -3885,7 +3953,7 @@ function renderCheckout(){
         <div class="pay-row"><span>Pengacara</span><b>${name}</b></div>
         <div class="pay-row"><span>Metode</span><b>${methodLabelTitle(b.method)}</b></div>
         <div class="pay-row"><span>Jadwal</span><b>${formatDateTime(b.scheduledAt)}</b></div>
-        ${b.note ? `<div class="pay-row"><span>Catatan</span><b>${b.note}</b></div>` : ''}
+        ${b.note ? `<div class="pay-row"><span>Catatan</span><b>${hx(b.note)}</b></div>` : ''}
         <div class="pay-row total"><span>Total</span><b>${formatRupiah(b.price)}</b></div>
       </div>
       <div class="pay-group">Pilih Metode Pembayaran</div>
@@ -4057,7 +4125,11 @@ function chatBubbles(c){
     </div>`).join('');
 }
 function escChat(t){
-  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\n/g,'<br>');
+}
+// Escape penuh untuk teks buatan pengguna (tanpa mengubah baris baru). Wajib dipakai di setiap ${...} yang berisi input orang lain.
+function hx(t){
+  return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function chatFooter(c){
   const b = c.booking;
@@ -4181,7 +4253,7 @@ function renderConfirm(){
       <div class="confirm-title">${waitingApproval ? 'Permintaan Terkirim' : 'Booking Dibuat'}</div>
       <div class="confirm-text">
         ${state.bookingServiceNote ? `<b>${state.bookingServiceNote}</b><br>` : ''}
-        Permintaan konsultasi ${methodLabel(b.method)} Anda dengan ${l.name} untuk hari ini pukul ${state.selectedSlot} sudah dikirim.
+        Permintaan konsultasi ${methodLabel(b.method)} Anda dengan ${hx(l.name)} untuk hari ini pukul ${state.selectedSlot} sudah dikirim.
         ${waitingApproval
           ? 'Menunggu <b>' + l.name + '</b> menerima permintaan ini — Anda akan diminta membayar begitu diterima. Anda bisa memantau statusnya di halaman Konsultasi Saya.'
           : 'Status saat ini: <b>' + (STATUS_LABEL[b.status] || b.status) + '</b>.'}
@@ -4302,7 +4374,7 @@ function renderBookingItem(b){
 
   let actions = '';
   if(b.review){
-    actions = `<div class="review-text" style="margin-top:8px;">Ulasan Anda: <span class="stars">${stars(b.review.rating)}</span>${b.review.comment ? ' — ' + b.review.comment : ''}</div>`;
+    actions = `<div class="review-text" style="margin-top:8px;">Ulasan Anda: <span class="stars">${stars(b.review.rating)}</span>${b.review.comment ? ' — ' + hx(b.review.comment) : ''}</div>`;
   }else if(canReview){
     actions = isDraftingThis ? renderReviewForm(b) : `
       <div class="bi-actions"><button class="btn btn-outline" style="flex:1;" onclick="openReviewForm('${b.id}')">Beri Ulasan</button></div>`;
@@ -4341,7 +4413,7 @@ function renderBookingItem(b){
       <div class="track-row"><span class="k">Metode</span><span class="v">${methodLabelTitle(b.method)}</span></div>
       <div class="track-row"><span class="k">Jadwal</span><span class="v">${formatDateTime(b.scheduledAt)}</span></div>
       <div class="track-row"><span class="k">Biaya</span><span class="v">${formatRupiah(b.price)}</span></div>
-      ${b.note ? `<div class="track-row"><span class="k">Catatan</span><span class="v" style="color:var(--gold);">${b.note}</span></div>` : ''}
+      ${b.note ? `<div class="track-row"><span class="k">Catatan</span><span class="v" style="color:var(--gold);">${hx(b.note)}</span></div>` : ''}
       <div class="track-row"><span class="k">Status</span><span class="v"><span class="status-badge status-${b.status}">${(STATUS_LABEL[b.status] || b.status).toUpperCase()}${done ? ' ✓' : ''}</span></span></div>
     </div>
     <div class="track-line">
@@ -4374,7 +4446,7 @@ function renderReviewForm(b){
     <div class="star-picker">
       ${[1,2,3,4,5].map(n => `<span class="${n<=d.rating?'filled':''}" onclick="setReviewRating(${n})">★</span>`).join('')}
     </div>
-    <textarea placeholder="Ceritakan pengalaman konsultasi Anda (opsional)" oninput="setReviewComment(this.value)">${d.comment}</textarea>
+    <textarea placeholder="Ceritakan pengalaman konsultasi Anda (opsional)" oninput="setReviewComment(this.value)">${hx(d.comment)}</textarea>
     <div class="bi-actions">
       <button class="btn btn-outline" style="flex:1;" onclick="cancelReviewForm()">Batal</button>
       <button class="btn btn-primary" style="flex:1;" ${state.reviewSubmitting?'disabled':''} onclick="submitReview()">${state.reviewSubmitting ? 'Mengirim…' : 'Kirim Ulasan'}</button>
@@ -4586,7 +4658,7 @@ function renderCakrawala(){
       <div class="feed-composer">
         <div class="feed-composer-top">
           <div class="avatar" style="width:38px;height:38px;font-size:13px;flex-shrink:0;">${initials(u.fullName)}</div>
-          <textarea rows="2" placeholder="Apa yang sedang Anda pikirkan, ${u.fullName.split(' ')[0]}?"
+          <textarea rows="2" placeholder="Apa yang sedang Anda pikirkan, ${hx(u.fullName.split(' ')[0])}?"
             oninput="onCakrawalaComposerInput(this.value)">${state.cakrawalaComposerText}</textarea>
         </div>
         ${composerPhoto ? `
@@ -4621,14 +4693,14 @@ function renderPostCard(post){
     <div class="post-head">
       <div class="avatar">${initials(post.author.fullName)}</div>
       <div style="flex:1;">
-        <div class="post-author-name">${post.author.fullName}
+        <div class="post-author-name">${hx(post.author.fullName)}
           <span class="post-role-badge ${post.author.role === 'client' ? 'client' : ''}">${post.author.role === 'lawyer' ? 'Pengacara' : 'Klien'}</span>
         </div>
         <div class="post-time">${timeAgo(post.createdAt)}</div>
       </div>
       ${isMine ? `<button class="btn-link" onclick="deleteCakrawalaPost('${post.id}')">Hapus</button>` : ''}
     </div>
-    ${post.text ? `<div class="post-text">${post.text}</div>` : ''}
+    ${post.text ? `<div class="post-text">${hx(post.text)}</div>` : ''}
     ${photoHtml}
     <div class="post-actions">
       <button class="post-action-btn ${post.likedByMe ? 'liked' : ''}" onclick="toggleLikePost('${post.id}')">
@@ -4646,8 +4718,8 @@ function renderPostCard(post){
         <div class="comment-row">
           <div class="avatar">${initials(c.author.fullName)}</div>
           <div class="comment-bubble">
-            <div class="comment-author">${c.author.fullName}</div>
-            <div class="comment-text">${c.text}</div>
+            <div class="comment-author">${hx(c.author.fullName)}</div>
+            <div class="comment-text">${hx(c.text)}</div>
           </div>
         </div>`).join('')}
       <div class="comment-input-row">
@@ -4684,7 +4756,7 @@ function renderProfil(){
     <div class="profile-hero">
       <div class="avatar" style="background:var(--gold-pale);color:var(--navy);width:56px;height:56px;">${initials(u.fullName)}</div>
       <div>
-        <div style="font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;">${u.fullName}</div>
+        <div style="font-family:'Source Serif 4',serif;font-size:17px;font-weight:600;">${hx(u.fullName)}</div>
         <div style="font-size:12px;color:#C8D1E3;">${u.email}</div>
       </div>
     </div>
@@ -4777,7 +4849,7 @@ function renderLawyerDashboard(){
         </div>
       </div>
       <div class="greeting">Selamat siang,</div>
-      <div class="headline">${p.name}</div>
+      <div class="headline">${hx(p.name)}</div>
     </div>
     ${verifBadge}
     <div class="content" style="padding-top:14px;padding-bottom:40px;">
@@ -4798,8 +4870,8 @@ function renderLawyerDashboard(){
         <div class="request-card">
           <div class="req-top">
             <div>
-              <div class="req-name">${b.client.fullName}</div>
-              <div class="req-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)}${b.note ? ' · ' + b.note : ''}</div>
+              <div class="req-name">${hx(b.client.fullName)}</div>
+              <div class="req-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)}${b.note ? ' · ' + hx(b.note) : ''}</div>
             </div>
             <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status]}</div>
           </div>
@@ -4815,7 +4887,7 @@ function renderLawyerDashboard(){
             <label>Usulkan tanggal &amp; jam</label>
             <input type="datetime-local" value="${state.proposalDraft.at}" min="${toLocalInputValue(new Date())}" onchange="state.proposalDraft.at=this.value">
             <label>Catatan untuk klien (opsional)</label>
-            <input type="text" maxlength="200" placeholder="Mis. jam itu saya sedang sidang" value="${state.proposalDraft.note.replace(/"/g,'&quot;')}" oninput="state.proposalDraft.note=this.value">
+            <input type="text" maxlength="200" placeholder="Mis. jam itu saya sedang sidang" value="${hx(state.proposalDraft.note)}" oninput="state.proposalDraft.note=this.value">
             ${state.proposalDraft.error ? `<div class="pay-err" style="margin:0 0 8px;">${state.proposalDraft.error}</div>` : ''}
             <div class="request-actions">
               <button class="req-reject" style="border-color:var(--line)!important;color:var(--ink-soft);" onclick="closeProposalForm()">Batal</button>
@@ -4837,8 +4909,8 @@ function renderLawyerDashboard(){
       </div>
       <div class="about-box">
         <b>No. Induk Advokat:</b> ${p.barRegistrationNumber.startsWith('PENDING') ? '<i>belum diisi</i>' : p.barRegistrationNumber}<br>
-        <b>Kota:</b> ${p.city || '<i>belum diisi</i>'}<br>
-        <b>Spesialisasi:</b> ${p.specializations.length ? p.specializations.join(', ') : '<i>belum diisi</i>'}
+        <b>Kota:</b> ${p.city ? hx(p.city) : '<i>belum diisi</i>'}<br>
+        <b>Spesialisasi:</b> ${p.specializations.length ? hx(p.specializations.join(', ')) : '<i>belum diisi</i>'}
       </div>
 
       <div class="section-title" style="margin-top:20px;">Jadwal</div>
@@ -4846,10 +4918,10 @@ function renderLawyerDashboard(){
         upcoming.map(b => `
         <div class="booking-item">
           <div class="bi-top">
-            <div class="bi-name">${b.client.fullName}</div>
+            <div class="bi-name">${hx(b.client.fullName)}</div>
             <div class="status-badge status-${b.status}">${STATUS_LABEL[b.status]}</div>
           </div>
-          <div class="bi-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)}${b.note ? ' · ' + b.note : ''}</div>
+          <div class="bi-meta">${methodLabelTitle(b.method)} · ${formatDateTime(b.scheduledAt)}${b.note ? ' · ' + hx(b.note) : ''}</div>
           ${chatButtonFor(b)}
         </div>`).join('')}
     </div>
@@ -4929,8 +5001,8 @@ function renderLawyerProfileForm(){
     <div class="content" style="padding-top:18px;">
       ${state.profileFormError ? `<div class="error-box">${state.profileFormError}</div>` : ''}
       <div class="field"><label>No. Induk Advokat (PERADI)</label><input id="pf-bar" value="${f.barRegistrationNumber}" placeholder="PERADI-xxxxx"></div>
-      <div class="field"><label>Kota</label><input id="pf-city" list="pf-city-list" value="${f.city}" placeholder="Jakarta Selatan"><datalist id="pf-city-list">${WILAYAH_ALL_CITIES.map(c => `<option value="${c}">`).join('')}</datalist></div>
-      <div class="field"><label>Bio singkat</label><textarea id="pf-bio">${f.bio}</textarea></div>
+      <div class="field"><label>Kota</label><input id="pf-city" list="pf-city-list" value="${hx(f.city)}" placeholder="Jakarta Selatan"><datalist id="pf-city-list">${WILAYAH_ALL_CITIES.map(c => `<option value="${c}">`).join('')}</datalist></div>
+      <div class="field"><label>Bio singkat</label><textarea id="pf-bio">${hx(f.bio)}</textarea></div>
       <div class="field"><label>Lama pengalaman (tahun)</label><input id="pf-exp" type="number" min="0" value="${f.yearsExperience}"></div>
       <div class="field"><label>Tarif chat / sesi (Rp)</label><input id="pf-rate-chat" type="number" min="0" value="${f.hourlyRateChat}"></div>
       <div class="field"><label>Tarif video call / sesi (Rp)</label><input id="pf-rate-video" type="number" min="0" value="${f.hourlyRateVideo}"></div>
@@ -5893,6 +5965,16 @@ async function flowSyncConsent(){
    Boot
 ============================================================ */
 loadSession();
+// Tautan dari email: https://…/#reset=TOKEN → tampilkan layar kata sandi baru, lalu hapus token dari URL.
+try{
+  const m = /^#reset=([A-Fa-f0-9]{64})$/.exec(location.hash);
+  if(m){
+    state.resetToken = m[1];
+    state.token = null; state.user = null;
+    state.authScreen = 'reset';
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+}catch(_){}
 render();
 if(state.token){
   loadLawyers();
