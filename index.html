@@ -425,6 +425,35 @@
   .btn-outline{background:#fff;border:1.5px solid var(--navy);color:var(--navy);flex:0.75;box-shadow:0 2px 8px rgba(22,35,63,0.1);}
   .btn-gold{background:var(--gold);color:#fff;box-shadow:0 4px 12px rgba(169,130,47,0.35);}
   .btn-gold:active{box-shadow:0 2px 6px rgba(169,130,47,0.3);}
+  /* Admin panel */
+  .adm-top{background:var(--navy);color:#fff;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .adm-top b{font-family:'Source Serif 4',serif;font-size:17px;}
+  .adm-top small{display:block;opacity:.7;font-size:11px;margin-top:2px;}
+  .adm-tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line);flex-shrink:0;scrollbar-width:none;}
+  .adm-tabs::-webkit-scrollbar{display:none;}
+  .adm-tab{border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:999px;padding:7px 13px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .adm-tab.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .adm-tab i{font-style:normal;background:var(--gold);color:#fff;border-radius:999px;padding:1px 7px;margin-left:5px;font-size:11px;}
+  .adm-body{padding:16px 16px 40px;}
+  .adm-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);padding:14px;margin-bottom:12px;}
+  .adm-card h4{margin:0 0 3px;font-size:14.5px;color:var(--navy);}
+  .adm-card .sub{font-size:12px;color:var(--ink-soft);margin-bottom:8px;word-break:break-word;}
+  .adm-kv{font-size:12.5px;line-height:1.7;}
+  .adm-kv span{color:var(--ink-soft);}
+  .adm-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .adm-actions .btn{flex:1;min-width:110px;padding:10px;}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .adm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .adm-stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius-m);padding:14px;}
+  .adm-stat b{display:block;font-size:24px;color:var(--navy);font-family:'Source Serif 4',serif;}
+  .adm-stat span{font-size:12px;color:var(--ink-soft);}
+  .adm-stat.alert b{color:var(--gold);}
+  .adm-seg{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .adm-docs a{display:inline-block;margin:2px 8px 2px 0;font-size:12.5px;color:var(--gold);font-weight:700;}
+  .adm-pill{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--parchment);color:var(--ink-soft);}
+  .adm-pill.ok{background:var(--sage-pale);color:var(--sage);}
+  .adm-pill.bad{background:var(--danger-pale);color:var(--danger);}
+  .adm-empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:34px 10px;}
   .btn-link{background:none;border:none;color:var(--gold);font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer;padding:0;}
 
   /* Booking screen */
@@ -1660,6 +1689,9 @@ function render(){
     return;
   }
 
+  // Admin punya tampilan sendiri (akses tetap dicek ulang di server pada setiap permintaan).
+  if(state.user.role === 'admin'){ setAppHtml(app, renderAdmin()); adminEnsureLoaded(); return; }
+
   // The pengacara dashboard takes over the whole screen except when the
   // lawyer has drilled into the profile-completion form — that form needs
   // its own back button rather than the dashboard's fixed layout.
@@ -1730,6 +1762,213 @@ function renderLogin(){
       <div class="form-footer">Belum punya akun? <button class="btn-link" onclick="switchAuthScreen('register')">Daftar</button></div>
     </div>
   </div>`;
+}
+
+/* ============================================================
+   ADMIN PANEL
+   ============================================================ */
+const ADM_TABS = [['ringkasan','Ringkasan'],['pengacara','Pengacara'],['sertifikat','Sertifikat'],['sengketa','Sengketa'],['pengguna','Pengguna']];
+function adminFresh(){
+  return { tab:'ringkasan', summary:null, lawStatus:'pending', lawyers:null, certStatus:'pending', certs:null,
+           disputes:null, dispFilter:'waiting', draft:{}, users:null, userQ:'', userRole:'', loading:false, err:null, ok:null, boot:false };
+}
+function adminOpen(){ state.admin = adminFresh(); state.admin.boot = true; render(); adminLoad('ringkasan'); }
+function adminEnsureLoaded(){
+  if(!state.admin){ state.admin = adminFresh(); }
+  const a = state.admin;
+  if(!a.boot){ a.boot = true; adminLoad(a.tab); }
+}
+async function adminLoad(tab){
+  const a = state.admin; if(!a) return;
+  a.loading = true; a.err = null; render();
+  try{
+    if(tab === 'ringkasan') a.summary = await api('/admin/summary');
+    else if(tab === 'pengacara') a.lawyers = await api('/admin/lawyers?status=' + encodeURIComponent(a.lawStatus));
+    else if(tab === 'sertifikat') a.certs = await api('/admin/certificates?status=' + encodeURIComponent(a.certStatus));
+    else if(tab === 'sengketa') a.disputes = await api('/flow/admin/disputes');
+    else if(tab === 'pengguna'){
+      const qs = new URLSearchParams(); if(a.userQ) qs.set('q', a.userQ); if(a.userRole) qs.set('role', a.userRole);
+      a.users = await api('/admin/users?' + qs.toString());
+    }
+  }catch(e){
+    a.err = e.message;
+    if(/Token|kedaluwarsa|tidak aktif/i.test(e.message)){ logout(); return; }
+  }
+  a.loading = false; render();
+}
+function adminTab(t){ const a = state.admin; a.tab = t; a.ok = null; a.err = null; render(); adminLoad(t); }
+function adminSet(k, v){ state.admin[k] = v; adminLoad(state.admin.tab); }
+async function adminDo(label, fn){
+  const a = state.admin; a.err = null; a.ok = null;
+  try{ await fn(); a.ok = label; }catch(e){ a.err = e.message; }
+  await adminLoad(a.tab);
+}
+function adminReview(id, status){
+  const txt = status === 'verified' ? 'Setujui pengacara ini? Profilnya akan tampil di pencarian klien.'
+            : status === 'rejected' ? 'Tolak pengacara ini?' : 'Kembalikan ke status menunggu?';
+  if(!confirm(txt)) return;
+  adminDo('Status pengacara diperbarui.', () => api('/admin/lawyers/' + encodeURIComponent(id) + '/review', { method:'POST', body:{ status } }));
+}
+function adminCert(id, decision){
+  if(!confirm(decision === 'verified' ? 'Verifikasi sertifikat ini?' : 'Tolak sertifikat ini?')) return;
+  adminDo('Sertifikat diperbarui.', () => api('/flow/admin/certificates/' + encodeURIComponent(id) + '/' + decision, { method:'POST', body:{} }));
+}
+function adminToggleUser(id, active){
+  if(!confirm(active ? 'Aktifkan kembali akun ini?' : 'Nonaktifkan akun ini? Pengguna tidak bisa masuk lagi.')) return;
+  adminDo(active ? 'Akun diaktifkan.' : 'Akun dinonaktifkan.', () => api('/admin/users/' + encodeURIComponent(id) + '/active', { method:'POST', body:{ isActive: active } }));
+}
+function adminSearchUsers(){
+  const a = state.admin;
+  a.userQ = (document.getElementById('adm-q')||{}).value || '';
+  a.userRole = (document.getElementById('adm-role')||{}).value || '';
+  adminLoad('pengguna');
+}
+// Isian putusan disimpan per sengketa agar tidak hilang saat tampilan dimuat ulang (mis. setelah pesan galat).
+function adminDraft(id, i){
+  const g = x => (document.getElementById(x + i) || {}).value || '';
+  state.admin.draft[id] = { outcome: g('dd-out-') || 'release_to_mitra', decision: g('dd-txt-'), amt: g('dd-amt-in-') };
+}
+function adminDispToggleSplit(i){
+  const sel = document.getElementById('dd-out-' + i), box = document.getElementById('dd-amt-' + i);
+  if(sel && box) box.style.display = sel.value === 'split' ? 'block' : 'none';
+}
+function adminDecide(id, i){
+  adminDraft(id, i);
+  const outcome = document.getElementById('dd-out-' + i).value;
+  const decision = document.getElementById('dd-txt-' + i).value.trim();
+  const amtRaw = document.getElementById('dd-amt-in-' + i).value;
+  if(decision.length < 10){ state.admin.err = 'Alasan putusan wajib diisi (minimal 10 karakter).'; render(); return; }
+  const body = { outcome, decision };
+  if(outcome === 'split'){
+    const n = parseInt(amtRaw, 10);
+    if(!n || n <= 0){ state.admin.err = 'Isi nominal pengembalian sebagian (angka rupiah).'; render(); return; }
+    body.refundAmount = n;
+  }
+  if(!confirm('Simpan putusan ini? Keputusan tidak bisa dibatalkan dan langsung dikirim ke kedua pihak.')) return;
+  adminDo('Putusan disimpan.', () => api('/flow/admin/disputes/' + encodeURIComponent(id) + '/decide', { method:'POST', body }));
+}
+
+function admDate(v){ if(!v) return '-'; const d = new Date(v); return isNaN(d) ? '-' : d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}); }
+function admSeg(items, cur, fn){
+  return `<div class="adm-seg">${items.map(([k,l]) => `<button class="adm-tab ${cur===k?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`;
+}
+const ADM_DOC = { ktp:'KTP', kartu_advokat:'Kartu Advokat', peradi:'Kartu Advokat', sumpah:'Berita acara sumpah', ijazah:'Ijazah' };
+
+function admLawyers(a){
+  const seg = admSeg([['pending','Menunggu'],['verified','Disetujui'],['rejected','Ditolak']], a.lawStatus, 'adminLawSeg');
+  if(!a.lawyers) return seg;
+  if(!a.lawyers.length) return seg + `<div class="adm-empty">Tidak ada pengacara dengan status ini.</div>`;
+  return seg + a.lawyers.map(l => {
+    const docs = (l.documents||[]).map(d => {
+      const label = hx(ADM_DOC[d.type] || d.type || 'Dokumen');
+      const safe = /^https:\/\//i.test(d.fileUrl||'');
+      return safe ? `<a href="${hx(d.fileUrl)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>` : `<span class="adm-pill bad">${label}: tautan tidak aman</span>`;
+    }).join('') || '<span style="color:var(--ink-soft);font-size:12.5px;">Belum ada dokumen diunggah</span>';
+    const acts = l.status === 'pending'
+      ? `<button class="btn btn-primary" data-id="${hx(l.id)}" onclick="adminReview(this.dataset.id,'verified')">Setujui</button><button class="btn btn-danger" data-id="${hx(l.id)}" onclick="adminReview(this.dataset.id,'rejected')">Tolak</button>`
+      : `<button class="btn btn-outline" data-id="${hx(l.id)}" onclick="adminReview(this.dataset.id,'pending')">Kembalikan ke menunggu</button>`;
+    return `<div class="adm-card"><h4>${hx(l.fullName)}</h4><div class="sub">${hx(l.email)}${l.phone ? ' · ' + hx(l.phone) : ''}</div>
+      <div class="adm-kv"><span>No. PERADI:</span> ${hx(l.barRegistrationNumber)}<br><span>Kota:</span> ${hx(l.city)} · <span>Pengalaman:</span> ${hx(l.yearsExperience)} th<br><span>Daftar:</span> ${admDate(l.createdAt)}</div>
+      ${l.bio ? `<div class="adm-kv" style="margin-top:6px;"><span>Bio:</span> ${hx(l.bio)}</div>` : ''}
+      <div class="adm-docs" style="margin-top:8px;"><span style="font-size:12px;color:var(--ink-soft);">Dokumen:</span><br>${docs}</div>
+      <div class="adm-actions">${acts}</div></div>`;
+  }).join('');
+}
+function adminLawSeg(v){ adminSet('lawStatus', v); }
+function adminCertSeg(v){ adminSet('certStatus', v); }
+function adminDispSeg(v){ state.admin.dispFilter = v; render(); }
+
+function admCerts(a){
+  const seg = admSeg([['pending','Menunggu'],['verified','Terverifikasi'],['rejected','Ditolak']], a.certStatus, 'adminCertSeg');
+  if(!a.certs) return seg;
+  if(!a.certs.length) return seg + `<div class="adm-empty">Tidak ada sertifikat dengan status ini.</div>`;
+  return seg + a.certs.map(c => {
+    const acts = c.status === 'pending'
+      ? `<button class="btn btn-primary" data-id="${hx(c.id)}" onclick="adminCert(this.dataset.id,'verified')">Verifikasi</button><button class="btn btn-danger" data-id="${hx(c.id)}" onclick="adminCert(this.dataset.id,'rejected')">Tolak</button>`
+      : (c.status === 'verified'
+          ? `<button class="btn btn-danger" data-id="${hx(c.id)}" onclick="adminCert(this.dataset.id,'rejected')">Cabut verifikasi</button>`
+          : `<button class="btn btn-primary" data-id="${hx(c.id)}" onclick="adminCert(this.dataset.id,'verified')">Verifikasi</button>`);
+    return `<div class="adm-card"><h4>${hx(c.name)}</h4><div class="sub">Milik ${hx(c.fullName)} · ${hx(c.email)}</div>
+      <div class="adm-kv"><span>Penerbit:</span> ${hx(c.issuer||'-')}<br><span>Nomor:</span> ${hx(c.number||'-')}<br><span>Tahun terbit:</span> ${hx(c.issuedYear||'-')} · <span>Berlaku s.d.:</span> ${c.expiresAt ? admDate(c.expiresAt) : 'tanpa batas'}</div>
+      <div class="adm-actions">${acts}</div></div>`;
+  }).join('');
+}
+
+const ADM_DSTATUS = { open:'Level 1 berjalan', escalated:'Menunggu putusan admin', decided:'Sudah diputus', appealed:'Banding: menunggu putusan', resolved:'Selesai' };
+function admDisputes(a){
+  const seg = admSeg([['waiting','Perlu diputuskan'],['all','Semua']], a.dispFilter, 'adminDispSeg');
+  if(!a.disputes) return seg;
+  const list = a.dispFilter === 'waiting' ? a.disputes.filter(d => d.status === 'escalated' || d.status === 'appealed') : a.disputes;
+  if(!list.length) return seg + `<div class="adm-empty">${a.dispFilter === 'waiting' ? 'Tidak ada sengketa yang menunggu putusan.' : 'Belum ada sengketa.'}</div>`;
+  return seg + list.map((d, i) => {
+    const waiting = d.status === 'escalated' || d.status === 'appealed';
+    const pill = waiting ? 'adm-pill bad' : (d.status === 'open' ? 'adm-pill' : 'adm-pill ok');
+    const dr = a.draft[d.id] || { outcome:'release_to_mitra', decision:'', amt:'' };
+    const sel = v => dr.outcome === v ? 'selected' : '';
+    const form = waiting ? `
+      <div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;">
+        <div class="field"><label>Putusan</label><select id="dd-out-${i}" data-id="${hx(d.id)}" onchange="adminDispToggleSplit(${i});adminDraft(this.dataset.id,${i})">
+          <option value="release_to_mitra" ${sel('release_to_mitra')}>Dana dilepas ke Mitra</option><option value="refund_to_client" ${sel('refund_to_client')}>Dana dikembalikan ke klien</option><option value="split" ${sel('split')}>Bagi dua (kembali sebagian)</option></select></div>
+        <div class="field" id="dd-amt-${i}" style="display:${dr.outcome==='split'?'block':'none'};"><label>Nominal dikembalikan ke klien (Rp)</label><input id="dd-amt-in-${i}" data-id="${hx(d.id)}" oninput="adminDraft(this.dataset.id,${i})" value="${hx(dr.amt)}" type="number" inputmode="numeric" min="1" placeholder="mis. 500000"></div>
+        <div class="field"><label>Alasan putusan (tertulis, min. 10 karakter)</label><textarea id="dd-txt-${i}" data-id="${hx(d.id)}" oninput="adminDraft(this.dataset.id,${i})" rows="3" maxlength="1000" placeholder="Tuliskan pertimbangan putusan…">${hx(dr.decision)}</textarea></div>
+        <div class="adm-actions"><button class="btn btn-primary" data-id="${hx(d.id)}" onclick="adminDecide(this.dataset.id, ${i})">Simpan putusan</button></div>
+      </div>` : (d.decision ? `<div class="adm-kv" style="margin-top:8px;"><span>Putusan:</span> ${hx(d.decision)}</div>` : '');
+    return `<div class="adm-card"><h4>${hx(d.title || 'Sengketa')}</h4><div class="sub"><span class="${pill}">${hx(ADM_DSTATUS[d.status] || d.status)}</span> · Level ${hx(d.level)} · ${admDate(d.createdAt)}</div>
+      <div class="adm-kv"><span>Alasan:</span> ${hx(d.reason)}</div>
+      ${d.appealReason ? `<div class="adm-kv"><span>Alasan banding:</span> ${hx(d.appealReason)}</div>` : ''}
+      ${d.status === 'appealed' ? `<div class="adm-kv" style="color:var(--danger);">Banding harus diputus admin yang berbeda dari pemutus pertama.</div>` : ''}
+      ${form}</div>`;
+  }).join('');
+}
+
+function admUsers(a){
+  const bar = `<div class="adm-card" style="padding:10px;"><div class="field" style="margin-bottom:8px;"><input id="adm-q" type="search" maxlength="100" placeholder="Cari nama atau email…" value="${hx(a.userQ)}" onkeydown="if(event.key==='Enter')adminSearchUsers()"></div>
+    <div style="display:flex;gap:8px;"><select id="adm-role" style="flex:1;padding:10px;border:1.5px solid var(--line);border-radius:6px;font-family:inherit;"><option value="">Semua peran</option><option value="client" ${a.userRole==='client'?'selected':''}>Klien</option><option value="lawyer" ${a.userRole==='lawyer'?'selected':''}>Pengacara</option><option value="admin" ${a.userRole==='admin'?'selected':''}>Admin</option></select>
+    <button class="btn btn-primary" style="flex:0 0 90px;" onclick="adminSearchUsers()">Cari</button></div></div>`;
+  if(!a.users) return bar;
+  if(!a.users.length) return bar + `<div class="adm-empty">Pengguna tidak ditemukan.</div>`;
+  const roleName = { client:'Klien', lawyer:'Pengacara', admin:'Admin' };
+  return bar + a.users.map(u => {
+    const me = state.user && u.id === state.user.id;
+    const canAct = u.role !== 'admin' && !me;
+    const act = canAct ? `<div class="adm-actions"><button class="btn ${u.isActive ? 'btn-danger' : 'btn-primary'}" data-id="${hx(u.id)}" onclick="adminToggleUser(this.dataset.id, ${u.isActive ? 'false' : 'true'})">${u.isActive ? 'Nonaktifkan akun' : 'Aktifkan akun'}</button></div>` : '';
+    return `<div class="adm-card"><h4>${hx(u.fullName)} <span class="adm-pill ${u.isActive ? 'ok' : 'bad'}">${u.isActive ? 'Aktif' : 'Nonaktif'}</span></h4>
+      <div class="sub">${hx(u.email)}${u.phone ? ' · ' + hx(u.phone) : ''}</div><div class="adm-kv"><span>Peran:</span> ${hx(roleName[u.role]||u.role)} · <span>Bergabung:</span> ${admDate(u.createdAt)}</div>${act}</div>`;
+  }).join('');
+}
+
+function admHome(a){
+  const s = a.summary; if(!s) return '';
+  const card = (n, label, tab, alert) => `<div class="adm-stat ${alert && n>0 ? 'alert' : ''}" ${tab ? `style="cursor:pointer;" onclick="adminTab('${tab}')"` : ''}><b>${hx(n)}</b><span>${label}</span></div>`;
+  return `<div class="adm-grid">
+    ${card(s.lawyersPending, 'Pengacara menunggu verifikasi', 'pengacara', true)}
+    ${card(s.certificatesPending, 'Sertifikat menunggu', 'sertifikat', true)}
+    ${card(s.disputesWaiting, 'Sengketa perlu putusan', 'sengketa', true)}
+    ${card(s.inactive, 'Akun nonaktif', 'pengguna', false)}
+    ${card(s.clients, 'Klien', null, false)}
+    ${card(s.lawyers, 'Pengacara', null, false)}</div>
+    <div class="adm-card"><div class="adm-kv">Ketuk kartu di atas untuk langsung menuju daftar yang perlu ditinjau. Semua keputusan dicatat di log audit.</div></div>`;
+}
+
+function renderAdmin(){
+  const a = state.admin || adminFresh();
+  const s = a.summary;
+  const badge = { pengacara: s && s.lawyersPending, sertifikat: s && s.certificatesPending, sengketa: s && s.disputesWaiting };
+  const tabs = ADM_TABS.map(([k,l]) => `<button class="adm-tab ${a.tab===k?'on':''}" onclick="adminTab('${k}')">${l}${badge[k] ? `<i>${hx(badge[k])}</i>` : ''}</button>`).join('');
+  let body = '';
+  if(a.tab === 'ringkasan') body = admHome(a);
+  else if(a.tab === 'pengacara') body = admLawyers(a);
+  else if(a.tab === 'sertifikat') body = admCerts(a);
+  else if(a.tab === 'sengketa') body = admDisputes(a);
+  else if(a.tab === 'pengguna') body = admUsers(a);
+  return `<div class="screen active" style="display:flex;flex-direction:column;">
+    <div class="adm-top"><div><b>Lexara Admin</b><small>${hx(state.user.fullName || state.user.email || '')}</small></div><button class="btn-link" style="color:#fff;" onclick="logout()">Keluar</button></div>
+    <div class="adm-tabs">${tabs}</div>
+    <div class="adm-body">
+      ${a.err ? `<div class="error-box">${hx(a.err)}</div>` : ''}
+      ${a.ok ? `<div class="ok-box">${hx(a.ok)}</div>` : ''}
+      ${a.loading && !(a.summary||a.lawyers||a.certs||a.disputes||a.users) ? '<div class="loading-state">Memuat…</div>' : body}
+    </div></div>`;
 }
 
 function renderForgot(){
@@ -1860,6 +2099,7 @@ async function submitRegister(){
 }
 
 function afterLogin(){
+  if(state.user && state.user.role === 'admin'){ adminOpen(); return; }
   state.mode = 'klien';
   state.screen = 'home';
   render();
@@ -1868,7 +2108,7 @@ function afterLogin(){
 }
 
 function logout(){
-  stopFlowPoll(); state.flow = null; state.flowUnread = 0;
+  stopFlowPoll(); state.flow = null; state.flowUnread = 0; state.admin = null;
   clearSession();
   // Selama masa development: setelah keluar, tampilkan lagi Privasi + S&K.
   // Hapus 3 baris ini kalau persetujuan cukup sekali per perangkat.
@@ -4823,7 +5063,7 @@ function renderLawyerDashboard(){
   }
   if(state.myLawyerProfileError || !state.myLawyerProfile){
     return `<div class="screen active" style="display:flex;flex-direction:column;">
-      <div class="content"><div class="error-box">${state.myLawyerProfileError || 'Profil tidak ditemukan.'}</div></div>
+      <div class="content"><div class="error-box">${hx(state.myLawyerProfileError || 'Profil tidak ditemukan.')}</div></div>
     </div>`;
   }
 
