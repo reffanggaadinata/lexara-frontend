@@ -432,6 +432,8 @@
   .adm-top b{display:block;font-family:'Source Serif 4',serif;font-size:21px;margin-top:2px;}
   .adm-out{background:rgba(255,255,255,.14);border:none;color:#fff;font-family:inherit;font-weight:700;font-size:13px;border-radius:999px;padding:9px 16px;cursor:pointer;min-height:40px;}
   .adm-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 24px;}
+  .adm-body,.adm-doc{scrollbar-width:none;-ms-overflow-style:none;}
+  .adm-body::-webkit-scrollbar,.adm-doc::-webkit-scrollbar{width:0;height:0;display:none;}
   .adm-h{font-size:19px;font-weight:700;color:var(--navy);font-family:'Source Serif 4',serif;margin:2px 0 4px;}
   .adm-hs{font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;line-height:1.5;}
   .adm-nav{display:flex;flex-shrink:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(22,35,63,.07);padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
