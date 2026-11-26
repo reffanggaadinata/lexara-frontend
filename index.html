@@ -482,6 +482,37 @@
   .adm-pill.ok{background:var(--sage-pale);color:var(--sage);}
   .adm-pill.bad{background:var(--danger-pale);color:var(--danger);}
   .adm-pill.wait{background:var(--gold-pale);color:var(--gold);}
+  .adm-subtabs{display:flex;background:#E9E4D8;border-radius:14px;padding:4px;gap:4px;margin:0 0 16px;}
+  .adm-subtabs button{flex:1;border:none;background:none;font-family:inherit;font-weight:700;font-size:13.5px;color:var(--ink-soft);padding:11px 6px;border-radius:11px;cursor:pointer;min-height:44px;}
+  .adm-subtabs button.on{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(22,35,63,.12);}
+  .adm-count{font-size:13px;color:var(--ink-soft);margin:2px 2px 10px;font-weight:600;}
+  .adm-dl{width:100%;margin:0 0 14px;background:#fff;border:1.5px solid var(--navy);color:var(--navy);border-radius:12px;min-height:46px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+  .adm-none{font-size:13.5px;color:var(--ink-soft);padding:6px 0;}
+  .adm-sub{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);}
+  .adm-sub:first-of-type{border-top:none;}
+  .adm-sub b{display:block;font-size:14px;color:var(--navy);}
+  .adm-sub span{font-size:12.5px;color:var(--ink-soft);}
+  .adm-dates{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .adm-dates label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:700;color:var(--ink-soft);min-width:0;}
+  .adm-dates input{width:100%;padding:12px 10px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:14.5px;background:#fff;box-sizing:border-box;min-width:0;}
+  .adm-sum{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);color:#fff;border-radius:16px;padding:18px;margin-bottom:12px;}
+  .adm-sum.hot{background:linear-gradient(135deg,#8E3427 0%,var(--danger) 100%);}
+  .adm-sum span{display:block;font-size:13px;opacity:.85;}
+  .adm-sum b{display:block;font-size:28px;font-family:'Source Serif 4',serif;margin:4px 0 2px;}
+  .adm-sum small{font-size:12.5px;opacity:.8;}
+  .adm-stat b.sm{font-size:18px;}
+  .adm-pay{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;}
+  .adm-amt{font-weight:800;color:var(--navy);font-size:16px;white-space:nowrap;font-family:'Source Serif 4',serif;}
+  .adm-amt.muted{color:var(--ink-soft);text-decoration:line-through;}
+  .adm-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);}
+  .adm-row:first-child{border-top:none;}
+  .adm-row b{display:block;font-size:13.5px;color:var(--navy);word-break:break-word;}
+  .adm-row span{font-size:12px;color:var(--ink-soft);word-break:break-word;}
+  .adm-row-r{text-align:right;flex-shrink:0;max-width:48%;}
+  .adm-doc{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13px;line-height:1.6;background:var(--parchment);border-radius:12px;padding:14px;margin:12px 0 0;max-height:360px;overflow:auto;}
+  .adm-quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .adm-qb{display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;font-family:inherit;font-weight:700;font-size:14px;color:var(--navy);cursor:pointer;min-height:80px;text-align:left;box-shadow:0 2px 10px rgba(22,35,63,.05);}
+  .adm-qb svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
   .adm-empty{text-align:center;color:var(--ink-soft);font-size:14px;padding:40px 16px;line-height:1.5;}
   .adm-empty .ei{width:64px;height:64px;border-radius:50%;background:var(--navy-pale);color:var(--navy);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
   .adm-empty .ei svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
@@ -1671,7 +1702,7 @@ function setAppHtml(app, html){
   const screenScroll = app.querySelector('.screen.active')?.scrollTop || 0;
   const sheetScroll = app.querySelector('.sheet-body')?.scrollTop || 0;
   const admScroll = app.querySelector('#adm-scroll')?.scrollTop || 0;
-  const admTabBefore = app.querySelector('.adm-nb.on')?.getAttribute('aria-label') || '';
+  const admTabBefore = app.querySelector('#adm-scroll')?.dataset.tab || '';
   // A bottom sheet (filter sheet, "Lihat Semua", etc.) plays a slide-up +
   // fade-in entrance animation when it first opens. Because render() always
   // rebuilds the whole #app from scratch, the sheet's DOM nodes get
@@ -1693,7 +1724,7 @@ function setAppHtml(app, html){
   }
   if(admScroll){
     const el = app.querySelector('#adm-scroll');
-    if(el && admTabBefore === (app.querySelector('.adm-nb.on')?.getAttribute('aria-label') || '')) el.scrollTop = admScroll;
+    if(el && admTabBefore === (el.dataset.tab || '')) el.scrollTop = admScroll;
   }
   if(sheetScroll){
     const el = app.querySelector('.sheet-body');
@@ -1809,10 +1840,17 @@ function renderLogin(){
 /* ============================================================
    ADMIN PANEL
    ============================================================ */
-const ADM_TABS = [['ringkasan','Ringkasan'],['pengacara','Pengacara'],['sertifikat','Sertifikat'],['sengketa','Sengketa'],['pengguna','Pengguna']];
+const ADM_GROUPS = [
+  { k:'ringkasan', l:'Ringkasan', ic:'home', tabs:[['ringkasan','Ringkasan']] },
+  { k:'verifikasi', l:'Verifikasi', ic:'check', tabs:[['pengacara','Pengacara'],['sertifikat','Sertifikat'],['sengketa','Sengketa']] },
+  { k:'data', l:'Data', ic:'users', tabs:[['db_pengacara','Pengacara'],['db_klien','Klien']] },
+  { k:'perjanjian', l:'Perjanjian', ic:'file', tabs:[['pks','Perjanjian'],['persetujuan','Persetujuan']] },
+  { k:'keuangan', l:'Keuangan', ic:'wallet', tabs:[['masuk','Uang masuk'],['cair','Pencairan']] }
+];
 function adminFresh(){
   return { tab:'ringkasan', summary:null, lawStatus:'pending', lawyers:null, certStatus:'pending', certs:null,
-           disputes:null, dispFilter:'waiting', draft:{}, users:null, userQ:'', userRole:'', loading:false, err:null, ok:null, boot:false };
+           disputes:null, dispFilter:'waiting', draft:{}, flt:{}, dbLaw:null, dbCli:null, pks:null, pksOpen:null, pksDocs:{}, consents:null, payIn:null, payOut:null,
+           loading:false, err:null, ok:null, boot:false };
 }
 function adminOpen(){ state.admin = adminFresh(); state.admin.boot = true; render(); adminLoad('ringkasan'); }
 function adminEnsureLoaded(){
@@ -1828,21 +1866,24 @@ async function adminLoad(tab){
     else if(tab === 'pengacara') a.lawyers = await api('/admin/lawyers?status=' + encodeURIComponent(a.lawStatus));
     else if(tab === 'sertifikat') a.certs = await api('/admin/certificates?status=' + encodeURIComponent(a.certStatus));
     else if(tab === 'sengketa') a.disputes = await api('/flow/admin/disputes');
-    else if(tab === 'pengguna'){
-      const qs = new URLSearchParams(); if(a.userQ) qs.set('q', a.userQ); if(a.userRole) qs.set('role', a.userRole);
-      a.users = await api('/admin/users?' + qs.toString());
-    }
+    else if(tab === 'db_pengacara') a.dbLaw = await api('/admin/db/lawyers' + admQs(a, tab, ['q','status']));
+    else if(tab === 'db_klien') a.dbCli = await api('/admin/db/clients' + admQs(a, tab, ['q']));
+    else if(tab === 'pks') a.pks = await api('/admin/agreements' + admQs(a, tab, ['q','status']));
+    else if(tab === 'persetujuan') a.consents = await api('/admin/consents' + admQs(a, tab, ['q']));
+    else if(tab === 'masuk') a.payIn = await api('/admin/payments/incoming' + admQs(a, tab, ['q','from','to']));
+    else if(tab === 'cair') a.payOut = await api('/admin/payments/outgoing' + admQs(a, tab, ['q','from','to','state']));
   }catch(e){
     a.err = e.message;
     if(/Token|kedaluwarsa|tidak aktif/i.test(e.message)){ logout(); return; }
   }
   a.loading = false; render();
 }
-function adminTab(t){ const a = state.admin; a.tab = t; a.ok = null; a.err = null; render(); adminLoad(t); }
+function adminTab(t){ const a = state.admin; if(t === 'pengguna') t = 'db_klien'; a.tab = t; a.ok = null; a.err = null; render(); adminLoad(t); }
 function adminSet(k, v){ state.admin[k] = v; adminLoad(state.admin.tab); }
 async function adminDo(label, fn){
   const a = state.admin; a.err = null; a.ok = null;
   try{ await fn(); a.ok = label; }catch(e){ a.err = e.message; }
+  try{ a.summary = await api('/admin/summary'); }catch(e){ /* angka lencana saja; abaikan */ }
   await adminLoad(a.tab);
 }
 function adminReview(id, status){
@@ -1859,12 +1900,19 @@ function adminToggleUser(id, active){
   if(!confirm(active ? 'Aktifkan kembali akun ini?' : 'Nonaktifkan akun ini? Pengguna tidak bisa masuk lagi.')) return;
   adminDo(active ? 'Akun diaktifkan.' : 'Akun dinonaktifkan.', () => api('/admin/users/' + encodeURIComponent(id) + '/active', { method:'POST', body:{ isActive: active } }));
 }
-function adminSearchUsers(){
-  const a = state.admin;
-  a.userQ = (document.getElementById('adm-q')||{}).value || '';
-  a.userRole = (document.getElementById('adm-role')||{}).value || '';
-  adminLoad('pengguna');
+function admQs(a, tab, keys){
+  const f = a.flt[tab] || {}, qs = new URLSearchParams();
+  keys.forEach(k => { if(f[k]) qs.set(k, f[k]); });
+  const t = qs.toString(); return t ? '?' + t : '';
 }
+function admSync(){
+  const a = state.admin, t = a.tab, g = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
+  const cur = Object.assign({}, a.flt[t]);
+  ['q','from','to'].forEach(k => { const v = g({q:'adm-q',from:'adm-from',to:'adm-to'}[k]); if(v !== undefined) cur[k] = v; });
+  a.flt[t] = cur;
+}
+function adminFilter(){ admSync(); adminLoad(state.admin.tab); }
+function adminFlt(k, v){ admSync(); const a = state.admin; a.flt[a.tab] = Object.assign({}, a.flt[a.tab], { [k]: v }); adminLoad(a.tab); }
 // Isian putusan disimpan per sengketa agar tidak hilang saat tampilan dimuat ulang (mis. setelah pesan galat).
 function adminDraft(id, i){
   const g = x => (document.getElementById(x + i) || {}).value || '';
@@ -1898,7 +1946,8 @@ const ADM_IC = {
   alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18.5v.01"/>',
   users:'<circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7"/><path d="M17 4a4 4 0 010 8"/><path d="M22 21c0-3-1.5-5.5-4-6.5"/>',
   check:'<circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/>',
-  file:'<path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/>'
+  file:'<path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/>',
+  wallet:'<rect x="2" y="6" width="20" height="14" rx="3"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1.2"/>'
 };
 function admIcon(k){ return `<svg viewBox="0 0 24 24" aria-hidden="true">${ADM_IC[k]||''}</svg>`; }
 function admInitials(n){ const w = String(n||'?').replace(/,.*$/,'').trim().split(/\s+/).filter(Boolean); return hx(((w[0]||'?')[0] + (w.length>1 ? w[w.length-1][0] : '')).toUpperCase()); }
@@ -1982,60 +2031,234 @@ function admDisputes(a){
   }).join('');
 }
 
-function admUsers(a){
-  const head = admHeadline('Pengguna', 'Cari akun, atau nonaktifkan akun yang bermasalah.');
-  const bar = `<div class="adm-card"><div class="adm-search"><input id="adm-q" type="search" maxlength="100" placeholder="Cari nama atau email…" value="${hx(a.userQ)}" onkeydown="if(event.key==='Enter')adminSearchUsers()">
-    <select id="adm-role"><option value="">Semua peran</option><option value="client" ${a.userRole==='client'?'selected':''}>Klien</option><option value="lawyer" ${a.userRole==='lawyer'?'selected':''}>Pengacara</option><option value="admin" ${a.userRole==='admin'?'selected':''}>Admin</option></select>
-    <button class="btn btn-primary" style="width:100%;flex:none;min-height:48px;border-radius:12px;" onclick="adminSearchUsers()">Cari pengguna</button></div></div>`;
-  if(!a.users) return head + bar;
-  if(!a.users.length) return head + bar + admEmpty('users', 'Pengguna tidak ditemukan.<br>Coba kata kunci lain.');
-  const roleName = { client:'Klien', lawyer:'Pengacara', admin:'Admin' };
-  return head + bar + a.users.map(u => {
-    const me = state.user && u.id === state.user.id;
-    const canAct = u.role !== 'admin' && !me;
-    const act = canAct ? `<div class="adm-actions"><button class="btn ${u.isActive ? 'btn-soft-danger' : 'btn-primary'}" data-id="${hx(u.id)}" onclick="adminToggleUser(this.dataset.id, ${u.isActive ? 'false' : 'true'})">${u.isActive ? 'Nonaktifkan akun' : 'Aktifkan akun'}</button></div>` : '';
-    return `<div class="adm-card"><div class="adm-head"><div class="adm-av">${admInitials(u.fullName)}</div><div class="adm-ht"><h4>${hx(u.fullName)}${me ? ' (Anda)' : ''}</h4><div class="sub">${hx(u.email)}${u.phone ? ' · ' + hx(u.phone) : ''}</div></div><span class="adm-pill ${u.isActive ? 'ok' : 'bad'}">${u.isActive ? 'Aktif' : 'Nonaktif'}</span></div>
-      <dl class="adm-info"><dt>Peran</dt><dd>${hx(roleName[u.role]||u.role)}</dd><dt>Bergabung</dt><dd>${admDate(u.createdAt)}</dd></dl>${act}</div>`;
+const ADM_ROLE = { client:'Klien', lawyer:'Pengacara', admin:'Admin' };
+const ADM_PAY = { paid:['ok','Lunas'], pending:['wait','Menunggu'], refunded:['bad','Dikembalikan'], failed:['bad','Gagal'], funded:['ok','Dana ditahan'], released:['ok','Dilepas ke Mitra'] };
+const ADM_SRC = { biaya_platform:'Biaya Platform', termin:'Termin layanan', booking:'Konsultasi' };
+const ADM_PKS = { awaiting_signatures:['wait','Menunggu tanda tangan'], active:['ok','Aktif'] };
+const ADM_CST = { verified:['ok','Terverifikasi'], rejected:['bad','Ditolak'], pending:['wait','Menunggu'] };
+function admRp(n){ return 'Rp ' + Number(n || 0).toLocaleString('id-ID'); }
+function admDT(v){
+  if(!v) return '-'; const d = new Date(v); if(isNaN(d)) return '-';
+  return d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) + ', ' + d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+function admPill(map, key){ const m = map[key] || ['', key || '-']; return `<span class="adm-pill ${m[0]}">${hx(m[1])}</span>`; }
+function admSearchBar(a, ph, dates){
+  const f = a.flt[a.tab] || {};
+  return `<div class="adm-card"><div class="adm-search"><input id="adm-q" type="search" maxlength="100" placeholder="${hx(ph)}" value="${hx(f.q || '')}" onkeydown="if(event.key==='Enter')adminFilter()">
+    ${dates ? `<div class="adm-dates"><label>Dari tanggal<input id="adm-from" type="date" value="${hx(f.from || '')}"></label><label>Sampai tanggal<input id="adm-to" type="date" value="${hx(f.to || '')}"></label></div>` : ''}
+    <button class="btn btn-primary" style="width:100%;flex:none;min-height:48px;border-radius:12px;" onclick="adminFilter()">${dates ? 'Terapkan' : 'Cari'}</button></div></div>`;
+}
+function admFltSeg(items, key, a){
+  const cur = (a.flt[a.tab] || {})[key] || '';
+  return `<div class="adm-seg">${items.map(([k,l]) => `<button class="adm-chip ${cur === k ? 'on' : ''}" onclick="adminFlt('${key}','${k}')">${l}</button>`).join('')}</div>`;
+}
+function admDocLinks(docs){
+  return (docs || []).map(d => {
+    const label = hx(ADM_DOC[d.type] || d.type || 'Dokumen');
+    return /^https:\/\//i.test(d.fileUrl || '') ? `<a href="${hx(d.fileUrl)}" target="_blank" rel="noopener noreferrer">${label}</a>` : `<span class="adm-pill bad">${label}: tautan tidak aman</span>`;
+  }).join('') || '<span class="adm-none">Belum ada dokumen diunggah</span>';
+}
+function admToggleBtn(id, active){
+  return `<div class="adm-actions"><button class="btn ${active ? 'btn-soft-danger' : 'btn-primary'}" data-id="${hx(id)}" onclick="adminToggleUser(this.dataset.id, ${active ? 'false' : 'true'})">${active ? 'Nonaktifkan akun' : 'Aktifkan akun'}</button></div>`;
+}
+function admDl(kind, label){ return `<button class="adm-dl" onclick="adminCsv('${kind}')">${label || 'Unduh data (CSV, bisa dibuka di Excel)'}</button>`; }
+
+function admDbLawyers(a){
+  const head = admHeadline('Database Pengacara', 'Semua pengacara beserta sertifikat dan dokumennya.');
+  const bar = admSearchBar(a, 'Cari nama, email, no. PERADI, atau kota…', false) + admFltSeg([['','Semua'],['verified','Setuju'],['pending','Menunggu'],['rejected','Ditolak']], 'status', a);
+  if(!a.dbLaw) return head + bar;
+  if(!a.dbLaw.length) return head + bar + admEmpty('users', 'Tidak ada pengacara yang cocok.');
+  return head + bar + `<p class="adm-count">${a.dbLaw.length} pengacara</p>` + admDl('db_pengacara') + a.dbLaw.map(l => {
+    const certs = (l.certificates || []).map(c => `<div class="adm-sub"><div><b>${hx(c.name)}</b><span>${hx([c.issuer, c.number, c.issuedYear].filter(Boolean).join(' · ') || '-')}${c.expiresAt ? ' · s.d. ' + admDate(c.expiresAt) : ''}</span></div>${admPill(ADM_CST, c.status)}</div>`).join('') || '<div class="adm-none">Belum ada sertifikat</div>';
+    return `<div class="adm-card"><div class="adm-head"><div class="adm-av">${admInitials(l.fullName)}</div><div class="adm-ht"><h4>${hx(l.fullName)}</h4><div class="sub">${hx(l.email)}${l.phone ? ' · ' + hx(l.phone) : ''}</div></div>${admPill({ verified:['ok','Disetujui'], rejected:['bad','Ditolak'], pending:['wait','Menunggu'] }, l.status)}</div>
+      <dl class="adm-info"><dt>No. PERADI</dt><dd>${hx(l.barRegistrationNumber)}</dd><dt>Kota</dt><dd>${hx(l.city)}</dd><dt>Pengalaman</dt><dd>${hx(l.yearsExperience)} tahun</dd><dt>Mendaftar</dt><dd>${admDate(l.createdAt)}</dd><dt>Akun</dt><dd>${l.isActive ? 'Aktif' : '<span style="color:var(--danger)">Nonaktif</span>'}</dd></dl>
+      <div class="adm-docs"><small>Sertifikat</small>${certs}</div>
+      <div class="adm-docs"><small>Dokumen verifikasi</small>${admDocLinks(l.documents)}</div>
+      ${admToggleBtn(l.userId, l.isActive)}</div>`;
   }).join('');
+}
+
+function admDbClients(a){
+  const head = admHeadline('Database Klien', 'Data klien, terpisah dari pengacara.');
+  const bar = admSearchBar(a, 'Cari nama, email, atau nomor telepon…', false);
+  if(!a.dbCli) return head + bar;
+  if(!a.dbCli.length) return head + bar + admEmpty('users', 'Tidak ada klien yang cocok.');
+  return head + bar + `<p class="adm-count">${a.dbCli.length} klien</p>` + admDl('db_klien') + a.dbCli.map(u => `<div class="adm-card"><div class="adm-head"><div class="adm-av">${admInitials(u.fullName)}</div><div class="adm-ht"><h4>${hx(u.fullName)}</h4><div class="sub">${hx(u.email)}${u.phone ? ' · ' + hx(u.phone) : ''}</div></div><span class="adm-pill ${u.isActive ? 'ok' : 'bad'}">${u.isActive ? 'Aktif' : 'Nonaktif'}</span></div>
+      <dl class="adm-info"><dt>Bergabung</dt><dd>${admDate(u.createdAt)}</dd><dt>Konsultasi</dt><dd>${hx(u.conversations)} percakapan</dd><dt>Perjanjian</dt><dd>${hx(u.engagements)} layanan berjalan/selesai</dd></dl>
+      ${admToggleBtn(u.id, u.isActive)}</div>`).join('');
+}
+
+function admPks(a){
+  const head = admHeadline('Perjanjian', 'Arsip perjanjian kerja sama klien dan pengacara beserta status tanda tangannya.');
+  const bar = admSearchBar(a, 'Cari judul layanan atau nama pihak…', false) + admFltSeg([['','Semua'],['awaiting_signatures','Menunggu TTD'],['active','Aktif']], 'status', a);
+  if(!a.pks) return head + bar;
+  if(!a.pks.length) return head + bar + admEmpty('file', 'Belum ada perjanjian.');
+  return head + bar + `<p class="adm-count">${a.pks.length} perjanjian</p>` + a.pks.map(p => {
+    const open = a.pksOpen === p.id, d = a.pksDocs[p.id];
+    const sg = (who, at) => `<dt>${who}</dt><dd>${at ? 'Sudah · ' + admDT(at) : '<span style="color:var(--danger)">Belum menandatangani</span>'}</dd>`;
+    return `<div class="adm-card"><div class="adm-head"><div class="adm-av gold">${admIcon('file').replace('<svg','<svg width="24" height="24" style="stroke:currentColor;fill:none;stroke-width:1.9"')}</div><div class="adm-ht"><h4>${hx(p.title)}</h4><div class="sub">Dibuat ${admDate(p.createdAt)}</div></div></div>
+      <div style="margin-bottom:10px;">${admPill(ADM_PKS, p.status)}</div>
+      <dl class="adm-info"><dt>Klien</dt><dd>${hx(p.clientName)}</dd><dt>Pengacara</dt><dd>${hx(p.mitraName)}</dd>${sg('TTD klien', p.clientSignedAt)}${sg('TTD pengacara', p.mitraSignedAt)}<dt>Templat</dt><dd>${hx(p.template)} v${hx(p.templateVersion)}</dd><dt>Kode keaslian</dt><dd style="font-family:monospace;font-size:12.5px;">${hx(String(p.docHash || '').slice(0, 16))}…</dd></dl>
+      ${open ? (d ? `<pre class="adm-doc">${hx(d.docText || '(isi perjanjian kosong)')}</pre>` : '<div class="adm-none" style="margin-top:12px;">Memuat isi perjanjian…</div>') : ''}
+      <div class="adm-actions"><button class="btn btn-primary" data-id="${hx(p.id)}" onclick="adminPksToggle(this.dataset.id)">${open ? 'Tutup isi' : 'Lihat isi perjanjian'}</button><button class="btn btn-outline" style="flex:1;" data-id="${hx(p.id)}" onclick="adminPksDownload(this.dataset.id)">Unduh (.txt)</button></div></div>`;
+  }).join('');
+}
+
+function admConsents(a){
+  const head = admHeadline('Persetujuan Pengguna', 'Catatan siapa menyetujui dokumen apa (syarat, privasi, dll.), versi berapa, dan kapan.');
+  const bar = admSearchBar(a, 'Cari nama, email, atau kode dokumen…', false);
+  if(!a.consents) return head + bar;
+  if(!a.consents.length) return head + bar + admEmpty('file', 'Belum ada catatan persetujuan.');
+  return head + bar + `<p class="adm-count">${a.consents.length} catatan terbaru</p>` + admDl('persetujuan') +
+    `<div class="adm-card" style="padding:6px 16px;">${a.consents.map(c => `<div class="adm-row"><div class="adm-row-t"><b>${hx(c.fullName)}</b><span>${hx(c.email)} · ${hx(ADM_ROLE[c.role] || c.role)}</span></div><div class="adm-row-r"><b>${hx(c.documentKey)} · v${hx(c.version)}</b><span>${admDT(c.acceptedAt)}</span></div></div>`).join('')}</div>`;
+}
+
+function admPayIn(a){
+  const head = admHeadline('Uang Masuk', 'Cek pembayaran dari klien. Cocokkan kode transaksi dengan mutasi bank atau dasbor Midtrans.');
+  const bar = admSearchBar(a, 'Cari nama klien, layanan, atau kode transaksi…', true);
+  if(!a.payIn) return head + bar;
+  const t = a.payIn.totals, rows = a.payIn.rows;
+  const sum = `<div class="adm-sum"><span>Total uang masuk (hanya yang lunas)</span><b>${admRp(t.total)}</b><small>${hx(t.count)} transaksi</small></div>
+    <div class="adm-grid"><div class="adm-stat"><b class="sm">${admRp(t.platformFee)}</b><span>Biaya Platform</span></div><div class="adm-stat"><b class="sm">${admRp(t.termin)}</b><span>Termin layanan</span></div><div class="adm-stat" style="grid-column:1/-1;"><b class="sm">${admRp(t.booking)}</b><span>Konsultasi (chat/video)</span></div></div>`;
+  if(!rows.length) return head + sum + bar + admEmpty('wallet', 'Belum ada pembayaran pada filter ini.');
+  return head + sum + bar + `<p class="adm-count">${rows.length} transaksi${rows.length >= 200 ? ' (200 terbaru, persempit dengan tanggal)' : ''}</p>` + admDl('masuk') + rows.map(r =>
+    `<div class="adm-card"><div class="adm-pay"><div class="adm-ht"><h4>${hx(r.title)}</h4><div class="sub">${hx(r.clientName)} · ${hx(r.clientEmail)}</div></div><div class="adm-amt ${r.counted ? '' : 'muted'}">${admRp(r.amount)}</div></div>
+      <div style="margin:10px 0 2px;display:flex;gap:6px;flex-wrap:wrap;">${admPill(ADM_PAY, r.status)}<span class="adm-pill">${hx(ADM_SRC[r.source] || r.source)}</span></div>
+      <dl class="adm-info"><dt>Waktu</dt><dd>${admDT(r.at)}</dd><dt>Metode</dt><dd>${hx(r.method || '-')}</dd><dt>Kode transaksi</dt><dd style="font-family:monospace;font-size:12.5px;">${hx(r.pspId || '-')}</dd></dl></div>`).join('');
+}
+
+function admPayOut(a){
+  const head = admHeadline('Pencairan ke Mitra', 'Dana termin yang sudah dilepas ke Mitra. Setelah Anda transfer ke rekening Mitra, tandai di sini supaya tercatat.');
+  const bar = admSearchBar(a, 'Cari nama Mitra atau layanan…', true) + admFltSeg([['','Semua'],['todo','Belum transfer'],['done','Sudah']], 'state', a);
+  if(!a.payOut) return head + bar;
+  const t = a.payOut.totals, rows = a.payOut.rows;
+  const sum = `<div class="adm-sum ${t.toTransfer > 0 ? 'hot' : ''}"><span>Perlu ditransfer ke Mitra</span><b>${admRp(t.toTransfer)}</b><small>${hx(t.todoCount)} pencairan menunggu</small></div>
+    <div class="adm-grid"><div class="adm-stat"><b class="sm">${admRp(t.transferred)}</b><span>Sudah ditransfer</span></div><div class="adm-stat"><b class="sm">${admRp(t.held)}</b><span>Dana ditahan (belum dilepas)</span></div></div>`;
+  if(!rows.length) return head + sum + bar + admEmpty('wallet', 'Belum ada pencairan pada filter ini.');
+  return head + sum + bar + `<p class="adm-count">${rows.length} pencairan</p>` + admDl('cair') + rows.map(r => {
+    const done = !!r.transferredAt;
+    const act = r.canMark
+      ? `<div class="adm-actions">${done ? `<button class="btn btn-outline" style="flex:1;" data-id="${hx(r.id)}" onclick="adminMarkTransfer(this.dataset.id,false)">Batalkan tanda</button>` : `<button class="btn btn-primary" data-id="${hx(r.id)}" onclick="adminMarkTransfer(this.dataset.id,true)">Tandai sudah ditransfer</button>`}</div>`
+      : '<div class="adm-none" style="margin-top:10px;">Dicatat otomatis oleh sistem.</div>';
+    return `<div class="adm-card"><div class="adm-pay"><div class="adm-ht"><h4>${hx(r.title)}</h4><div class="sub">Mitra: ${hx(r.mitraName)} · ${hx(r.mitraEmail)}</div></div><div class="adm-amt">${admRp(r.amount)}</div></div>
+      <div style="margin:10px 0 2px;">${done ? '<span class="adm-pill ok">Sudah ditransfer</span>' : '<span class="adm-pill wait">Perlu ditransfer</span>'}</div>
+      <dl class="adm-info"><dt>Dilepas</dt><dd>${admDT(r.at)}</dd>${done ? `<dt>Ditransfer</dt><dd>${admDT(r.transferredAt)}</dd>` : ''}${r.transferNote ? `<dt>Catatan</dt><dd>${hx(r.transferNote)}</dd>` : ''}</dl>${act}</div>`;
+  }).join('');
+}
+
+function adminMarkTransfer(id, on){
+  let note = '';
+  if(on){
+    if(!confirm('Pastikan uang SUDAH benar-benar ditransfer ke rekening Mitra. Tandai sebagai sudah ditransfer?')) return;
+    note = prompt('Catatan transfer (boleh dikosongkan), mis. bank dan tanggal transfer:', '');
+    if(note === null) return;
+  } else if(!confirm('Batalkan tanda "sudah ditransfer" untuk pencairan ini?')) return;
+  adminDo(on ? 'Ditandai sudah ditransfer.' : 'Tanda transfer dibatalkan.', () => api('/admin/milestones/' + encodeURIComponent(id) + '/transferred', { method:'POST', body: on ? { transferred:true, note:(note || '').trim().slice(0, 200) || undefined } : { transferred:false } }));
+}
+
+function admDownload(name, text, type){
+  const b = new Blob([text], { type: type + ';charset=utf-8' }), u = URL.createObjectURL(b), el = document.createElement('a');
+  el.href = u; el.download = name; document.body.appendChild(el); el.click();
+  setTimeout(() => { URL.revokeObjectURL(u); el.remove(); }, 500);
+}
+async function adminPksLoad(id){
+  const a = state.admin; if(a.pksDocs[id]) return a.pksDocs[id];
+  return (a.pksDocs[id] = await api('/admin/agreements/' + encodeURIComponent(id)));
+}
+async function adminPksToggle(id){
+  const a = state.admin;
+  if(a.pksOpen === id){ a.pksOpen = null; render(); return; }
+  a.pksOpen = id; a.err = null; render();
+  try{ await adminPksLoad(id); }catch(e){ a.err = e.message; a.pksOpen = null; }
+  render();
+}
+async function adminPksDownload(id){
+  const a = state.admin;
+  try{
+    const d = await adminPksLoad(id);
+    const head = ['PERJANJIAN KERJA SAMA — ' + (d.title || ''), 'Klien: ' + d.clientName, 'Pengacara: ' + d.mitraName, 'Templat: ' + d.template + ' v' + d.templateVersion, 'Status: ' + d.status,
+      'TTD klien: ' + (d.clientSignedAt || 'belum'), 'TTD pengacara: ' + (d.mitraSignedAt || 'belum'), 'Kode keaslian (hash): ' + d.docHash, '='.repeat(60), '', ''].join('\n');
+    const slug = String(d.title || 'perjanjian').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'perjanjian';
+    admDownload('perjanjian-' + slug + '.txt', head + (d.docText || ''), 'text/plain');
+  }catch(e){ a.err = e.message; render(); }
+}
+function admCsvCell(v){
+  let s = v == null ? '' : String(v);
+  if(/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function adminCsv(kind){
+  const a = state.admin; let head = [], rows = [];
+  if(kind === 'masuk' && a.payIn){
+    head = ['Waktu','Sumber','Keterangan','Klien','Email','Jumlah (Rp)','Status','Metode','Kode transaksi','Dihitung lunas'];
+    rows = a.payIn.rows.map(r => [r.at, ADM_SRC[r.source] || r.source, r.title, r.clientName, r.clientEmail, r.amount, (ADM_PAY[r.status] || [,r.status])[1], r.method, r.pspId, r.counted ? 'ya' : 'tidak']);
+  } else if(kind === 'cair' && a.payOut){
+    head = ['Dilepas','Jenis','Keterangan','Mitra','Email','Jumlah (Rp)','Status transfer','Tanggal transfer','Catatan'];
+    rows = a.payOut.rows.map(r => [r.at, r.source === 'termin' ? 'Termin layanan' : 'Konsultasi', r.title, r.mitraName, r.mitraEmail, r.amount, r.transferredAt ? 'Sudah ditransfer' : 'Perlu ditransfer', r.transferredAt || '', r.transferNote || '']);
+  } else if(kind === 'db_pengacara' && a.dbLaw){
+    head = ['Nama','Email','Telepon','No. PERADI','Kota','Pengalaman (tahun)','Status verifikasi','Akun aktif','Sertifikat'];
+    rows = a.dbLaw.map(l => [l.fullName, l.email, l.phone, l.barRegistrationNumber, l.city, l.yearsExperience, (ADM_CST[l.status] || [,l.status])[1], l.isActive ? 'ya' : 'tidak', (l.certificates || []).map(c => c.name + ' (' + ((ADM_CST[c.status] || [,c.status])[1]) + ')').join('; ')]);
+  } else if(kind === 'db_klien' && a.dbCli){
+    head = ['Nama','Email','Telepon','Akun aktif','Bergabung','Jumlah percakapan','Jumlah layanan'];
+    rows = a.dbCli.map(u => [u.fullName, u.email, u.phone, u.isActive ? 'ya' : 'tidak', u.createdAt, u.conversations, u.engagements]);
+  } else if(kind === 'persetujuan' && a.consents){
+    head = ['Waktu','Nama','Email','Peran','Dokumen','Versi'];
+    rows = a.consents.map(c => [c.acceptedAt, c.fullName, c.email, ADM_ROLE[c.role] || c.role, c.documentKey, c.version]);
+  } else return;
+  const csv = '﻿' + [head].concat(rows).map(r => r.map(admCsvCell).join(',')).join('\r\n');
+  admDownload('lexara-' + kind + '-' + new Date().toISOString().slice(0, 10) + '.csv', csv, 'text/csv');
 }
 
 function admHome(a){
   const s = a.summary; if(!s) return '';
   const todo = (n, ic, title, desc, tab) => `<button class="adm-todo ${n>0 ? 'hot' : ''}" onclick="adminTab('${tab}')"><div class="ti">${admIcon(ic)}</div><div class="tx"><b>${title}</b><span>${n>0 ? desc : 'Tidak ada yang perlu ditinjau'}</span></div><div class="tn">${hx(n)}</div></button>`;
-  const total = (s.lawyersPending||0) + (s.certificatesPending||0) + (s.disputesWaiting||0);
+  const pp = s.payoutsPending || 0;
+  const total = (s.lawyersPending||0) + (s.certificatesPending||0) + (s.disputesWaiting||0) + pp;
+  const quick = (ic, label, tab) => `<button class="adm-qb" onclick="adminTab('${tab}')">${admIcon(ic)}<span>${label}</span></button>`;
   return admHeadline('Ringkasan', 'Yang perlu Anda tangani hari ini.') +
     (total === 0 ? `<div class="adm-allgood">${admIcon('check')}<div>Semua beres. Tidak ada yang menunggu tindakan Anda.</div></div>` : '') +
     todo(s.lawyersPending, 'law', 'Pengacara baru', 'Menunggu verifikasi Anda', 'pengacara') +
     todo(s.certificatesPending, 'cert', 'Sertifikat', 'Menunggu diperiksa', 'sertifikat') +
     todo(s.disputesWaiting, 'alert', 'Sengketa', 'Perlu putusan admin', 'sengketa') +
+    todo(pp, 'wallet', 'Pencairan ke Mitra', 'Perlu ditransfer dan dicatat', 'cair') +
     `<h3 class="adm-h" style="font-size:15px;margin:18px 0 10px;">Data pengguna</h3>
     <div class="adm-grid">
       <div class="adm-stat"><b>${hx(s.clients)}</b><span>Klien</span></div>
-      <div class="adm-stat"><b>${hx(s.lawyers)}</b><span>Pengacara aktif</span></div>
+      <div class="adm-stat"><b>${hx(s.lawyers)}</b><span>Pengacara</span></div>
     </div>
-    <button class="adm-todo" onclick="adminTab('pengguna')" style="min-height:60px;"><div class="ti">${admIcon('users')}</div><div class="tx"><b>Kelola pengguna</b><span>${hx(s.inactive)} akun nonaktif</span></div></button>`;
+    <h3 class="adm-h" style="font-size:15px;margin:18px 0 10px;">Pintasan</h3>
+    <div class="adm-quick">${quick('law','Database pengacara','db_pengacara')}${quick('users','Database klien','db_klien')}${quick('file','Perjanjian','pks')}${quick('wallet','Uang masuk','masuk')}</div>`;
 }
 
 function renderAdmin(){
   const a = state.admin || adminFresh();
-  const s = a.summary;
-  const badge = { pengacara: s && s.lawyersPending, sertifikat: s && s.certificatesPending, sengketa: s && s.disputesWaiting };
-  const icons = { ringkasan:'home', pengacara:'law', sertifikat:'cert', sengketa:'alert', pengguna:'users' };
-  const nav = ADM_TABS.map(([k,l]) => `<button class="adm-nb ${a.tab===k?'on':''}" onclick="adminTab('${k}')" aria-label="${l}"><span class="ic">${admIcon(icons[k])}${badge[k] ? `<span class="bd">${hx(badge[k])}</span>` : ''}</span>${l}</button>`).join('');
+  const s = a.summary || {};
+  const gBadge = { verifikasi: (s.lawyersPending||0) + (s.certificatesPending||0) + (s.disputesWaiting||0), keuangan: s.payoutsPending || 0 };
+  const cur = ADM_GROUPS.find(g => g.tabs.some(t => t[0] === a.tab)) || ADM_GROUPS[0];
+  const nav = ADM_GROUPS.map(g => `<button class="adm-nb ${g.k===cur.k?'on':''}" onclick="adminTab('${g.tabs[0][0]}')" aria-label="${g.l}"><span class="ic">${admIcon(g.ic)}${gBadge[g.k] ? `<span class="bd">${hx(gBadge[g.k])}</span>` : ''}</span>${g.l}</button>`).join('');
+  const sub = cur.tabs.length > 1 ? `<div class="adm-subtabs">${cur.tabs.map(([k,l]) => `<button class="${a.tab===k?'on':''}" onclick="adminTab('${k}')">${l}</button>`).join('')}</div>` : '';
   let body = '';
-  if(a.tab === 'ringkasan') body = admHome(a);
-  else if(a.tab === 'pengacara') body = admLawyers(a);
-  else if(a.tab === 'sertifikat') body = admCerts(a);
-  else if(a.tab === 'sengketa') body = admDisputes(a);
-  else if(a.tab === 'pengguna') body = admUsers(a);
+  switch(a.tab){
+    case 'ringkasan': body = admHome(a); break;
+    case 'pengacara': body = admLawyers(a); break;
+    case 'sertifikat': body = admCerts(a); break;
+    case 'sengketa': body = admDisputes(a); break;
+    case 'db_pengacara': body = admDbLawyers(a); break;
+    case 'db_klien': body = admDbClients(a); break;
+    case 'pks': body = admPks(a); break;
+    case 'persetujuan': body = admConsents(a); break;
+    case 'masuk': body = admPayIn(a); break;
+    case 'cair': body = admPayOut(a); break;
+  }
   const nm = String(state.user.fullName || state.user.email || 'Admin').split(' ')[0];
   return `<div class="screen active" style="display:flex;flex-direction:column;">
     <div class="adm-wrap">
     <div class="adm-top"><div><span class="hi">Halo, ${hx(nm)}</span><b>Lexara Admin</b></div><button class="adm-out" onclick="logout()">Keluar</button></div>
-    <div class="adm-body" id="adm-scroll">
+    <div class="adm-body" id="adm-scroll" data-tab="${hx(a.tab)}">
+      ${sub}
       ${a.err ? `<div class="error-box">${hx(a.err)}</div>` : ''}
       ${a.ok ? `<div class="ok-box">${hx(a.ok)}</div>` : ''}
-      ${a.loading && !(a.summary||a.lawyers||a.certs||a.disputes||a.users) ? '<div class="loading-state">Memuat…</div>' : body}
+      ${a.loading && !(a.summary||a.lawyers||a.certs||a.disputes||a.dbLaw||a.dbCli||a.pks||a.consents||a.payIn||a.payOut) ? '<div class="loading-state">Memuat…</div>' : body}
     </div>
     <nav class="adm-nav">${nav}</nav>
     </div></div>`;
