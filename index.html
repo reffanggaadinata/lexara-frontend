@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Lexara">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,6 +81,9 @@
        di Android/Chrome 100vh = layar saat kolom alamat tersembunyi, lebih tinggi dari yang terlihat,
        sehingga halaman ikut tergeser dan menu bawah "nyangkut". */
     html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
+    /* iPhone/Safari memperbesar layar sendiri saat mengetuk kolom isian berukuran huruf < 16px. */
+    input,select,textarea{font-size:16px !important;}
+    html{-webkit-text-size-adjust:100%;}
     body{padding:0;min-height:0;display:block;}
     .phone{
       width:100%;height:100vh;height:100dvh;min-height:0;
